@@ -6,7 +6,7 @@ liste = "amazing gorgeous blazing stunning tremendous greatest best fantastic ph
 shuffle(liste)
 
 for strophe in range(5):
-    for n in range(2):
+    for n a in range(2):
         for i in range(4):
              print("SPAM ", end='')
         print()
