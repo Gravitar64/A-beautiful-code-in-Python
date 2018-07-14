@@ -1,28 +1,29 @@
-from Google_Maps_Credentials import API_Key
+from Google_Maps_Credentials import APIKey
 import googlemaps
 import csv
 
-csvZeilen = []
+zeilen = []
 with open('origins_destinations.csv') as f:
     readCSV = csv.reader(f)
     for zeile in readCSV:
-        csvZeilen.append(zeile)
+        zeilen.append(zeile)
 
-origins = csvZeilen[0]
-destinations = csvZeilen[1]
+destinations = zeilen[0]
+origins = zeilen[1]
 
-gmaps = googlemaps.Client(key=API_Key)
-distances = gmaps.distance_matrix(destinations, origins)
+gmaps = googlemaps.Client(key=APIKey)
+distances = gmaps.distance_matrix(origins, destinations)
 
-output = [['']+distances['destination_addresses']]
+zeile = ['']+distances['destination_addresses']
+output = [zeile]
 
-for n, zeile in enumerate(distances['rows']):
-    row = []
-    row.append(distances['origin_addresses'][n])
-    for ziel in zeile['elements']:
-        row.append(ziel['duration']['value'])
-    output.append(row)
+for n, row in enumerate(distances['rows']):
+    zeile = []
+    zeile.append(distances['origin_addresses'][n])
+    for ziel in row['elements']:
+        zeile.append(ziel['duration']['value'])
+    output.append(zeile)
 
-with open('Entfernungsmatrix2.csv', 'w', newline="") as f:
+with open('Entfernungsmatrix3.csv', 'w', newline='') as f:
     writer = csv.writer(f)
     writer.writerows(output)
