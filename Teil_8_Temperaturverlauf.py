@@ -7,20 +7,21 @@ tageswert = defaultdict(list)
 # Textdatei einlesen und Dictionary fülle
 with open('temperatur_draußen Temp_2.txt') as f:
     for zeile in f:
-        datumStr, t = zeile.split('\t')
-        datum = (dt.datetime.strptime(datumStr, '%d.%m.%Y %H:%M:%S')).date()
+        datumStr, _, t = zeile.split()
+        print(datumStr,t)
+        datum = dt.datetime.strptime(datumStr, '%d.%m.%Y')
         t = float(t)
         tageswert[datum].append(t)
 
 # Tageswerte ermitteln und Messfehler rausfiltern
 tagMax, tagMin, tagDatum = [], [], []
-for key in tageswert:
-    höchst = max(tageswert[key])
-    tiefst = min(tageswert[key])
+for datum,liste in tageswert.items():
+    höchst = max(liste)
+    tiefst = min(liste)
     if abs(höchst) < 40 and abs(tiefst) < 40:
         tagMax.append(höchst)
         tagMin.append(tiefst)
-        tagDatum.append(key)
+        tagDatum.append(datum)
 
 # plotten der bereinigten Werte
 fig, ax = plt.subplots()
