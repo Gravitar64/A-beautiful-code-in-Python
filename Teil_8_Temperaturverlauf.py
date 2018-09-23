@@ -2,20 +2,18 @@ import matplotlib.pyplot as plt
 import datetime as dt
 from collections import defaultdict
 
+# Textdatei einlesen und Dictionary füllen
 tageswert = defaultdict(list)
-
-# Textdatei einlesen und Dictionary fülle
 with open('temperatur_draußen Temp_2.txt') as f:
     for zeile in f:
         datumStr, _, t = zeile.split()
-        print(datumStr,t)
         datum = dt.datetime.strptime(datumStr, '%d.%m.%Y')
         t = float(t)
         tageswert[datum].append(t)
 
 # Tageswerte ermitteln und Messfehler rausfiltern
 tagMax, tagMin, tagDatum = [], [], []
-for datum,liste in tageswert.items():
+for datum, liste in tageswert.items():
     höchst = max(liste)
     tiefst = min(liste)
     if abs(höchst) < 40 and abs(tiefst) < 40:
