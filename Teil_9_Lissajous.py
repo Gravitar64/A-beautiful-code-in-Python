@@ -41,7 +41,7 @@ class Rotor:
     self.dotY = int(self.y + radius * math.sin(self.winkel))
 
   def reset(self):
-    self.winkel = 0  
+    self.winkel = 0
 
 
 @dataclass
@@ -57,11 +57,12 @@ class Lissajous:
     if len(self.verticies) > 1:
       farbe.hsva = (self.hue, 100, 100)
       pg.draw.lines(screen, farbe, False, self.verticies, 1)
-  
-  #löscht alle Punkte aus der Liste
-  def reset(self):    
+
+  # löscht alle Punkte aus der Liste
+  def reset(self):
     self.verticies = []
-    
+
+
 def setup():
   for n in range(spalten):
     x = n*abstand + abstand // 2
