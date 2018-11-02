@@ -91,8 +91,11 @@ for objekt in matrix:
     objekt.anzMinenErmitteln()
 
 #Hauptschleife zum Bildschirmzeichnen und zur Auswertung der Ereignisse
+clock = pg.time.Clock()
 weitermachen = True
 while weitermachen:
+  #Frames per second setzen
+  clock.tick(20)
   #Events auswerten
   for event in pg.event.get():
     #wenn Fenster geschlossen wird
