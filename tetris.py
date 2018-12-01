@@ -87,7 +87,7 @@ def VollständigeZeilenLöschen():
       anzZeilen += 1
   return anzZeilen**2*100        
 
-figur = Tetrominoe(tetrominoes[rnd.randrange(7)])
+figur = Tetrominoe(rnd.choice(tetrominoes))
 
 weitermachen = True
 clock = pg.time.Clock()
@@ -100,7 +100,7 @@ while weitermachen:
       if not figur.update(1,0):
         ObjektAufsRaster()
         score += VollständigeZeilenLöschen()
-        figur = Tetrominoe(tetrominoes[rnd.randrange(7)])
+        figur = Tetrominoe(rnd.choice(tetrominoes))
     if event.type == SPEEDUP:
       speed = int(speed * 0.8)
       pg.time.set_timer(TETROMINODOWN, speed)
