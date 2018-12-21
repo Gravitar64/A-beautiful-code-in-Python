@@ -1,43 +1,42 @@
-puzzleInput =  open('AdventOfCode_08.txt').read().strip().split()
-puzzleInput = [int(i) for i in puzzleInput]  
+puzzleInput = open('AdventOfCode_08.txt').read().strip().split()
+puzzleInput = [int(i) for i in puzzleInput]
 
 pos = 0
 nodes = {}
 
-def readMetadata():
-  global pos, anzNodes
-  metaDaten = []
+
+def readMetaData():
+  global pos
   childIDs = []
-  nodesID = pos
-  nodes[nodesID] = []
+  metaDaten = []
+  nodeID = pos
+  nodes[nodeID] = []
   anzChilds = puzzleInput[pos]
   anzMeta = puzzleInput[pos+1]
   pos += 2
   for i in range(anzChilds):
     childIDs.append(pos)
-    readMetadata()
+    readMetaData()
   for i in range(anzMeta):
     metaDaten.append(puzzleInput[pos])
     pos += 1
-  nodes[nodesID] = [childIDs, metaDaten]
-  
+  nodes[nodeID] = [childIDs, metaDaten]
 
 
-gesamtSumme = 0  
+gesamtSumme = 0
+
+
 def sumNodes(index):
   global gesamtSumme
-  ergebnis = 0
   node = nodes[index]
   if not node[0]:
     gesamtSumme += sum(node[1])
   else:
-    for childRef in node[1]:
-      if childRef > 0 and childRef <= len(node[0]):
-        ergebnis = sumNodes(node[0][childRef-1])
-  if ergebnis:
-    gesamtSumme += ergebnis
-         
+    for meta in node[1]:
+      if meta > 0 and meta <= len(node[0]):
+        sumNodes(node[0][meta-1])
 
-readMetadata()
+
+readMetaData()
 sumNodes(0)
 print(gesamtSumme)
