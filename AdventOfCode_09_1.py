@@ -1,7 +1,12 @@
 from collections import defaultdict, deque
+import time
 
+start = time.perf_counter()
 puzzleInput =  open('AdventOfCode_09.txt').read().strip().split()
 players, marbles  = int(puzzleInput[0]), int(puzzleInput[6])
+
+#Aufgabe 2 Tag 9
+#marbles *= 100
 
 marble, pos = 1, 0
 circle = deque([0])
@@ -20,6 +25,7 @@ while marble < marbles:
   pos = 0
   player = (marble) % players 
     
-print(max(scoreList.values()))  
+print(max(scoreList.values()))
+print(time.perf_counter()-start)  
       
 
