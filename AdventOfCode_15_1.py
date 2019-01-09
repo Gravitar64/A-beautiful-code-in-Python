@@ -1,28 +1,21 @@
 from dataclasses import dataclass
-import networkx as nx
+import collections
 import time
 
 start = time.perf_counter()
 map = []
 personen = []
-nachbarn = [(0, -1), (-1, 0), (1, 0), (0, 1)]
-G = nx.Graph()
+# Achtung! Koordinaten enthalten (zeile, spalte oder y,x)-Werte um dann danach sortieren zu können
+# (sort pos = y,x nach Leserichtung lt. Aufgabenstellung)
+nachbarn = [(-1, 0), (0, -1), (0, 1), (1, 0)]
 
 
-def xy2i(pos):
-  pass
+def pos2i(pos):
+  return pos[0]*spalten+pos[1]
 
 
 def addPos(pos1, pos2):
   return (pos1[0]+pos2[0], pos1[1]+pos2[1])
-
-
-def addNodeEdges(G, source):
-  G.add_node(source)
-  for nachbar in nachbarn:
-    target = addPos(source, nachbar)
-    if map[xy2i(target)] == '.':
-      G.add_edge(source, target)
 
 
 def printMap():
@@ -34,149 +27,122 @@ def printMap():
   print()
 
 
+def sucheAttackFields(pos):
+  attackFields = []
+  for nachbar in nachbarn:
+    target = addPos(pos, nachbar)
+    if map[pos2i(target)] != '#':
+      attackFields.append(target)
+  return attackFields
+
+
+def sucheFreieNachbarn(pos):
+  freieNachbarn = []
+  for nachbar in nachbarn:
+    target = addPos(pos, nachbar)
+    if map[pos2i(target)] == '.':
+      freieNachbarn.append(target)
+  return freieNachbarn
+
+
+def attackEnemy(person):
+  attackEnemies = []
+  for pos in sucheAttackFields(person.pos):
+    if pos in enemies:
+      attackEnemies.append(enemies[pos])
+  if attackEnemies:
+    enemy = sorted(attackEnemies, key=lambda a: (a.hp, a.pos))[0]
+    person.attackEnemy(enemy)
+    return True
+  return False
+
+
 @dataclass
 class Person():
-  goblin: bool
+  typ: str
   pos: tuple
-  attack: int = 3
-  hit: int = 200
-  alive: bool = True
+  attack: int
+  hp: int = 200
 
   def attackEnemy(self, enemy):
-    enemy.hit -= self.attack
-    if enemy.hit < 0:
-      enemy.alive = False
-      map[xy2i(enemy.pos)] = '.'
-      addNodeEdges(G, enemy.pos)
+    enemy.hp -= self.attack
+    if enemy.hp < 1:
+      map[pos2i(enemy.pos)] = '.'
 
   def move(self, newPos):
-    oldPos = self.pos
-    map[xy2i(oldPos)] = '.'
-    i = xy2i(newPos)
-    if self.goblin:
-      map[i] = 'G'
-    else:
-      map[i] = 'E'
+    map[pos2i(self.pos)] = '.'
+    map[pos2i(newPos)] = self.typ
     self.pos = newPos
-    G.remove_node(newPos)
-    addNodeEdges(G, oldPos)
-
-  def attackFields(self):
-    attackFields = []
-    for nachbar in nachbarn:
-      newPos = addPos(self.pos, nachbar)
-      if map[xy2i(newPos)] == '.':
-        attackFields.append(newPos)
-    return attackFields
-
-  def targets(self):
-    targets = []
-    for nachbar in nachbarn:
-      newPos = addPos(self.pos, nachbar)
-      if map[xy2i(newPos)] != '#':
-        targets.append(newPos)
-    return targets
 
 
 with open('AdventOfCode_15.txt') as f:
-  for y, zeile in enumerate(f):
+  for z, zeile in enumerate(f):
     zeile = zeile.strip()
-    for x, zeichen in enumerate(zeile):
+    for sp, zeichen in enumerate(zeile):
       map.append(zeichen)
       if zeichen == 'G':
-        personen.append(Person(True, (x, y)))
+        personen.append(Person(zeichen, (z, sp), 3))
       elif zeichen == 'E':
-        personen.append(Person(False, (x, y)))
+        personen.append(Person(zeichen, (z, sp), 3))
 spalten = len(zeile)
 
 
-def buildGraph():
-  G = nx.Graph()
-  for i, char in enumerate(map):
-    if char == '.':
-      G.add_node((i % spalten, i // spalten))
-  for node in G.nodes:
-    addNodeEdges(G, node)
-  G.edges
-  return G
+def bfs(person):
+  visited, queue, gefundeneZiele = set(), collections.deque(), []
+  root = person.pos
+  queue.append((root, 0, []))
+  visited.add(root)
+  tiefe = 0
+  while True:
+    vertex, d, path = queue.popleft()
+    if d > tiefe:
+      tiefe += 1
+      if gefundeneZiele:
+        # zuerst nach zielfeld (zeile, spalte = y,x) und dann nach erstem Schritt zum Ziel (zeile, spalte = y,x) sortieren
+        gefundeneZiele.sort(key=lambda x: (x[0], x[1]))
+        return gefundeneZiele[0][1]
+    for nachbar in sucheFreieNachbarn(vertex):
+      if nachbar not in visited:
+        visited.add(nachbar)
+        queue.append((nachbar, tiefe+1, path+[vertex]))
+        if nachbar in targets:
+          path += [vertex]+[nachbar]
+          gefundeneZiele.append([nachbar, path[1]])
+    if not queue:
+      return
 
 
-def xy2i(pos):
-  return pos[1]*spalten+pos[0]
-
-
-def findAttackEnemy(person, enemies):
-  attackEnemies = []
-  for enemy in enemies:
-    if person.pos in enemy.targets():
-      attackEnemies.append(enemy)
-  if attackEnemies:
-    attackEnemies.sort(key=lambda s: (s.hit, s.pos[1], s.pos[0]))
-    return attackEnemies[0]
-
-
-def findBestPath(person, enemies):
-  addNodeEdges(G, person.pos)
-  shortestPath = 9999
-  bestTargets = set()
-  for enemy in enemies:
-    for attackField in enemy.attackFields():
-      try:
-        path = nx.shortest_path(G, person.pos, attackField)
-        pathLength = len(path)
-        if pathLength < shortestPath:
-          shortestPath = pathLength
-          bestTargets = set()
-        if pathLength <= shortestPath:
-          bestTargets.add(attackField)
-      except nx.NetworkXNoPath:
-        pass
-  if bestTargets:
-    bestNextMoves = set()
-    bestTarget = sorted(bestTargets, key=lambda t: (t[1], t[0]))[0]
-    for nachbar in person.attackFields():
-      try:
-        path = nx.shortest_path(G, nachbar, bestTarget)
-        if len(path) < shortestPath:
-          G.remove_node(person.pos)
-          return nachbar
-      except nx.NetworkXNoPath:
-        pass
-  else:
-    G.remove_node(person.pos)
-
-
-G = buildGraph()
 beendet = False
 runde = 0
 while not beendet:
   runde += 1
-  personen = [p for p in personen if p.alive]
-  personen.sort(key=lambda p: (p.pos[1], p.pos[0]))
+  personen.sort(key=lambda a: a.pos)
   for person in personen:
-    if person.alive:
-      enemies = []
-      for enemy in personen:
-        if enemy.goblin != person.goblin and enemy.alive:
-          enemies.append(enemy)
-      if not enemies:
-        beendet = True
-        runde -= 1
-        break
-      else:
-        attackEnemy = findAttackEnemy(person, enemies)
-        if attackEnemy:
-          person.attackEnemy(attackEnemy)
-        else:
-          pos = findBestPath(person, enemies)
-          if pos:
-            person.move(pos)
-          attackEnemy = findAttackEnemy(person, enemies)
-          if attackEnemy:
-            person.attackEnemy(attackEnemy)
+    if person.hp < 1:
+      continue
+    targets = set()
+    enemies = {}
+
+    for enemy in personen:
+      if person.typ == enemy.typ or enemy.hp < 1:
+        continue
+      targets.update(sucheFreieNachbarn(enemy.pos))
+      enemies[enemy.pos] = enemy
+
+    if not enemies:
+      beendet = True
+      runde -= 1
+      break
+
+    if not attackEnemy(person):
+      pos = bfs(person)
+      if pos:
+        person.move(pos)
+        attackEnemy(person)
 
 
-summeHitPoints = sum([p.hit for p in personen if p.alive])
+summeHitPoints = sum([p.hp for p in personen if p.hp > 0])
+print()
 print('Vollendete Runden: ', runde)
 print('Summe HitPoints  : ', summeHitPoints)
 print('Lösung           : ', runde*summeHitPoints)
