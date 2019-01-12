@@ -3,7 +3,7 @@ import collections
 import time
 
 start = time.perf_counter()
-map = {}
+amap = {}
 personen = [
 
 ]
