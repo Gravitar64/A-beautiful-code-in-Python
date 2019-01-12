@@ -4,9 +4,7 @@ import time
 
 start = time.perf_counter()
 map = {}
-personen = [
-
-]
+personen = []
 # Achtung! Koordinaten enthalten (zeile, spalte oder y,x)-Werte um dann danach sortieren zu können
 # (sort pos = y,x nach Leserichtung lt. Aufgabenstellung)
 nachbarn = [(-1, 0), (0, -1), (0, 1), (1, 0)]
@@ -40,7 +38,7 @@ def attackEnemy(person):
     if pos in enemies:
       attackEnemies.append(enemies[pos])
   if attackEnemies:
-    enemy = sorted(attackEnemies, key=lambda a: (a.hp, a.pos))[0]
+    enemy = sorted(attackEnemies, key=lambda p: (p.healthPoints, p.pos))[0]
     person.attackEnemy(enemy)
     return True
   return False
@@ -51,17 +49,16 @@ class Person():
   typ: str
   pos: tuple
   attack: int
-  hp: int = 200
+  healthPoints: int = 200
 
   def attackEnemy(self, enemy):
-    enemy.hp -= self.attack
-    if enemy.hp < 1:
+    enemy.healthPoints -= self.attack
+    if enemy.healthPoints < 1:
       map[enemy.pos] = '.'
-
+      
   def move(self, newPos):
     map[self.pos], map[newPos] = map[newPos], map[self.pos]
     self.pos = newPos
-
 
 with open('AdventOfCode_15.txt') as f:
   for z, zeile in enumerate(f):
@@ -107,19 +104,19 @@ beendet = False
 runde = 0
 while not beendet:
   runde += 1
-  personen.sort(key=lambda a: a.pos)
+  personen.sort(key=lambda p: p.pos)
   for person in personen:
-    if person.hp < 1:
+    if person.healthPoints < 1:
       continue
     targets = set()
     enemies = {}
 
     for enemy in personen:
-      if person.typ == enemy.typ or enemy.hp < 1:
+      if person.typ == enemy.typ or enemy.healthPoints < 1:
         continue
       targets.update(sucheFreieNachbarn(enemy.pos))
       enemies[enemy.pos] = enemy
-
+      
     if not enemies:
       beendet = True
       runde -= 1
@@ -132,7 +129,7 @@ while not beendet:
         attackEnemy(person)
 
 
-summeHitPoints = sum([p.hp for p in personen if p.hp > 0])
+summeHitPoints = sum([p.healthPoints for p in personen if p.healthPoints > 0])
 print()
 print('Vollendete Runden: ', runde)
 print('Summe HitPoints  : ', summeHitPoints)

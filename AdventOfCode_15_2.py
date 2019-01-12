@@ -37,7 +37,7 @@ def attackEnemy(person):
     if pos in enemies:
       attackEnemies.append(enemies[pos])
   if attackEnemies:
-    enemy = sorted(attackEnemies, key=lambda a: (a.hp, a.pos))[0]
+    enemy = sorted(attackEnemies, key=lambda a: (a.healthPoints, a.pos))[0]
     person.attackEnemy(enemy)
     return True
   return False
@@ -48,11 +48,11 @@ class Person():
   typ: str
   pos: tuple
   attack: int
-  hp: int = 200
+  healthPoints: int = 200
 
   def attackEnemy(self, enemy):
-    enemy.hp -= self.attack
-    if enemy.hp < 1:
+    enemy.healthPoints -= self.attack
+    if enemy.healthPoints < 1:
       map[enemy.pos] = '.'
 
   def move(self, newPos):
@@ -104,13 +104,13 @@ while not beendet:
   runde += 1
   personen.sort(key=lambda a: a.pos)
   for person in personen:
-    if person.hp < 1:
+    if person.healthPoints < 1:
       continue
     targets = set()
     enemies = {}
 
     for enemy in personen:
-      if person.typ == enemy.typ or enemy.hp < 1:
+      if person.typ == enemy.typ or enemy.healthPoints < 1:
         continue
       targets.update(sucheFreieNachbarn(enemy.pos))
       enemies[enemy.pos] = enemy
@@ -128,7 +128,7 @@ while not beendet:
 
 
 AnzElfenEnde = len([p for p in personen if p.typ == 'E'])
-summeHitPoints = sum([p.hp for p in personen if p.hp > 0])
+summeHitPoints = sum([p.healthPoints for p in personen if p.healthPoints > 0])
 print()
 print(f'Anz Elfen Start : {AnzElfenStart}, Anz Elfen Ende: {AnzElfenEnde}')
 print('Vollendete Runden: ', runde)
