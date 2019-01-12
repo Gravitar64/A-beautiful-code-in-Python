@@ -3,35 +3,24 @@ import collections
 import time
 
 start = time.perf_counter()
-map = []
-personen = []
+map = {}
+personen = [
+
+]
 # Achtung! Koordinaten enthalten (zeile, spalte oder y,x)-Werte um dann danach sortieren zu können
 # (sort pos = y,x nach Leserichtung lt. Aufgabenstellung)
 nachbarn = [(-1, 0), (0, -1), (0, 1), (1, 0)]
-
-
-def pos2i(pos):
-  return pos[0]*spalten+pos[1]
 
 
 def addPos(pos1, pos2):
   return (pos1[0]+pos2[0], pos1[1]+pos2[1])
 
 
-def printMap():
-  print('Runde: ', runde)
-  for i, char in enumerate(map):
-    print(char, end='')
-    if (i+1) % spalten == 0:
-      print()
-  print()
-
-
 def sucheAttackFields(pos):
   attackFields = []
   for nachbar in nachbarn:
     target = addPos(pos, nachbar)
-    if map[pos2i(target)] != '#':
+    if map[target] != '#':
       attackFields.append(target)
   return attackFields
 
@@ -40,7 +29,7 @@ def sucheFreieNachbarn(pos):
   freieNachbarn = []
   for nachbar in nachbarn:
     target = addPos(pos, nachbar)
-    if map[pos2i(target)] == '.':
+    if map[target] == '.':
       freieNachbarn.append(target)
   return freieNachbarn
 
@@ -67,11 +56,10 @@ class Person():
   def attackEnemy(self, enemy):
     enemy.hp -= self.attack
     if enemy.hp < 1:
-      map[pos2i(enemy.pos)] = '.'
+      map[enemy.pos] = '.'
 
   def move(self, newPos):
-    map[pos2i(self.pos)] = '.'
-    map[pos2i(newPos)] = self.typ
+    map[self.pos], map[newPos] = map[newPos], map[self.pos]
     self.pos = newPos
 
 
@@ -79,7 +67,7 @@ with open('AdventOfCode_15.txt') as f:
   for z, zeile in enumerate(f):
     zeile = zeile.strip()
     for sp, zeichen in enumerate(zeile):
-      map.append(zeichen)
+      map[(z, sp)] = zeichen
       if zeichen == 'G':
         personen.append(Person(zeichen, (z, sp), 3))
       elif zeichen == 'E':
@@ -102,12 +90,15 @@ def bfs(person):
         gefundeneZiele.sort(key=lambda x: (x[0], x[1]))
         return gefundeneZiele[0][1]
     for nachbar in sucheFreieNachbarn(vertex):
-      if nachbar not in visited:
-        visited.add(nachbar)
-        queue.append((nachbar, tiefe+1, path+[vertex]))
-        if nachbar in targets:
-          path += [vertex]+[nachbar]
-          gefundeneZiele.append([nachbar, path[1]])
+      if nachbar in visited:
+        continue
+      visited.add(nachbar)
+      queue.append((nachbar, tiefe+1, path+[vertex]))
+      if nachbar not in targets:
+        continue
+      path += [vertex]+[nachbar]
+      gefundeneZiele.append([nachbar, path[1]])
+    
     if not queue:
       return
 
