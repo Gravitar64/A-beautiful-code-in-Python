@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 import collections
 import time
+test2
 
 start = time.perf_counter()
 map = {}
