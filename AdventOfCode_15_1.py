@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 import collections
 import time
+import matplotlib
 
 start = time.perf_counter()
 map = {}
