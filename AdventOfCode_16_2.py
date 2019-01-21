@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from collections import defaultdict
 import time 
 
 start = time.perf_counter()
@@ -12,11 +13,12 @@ class Sample():
   regAfter : list
 
 samples = []
+instructions = []
 part1 = True
 with open('AdventOfCode_16.txt') as f:
   for zeile in f:
+    zeile = zeile.strip()
     if part1:
-      zeile = zeile.strip()
       if 'Before' in zeile:
         before = [int(a) for a in zeile[9:19].split(',')]
         anzLeer = 0  
@@ -29,6 +31,8 @@ with open('AdventOfCode_16.txt') as f:
         anzLeer += 1
         if anzLeer > 2:
           part1 = False
+    else:
+      instructions.append([int(a) for a in zeile.split()])
 
 def addr(a, b, register):
   return register[a] + register[b]
@@ -78,24 +82,38 @@ def eqri(a, b, register):
 def eqrr(a, b, register):
   return bool(register[a] == register[b])   
   
-functions = {addr:'addr', addi:'addi', mulr:'mulr', muli:'muli', 
-             banr:'banr', bani:'bani', borr:'borr', bori:'bori', 
-             setr:'setr', seti:'seti', gtir:'gtir', gtri:'gtri', 
-             gtrr:'gtrr', eqir:'eqir', eqri:'eqri', eqrr:'eqrr'}
+functions = {'addr':addr, 'addi':addi, 'mulr':mulr, 'muli':muli, 
+             'banr':banr, 'bani':bani, 'borr':borr, 'bori':bori, 
+             'setr':setr, 'seti':seti, 'gtir':gtir, 'gtri':gtri, 
+             'gtrr':gtrr, 'eqir':eqir, 'eqri':eqri, 'eqrr':eqrr}
 
 def listOfPossibleOpcodes(sample):
   possibleOpcodes = []
   C = sample.regAfter[sample.C]
-  for func,text in functions.items():
+  for text, func in functions.items():
     if C == func(sample.A, sample.B, sample.regBefore):
       possibleOpcodes.append(text)
   return possibleOpcodes    
       
   
-ergebnis = {}
+ergebnis = defaultdict(set)
 for i, sample in enumerate(samples):
-  ergebnis[i] = listOfPossibleOpcodes(sample)
-  
-lösung = len([kv for kv in ergebnis.items() if len(kv[1]) > 2])
-print(lösung)
+  ergebnis[sample.opCode].update(listOfPossibleOpcodes(sample))
+
+op = {}
+while len(op) < 16:
+  for k,v in ergebnis.items():  
+    if len(v) == 1:
+      text = v.pop()
+      op[k] = functions[text]
+      for opText in ergebnis.values():
+        if text in opText:
+          opText.remove(text)
+
+register = [0,0,0,0]
+for i in instructions:
+  opCode, A, B, C = i
+  register[C] = op[opCode](A, B, register)
+
+print(register[0])
 print(time.perf_counter()-start)   
