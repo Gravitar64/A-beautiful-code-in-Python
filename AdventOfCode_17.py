@@ -22,6 +22,8 @@ with open('adventofcode_17.txt') as f:
 
 miny = min([p[1] for p in clay])
 maxy = max([p[1] for p in clay])
+minx = min([p[0] for p in clay])
+maxx = max([p[0] for p in clay])
 
 
 def addPos(pos1, pos2):
@@ -79,7 +81,20 @@ def flood(pos):
 flood((500, 0))
 
 
-print('Part 1: ', len([pt for pt in fließend if miny <= pt[1] <= maxy]))
+print('Part 1: ', len([pos for pos in fließend if miny <= pos[1] <= maxy]))
 print('Part 2: ', len(stehend))
 print(time.perf_counter()-start)
 
+with open('AdventOfCode_Solution_Tag_17.txt', 'w') as f:
+  for y in range(miny, maxy):
+    f.write('\n')
+    for x in range(minx, maxx):
+      pos = (x,y)
+      if pos in clay:
+        f.write('#')
+      elif pos in stehend:
+        f.write('~')
+      elif pos in fließend:
+        f.write('|')
+      else:
+        f.write(' ')      
