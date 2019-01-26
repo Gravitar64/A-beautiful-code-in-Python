@@ -13,7 +13,7 @@ for tweed in tweeds:
     text = text + ' ' + tweed.full_text
 
 wordcloud = WordCloud(width=1920, height=1200)
-STOPWORDS.update(['https', 'co'])
+STOPWORDS.update(['https', 'co', 'amp'])
 wordcloud.generate(text)
 plt.imshow(wordcloud)
 plt.axis('off')
