@@ -11,7 +11,7 @@ class Sample():
   
 
 samples = []
-with open('aoc_19.txt') as f:
+with open('.\AdventOfCode_19.txt') as f:
   for zeile in f:
     if '#' in zeile:
       ip_reg=int(zeile[4])
