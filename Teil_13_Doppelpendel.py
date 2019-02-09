@@ -3,7 +3,7 @@ import math
 import pygame as pg
 
 PI = math.pi
-G = 1
+g = 1
 BREITE = 900
 HÖHE = 600
 
@@ -11,26 +11,26 @@ HÖHE = 600
 @dataclass
 class Pendel():
   anfPos: tuple
-  winkel: float
-  länge: int
-  masse: int
-  acc: float = 0
-  vel: float = 0
+  θ: float
+  L: int
+  m: int
+  θ1 : float = 0
+  θ2 : float = 0
   endPos : tuple = (0,0)
 
   def endPosBerechnen(self):
-    x = int(self.anfPos[0] + self.länge*math.sin(self.winkel))
-    y = int(self.anfPos[1] + self.länge*math.cos(self.winkel))
+    x = int(self.anfPos[0] + self.L*math.sin(self.θ))
+    y = int(self.anfPos[1] + self.L*math.cos(self.θ))
     self.endPos = (x,y)
 
   def show(self):
     pg.draw.line(screen, (255, 255, 255), self.anfPos, self.endPos, 3)
-    pg.draw.circle(screen, (255, 0, 0), self.endPos, self.masse)
+    pg.draw.circle(screen, (255, 0, 0), self.endPos, self.m)
 
   def updateWinkel(self,acceleration):
-    self.acc = acceleration
-    self.vel += self.acc
-    self.winkel += self.vel
+    self.θ2 = acceleration
+    self.θ1 += self.θ2
+    self.θ += self.θ1
     self.endPosBerechnen()  
 
 
@@ -58,22 +58,20 @@ while weitermachen:
   # Events auswerten
   for event in pg.event.get():
     # wenn Fenster geschlossen wird
-    if event.type == pg.QUIT:
+    if event.type == pg.QUIT or (event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE):
       weitermachen = False
   
   #Quelle der Formeln = https://myphysicslab.com/pendulum/double-pendulum-en.html
-  acc1 = -G*(2*p1.masse+p2.masse)*math.sin(p1.winkel)-p2.masse \
-    * G * math.sin(p1.winkel - 2*p2.winkel) \
-    - 2 * math.sin(p1.winkel - p2.winkel) * p2.masse \
-    * (p2.vel**2*p2.länge + p1.vel**2*p1.länge*math.cos(p1.winkel-p2.winkel))
-  acc1 = acc1 / (p1.länge*(2*p1.masse+p2.masse -
-                               p2.masse*math.cos(2*p1.winkel-2*p2.winkel)))
+  acc1 = (-g*(2*p1.m+p2.m)*math.sin(p1.θ)-p2.m \
+    * g * math.sin(p1.θ - 2*p2.θ) \
+    - 2 * math.sin(p1.θ - p2.θ) * p2.m \
+    * (p2.θ1**2*p2.L + p1.θ1**2*p1.L*math.cos(p1.θ-p2.θ))) \
+    / (p1.L*(2*p1.m+p2.m - p2.m*math.cos(2*p1.θ-2*p2.θ)))
 
-  acc2 = 2*math.sin(p1.winkel-p2.winkel)*(p1.vel**2*p1.länge*(p1.masse+p2.masse) \
-    + G * (p1.masse+p2.masse) * math.cos(p1.winkel) \
-    + p2.vel**2*p2.länge*p2.masse* math.cos(p1.winkel - p2.winkel))
-  acc2 = acc2 / (p1.länge*(2*p1.masse+p2.masse -
-                               p2.masse*math.cos(2*p1.winkel-2*p2.winkel)))
+  acc2 = (2*math.sin(p1.θ-p2.θ)*(p1.θ1**2*p1.L*(p1.m+p2.m) \
+    + g * (p1.m+p2.m) * math.cos(p1.θ) \
+    + p2.θ1**2*p2.L*p2.m* math.cos(p1.θ - p2.θ))) \
+    / (p1.L*(2*p1.m+p2.m - p2.m*math.cos(2*p1.θ-2*p2.θ)))
 
   p1.updateWinkel(acc1)
   p2.updateWinkel(acc2)
@@ -81,7 +79,7 @@ while weitermachen:
 
   p1.show()
   p2.show()
-  pg.draw.line(screen2, (0, 255, 0), oldPos, p2.endPos, 2)
+  pg.draw.line(screen2, (0, 150, 255), oldPos, p2.endPos, 2)
   oldPos = p2.endPos
 
   pg.display.flip()
