@@ -1,47 +1,43 @@
-richtungen = {'N': (0,-1), 'E':(1,0), 'W':(-1,0), 'S':(0,1)}
+from collections import defaultdict
+import time
+
+start = time.perf_counter()
+
+richtungen = {'N': (0, -1), 'E': (1, 0), 'W': (-1, 0), 'S': (0, 1)}
+
 
 def addPos(pos1, pos2):
   return (pos1[0] + pos2[0], pos1[1]+pos2[1])
 
-with open('aoc_20.txt') as f:
+
+with open('AdventOfCode_20.txt') as f:
   raw = f.readline()
   raw = raw[1:-1]
 
-def printMap():
-  minx = min([x[0] for x in map.keys()])
-  maxx = max([x[0] for x in map.keys()])
-  miny = min([y[1] for y in map.keys()])
-  maxy = max([y[1] for y in map.keys()])
-  for y in range (miny-1, maxy+2):
-    print()
-    for x in range (minx-1, maxx+2):
-      if (x,y) in map:
-        print(map[x,y], end = '')
-      else:
-        print('#',end='')
-  
-map = {(0,0) : 'X'}
-pos = 0
 
 def mapErstellen(aktPos):
-  global pos
-  while pos < len(raw):
-    zeichen = raw[pos]
-    pos += 1
+  map = defaultdict(int)
+  stack = []
+  lastPos = aktPos
+  for zeichen in raw:
     if zeichen in richtungen:
       aktPos = addPos(aktPos, richtungen[zeichen])
-      if zeichen in ('S', 'N'):
-        map[aktPos] = '-'
-      else:
-        map[aktPos] = '|'
-      aktPos = addPos(aktPos, richtungen[zeichen])
-      map[aktPos] = '.'
+      if aktPos not in map:
+        map[aktPos] = map[lastPos]+1
     elif zeichen == '(':
-      mapErstellen(aktPos)
+      stack.append(aktPos)
+    elif zeichen == ')':
+      aktPos = stack.pop()
     elif zeichen == '|':
-      return
+      aktPos = stack[-1]
+    lastPos = aktPos
+  return map
 
-    
-mapErstellen((0,0))
-printMap()
 
+map = mapErstellen((0, 0))
+lösung1 = max(map.values())
+lösung2 = len([x for x in map.values() if x > 999])
+
+print(f'Lösung Tag 20, Teil 1: {lösung1}')
+print(f'Lösung Tag 20, Teil 2: {lösung2}')
+print(time.perf_counter() - start)
