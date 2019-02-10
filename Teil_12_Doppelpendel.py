@@ -52,10 +52,7 @@ while weitermachen:
   screen.fill((0, 0, 0))
   screen.blit(screen2,(0,0))
 
-  acc1 = (-g*(2*p1.m + p2.m)*math.sin(p1.θ)-p2.m \
-          *g*math.sin(p1.θ - 2*p2.θ) - 2*math.sin(p1.θ - p2.θ)*p2.m \
-          *(p2.θ1**2*p2.L+p1.θ1**2*p1.L*math.cos(p1.θ-p2.θ))) \
-          /(p1.L*(2*p1.m+p2.m-p2.m*math.cos(2*p1.θ-2*p2.θ)))
+  acc1 = (−g*(2* m1 + m2) sin θ1 − m2 g sin(θ1 − 2 θ2) − 2 sin(θ1 − θ2) m2 (θ2'2 L2 + θ1'2 L1 cos(θ1 − θ2))
   acc2 = (2*math.sin(p1.θ-p2.θ)*(p1.θ1**2*p1.L*(p1.m+p2.m) \
           +g*(p1.m+p2.m)*math.cos(p1.θ)+p2.θ1**2*p2.L*p2.m \
           *math.cos(p1.θ-p2.θ))) \
