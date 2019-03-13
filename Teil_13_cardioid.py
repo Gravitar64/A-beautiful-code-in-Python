@@ -1,35 +1,32 @@
 import pygame as pg
 from math import *
 
-
-def i2Point(i):
-  x, y = center
-  # tau = 2* pi, +pi um das bild um 180° zu drehen
-  w = tau / total * i + pi
-  x1 = int(x + r * cos(w))
-  y1 = int(y + r * sin(w))
-  return (x1, y1)
-
-
-total = 200
-faktor = 0
+TOTAL = 200
+faktor = 2.2
 breite, höhe = 1150, 1150
-center = (breite//2, höhe//2)
-r = breite//2-16
+zentrum = (breite//2, höhe//2)
+zx, zy = zentrum
+
+
+def i2Punkt(i):
+  winkel = tau / TOTAL * i + pi
+  x = int(zx + radius * cos(winkel))
+  y = int(zy + radius * sin(winkel))
+  return (x, y)
+
 
 pg.init()
 screen = pg.display.set_mode((breite, höhe))
 screen2 = pg.Surface([breite, höhe])
+radius = breite//2-16
 farbe = pg.Color(150, 150, 150)
 
-points = []
-pg.draw.circle(screen2, (255, 255, 255), center, r, 2)
-x, y = center
-for i in range(total):
-  point = i2Point(i)
-  pg.draw.circle(screen2, (0, 150, 255), point, 4,)
-  points.append(point)
-
+pg.draw.circle(screen2, (255, 255, 255), zentrum, radius, 2)
+punkte = []
+for i in range(TOTAL):
+  punkt = i2Punkt(i)
+  punkte.append(punkt)
+  pg.draw.circle(screen2, (0, 150, 255), punkt, 4)
 
 clock = pg.time.Clock()
 weitermachen = True
@@ -38,17 +35,16 @@ while weitermachen:
   screen.blit(screen2, (0, 0))
   faktor += 0.002
   for event in pg.event.get():
-    if event.type == pg.QUIT or (event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE):
+    if event.type == pg.QUIT or \
+            (event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE):
       weitermachen = False
 
-  for i, p in enumerate(points):
-    z = (i * faktor) % total
-    farbe.hsva = (360 / total * z, 100, 100)
-    pg.draw.line(screen, farbe, p, (i2Point(z)))
-
-  textsurface = pg.font.SysFont('cour', 82).render(
-      f'{faktor:6.1f}', False, (farbe))
-  screen.blit(textsurface, (3, 10))
+  for startnr in range(TOTAL):
+    zielnr = (startnr * faktor) % TOTAL
+    startpunkt = punkte[startnr]
+    zielpunkt = i2Punkt(zielnr)
+    farbe.hsva = (360/TOTAL * zielnr, 100, 100)
+    pg.draw.line(screen, farbe, startpunkt, zielpunkt, 1)
 
   pg.display.flip()
 
