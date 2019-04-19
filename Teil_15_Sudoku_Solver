@@ -1,135 +1,114 @@
 import time
 
-def i2spalte_zeile(i):
-  zeile = i // 9
+def i2pos(i):
+  """Nimmt eine Zahl zwischen 0 und 80 entgegen und liefert ein Tuple 
+  mit (spalte, zeile und quadrant) zurück """
+  zeile =  i // 9
   spalte = i % 9
-  return spalte,zeile
+  quadrant = zeile//3*3+spalte//3
+  return (spalte,zeile,quadrant)
 
-def print_board():
-  for feld in freie_stellen:
-    b[feld] = 0
+def print_board(nr):
+  print(f'Position Nr. {nr}')
   for i in range(81):
-    print () if i % 9 == 0 else None
-    pos = i2spalte_zeile(i)
-    print(b[pos],' ',end='')
+    pos = i2pos(i)
+    print(board[pos],' ',end='')  
+    print () if (i+1) % 9 == 0 else None  
   print()
   
 
 
-def change_board(spalte,zeile,zahl,löschen):
-  if löschen:
-    spalten[spalte].add(zahl)
-    zeilen[zeile].add(zahl)
-    quadrate[zeile//3*3+spalte//3].add(zahl)
-    freie_stellen.add((spalte,zeile))
-  else:
+def change_board(pos,zahl,setzen):
+  '''für (pos,zahl,setzen) wird auf der pos die 
+  zahl gesetzt (setzen = True) oder gelöscht (setzen = False)'''
+  spalte, zeile, quadrant = pos
+  if setzen:
     spalten[spalte].remove(zahl)
     zeilen[zeile].remove(zahl)
-    quadrate[zeile//3*3+spalte//3].remove(zahl)
-    b[(spalte, zeile)] = zahl
-    freie_stellen.remove((spalte,zeile))
+    quadrate[quadrant].remove(zahl)
+    freie_stellen.remove(pos)
+    board[pos] = zahl
+  else:  
+    spalten[spalte].add(zahl)
+    zeilen[zeile].add(zahl)
+    quadrate[quadrant].add(zahl)
+    freie_stellen.add(pos)
 
 def bestes_Feld():
+  '''liefert ein Tuple mit (Position, Liste der möglichen Einträge) von dem Feld zurück, 
+  dass die geringste Anzahl an möglichen Einträgen enthält'''
   best = 9
-  best_feld = ()
-  for feld in freie_stellen:
-    spalte, zeile = feld
-    
-    #die in der jeweiligen Spalte, Zeile, Quadrat möglichen Lösungen werden
-    #UND-Verknüpft (=Intersection). In m liegt dann das Set() der möglichen Lösungen
-    #die in allen drei Sets für dieses Feld in spalte, zeile übereinstimmen
-    m = quadrate[zeile//3*3+spalte//3] & spalten[spalte] & zeilen[zeile]
-    
-    #wenn bei einem der freien Felder kein gültiger Eintrag mehr möglich ist (m = leer)
-    #dann befinden wir uns in einer Sackgasse und geben sofort dieses leere Feld zurück
-    if not m:
-      return (spalte, zeile ,m)
-    länge = len(m)
-    
-    #wenn die Anzahl der gültigen Einträge = 1 ist, können wir das direkt zurückgeben 
-    if länge == 1:
-      return (spalte, zeile, m)
+  for pos in freie_stellen:
+    spalte, zeile, quadrant = pos
+    möglichkeiten = spalten[spalte] & zeilen[zeile] & quadrate[quadrant]
+    länge = len(möglichkeiten)
+    if länge == 1 or not möglichkeiten:
+      return (pos ,möglichkeiten)
     if länge < best:
       best = länge
-      best_feld = (spalte, zeile, m)
-  return best_feld
+      best_feld = (pos, möglichkeiten)
+  
+  return best_felld
 
 def solve():
-  #wenn es keine freien Stellen mehr gibt, haben wir die Lösung gefunden
-  #und geben True zurück (führt in jeder Rekursionsstufe zu einen Return = True)
-  if not freie_stellen:
-    return True
-  
-  #wir holen uns das Feld mit der geringsten Anzahl an Möglichkeiten
-  spalte, zeile, moeg = bestes_Feld()
-  
-  #hier befinden wir uns in einer Sackgasse und gehen eine Rekursionsstufe
-  #zurück, machen dort aber mit dem Löschen des vorher gesetzten Feldes weiter
-  if not moeg:
+  '''Löst das Sudoku rekursiv indem es in dem Feld mit der geringsten Anzahl an möglichen Einträgen
+  eine Zahl einträgt und danach dann solve wieder auftruft. Wenn die Liste der freien Stellen leer
+  ist, ist das Sudoku gelöst'''
+  pos, möglichkeiten = bestes_Feld()
+  if not möglichkeiten:
     return False
-  
-  #hier probieren wir alle möglichen Einträge für das Feld mit der geringsten Zahl
-  #an Möglichkeiten aus
-  for m in moeg:
-    #die Möglichkeit wird gesetzt
-    change_board(spalte, zeile, m, False)
-    #danach springen wir eine Rekursionsstiefe tiefer und machen dort weiter
-    
-    #wenn solve true zurückliefert (= Lösung gefunden), dann liefert diese Rekursionsstufe
-    #auch True zurücke. Dadurch kaskadieren die Trues durch alle Rekursionsstufen zurück
-    #bis auch der erste Aufruf der Funktion beendet ist
-    if solve():
+  for zahl in möglichkeiten:
+    change_board(pos, zahl, True)
+    if not freie_stellen or solve():
       return True
-    
-    #wenn aber solve ein False zurückliefert, landen wir hier
-    #hier wird der zuvor ausprobierte Eintrag wieder zurückgenommen
-    #und durch die Schleife der nächste Eintrag ausprobiert
-    change_board(spalte, zeile, m, True)
-    
-#alle Möglichkeiten durchprobiert wurden, kehren wir um eine Rekursionsstiefe zurück
-#und setzen dort den letzten wert zurück usw. usw.    
-  
+    change_board(pos, zahl, False)
+
+
+#globale Variablen
 full_set = {1,2,3,4,5,6,7,8,9}
 sudokus = []
+board = {}
+freie_stellen = set()
+spalten = []
+zeilen = []
+quadrate = []
 
-with open ('Sudoku_top100_hard.txt') as f:
-  for c, sudoku in enumerate(f):
+def init(sudoku):
+  '''generiert aus einem übergebenen String mit der Anfangs-Zahlenverteilung
+  ein board-Dictionary mit Key = Tuple(spalte,zeile,quadrant) und Value = Zahl des Feldes
+  und die Liste der möglichen Zahlen für jede Spalte, Zeile und jeden Quadranten als Set(). Zusätzlich
+  wird ein Set der freien Stellen mit den Tuple für (spalte,zeile,quadrant) angelegt'''
+  for i, char in enumerate(sudoku):
+    board[i2pos(i)] = int(char)
+  
+  spalten.clear()
+  zeilen.clear()
+  quadrate.clear()
+  freie_stellen.clear()
+
+  for _ in range(9):
+    spalten.append(full_set.copy())
+    zeilen.append(full_set.copy())
+    quadrate.append(full_set.copy())     
+
+  for i in range(81):
+    pos = i2pos(i)     
+    freie_stellen.add(pos)
+    if board[pos] == 0:
+      continue
+    change_board(pos,board[pos],True)
+
+with open ('Sudoku_2635_hard.txt') as f:
+  for nr, sudoku in enumerate(f):
     start = time.perf_counter()
-    board = [int(char) for char in sudoku.strip()]
-    b = {}
-    #enthalten die möglichen Einträge, die noch in der jeweiligen
-    #Spalte, Zeile oder Quadrat möglich sind
-    spalten = []
-    zeilen = []
-    quadrate = []
-    freie_stellen = set()
-
-    for _ in range(9):
-      spalten.append(full_set.copy())
-      zeilen.append(full_set.copy())
-      quadrate.append(full_set.copy())
-            
-
-    for i in range(81):
-      spalte, zeile = i2spalte_zeile(i)
-      b[(spalte,zeile)] = board[i]
-      freie_stellen.add((spalte,zeile))
-      if b[(spalte,zeile)] == 0:
-        continue
-      change_board(spalte,zeile,board[i],False)
-
+    init(sudoku.rstrip())
     solve()
-    # print_board()
-    # if not freie_stellen:
-    #   print(f'Nr. {c} gelöst in {time.perf_counter()-start:4.4f} Sek.')
-    # else:
-    #   print(f'Nr. {c} unlösbar festgestellt nach {time.perf_counter()-start:4.4f} Sek.')
-    zeit = time.perf_counter()-start
-    sudokus.append((zeit,c+1))
-    #print(f'Nr. {c + 1:5d} in {zeit:7.4f} Sek.')
+    zeit = (time.perf_counter() - start)*1_000
+    sudokus.append((zeit, nr + 1))
+    
     
 summe_zeit = sum([x for x,y in sudokus])
 sudokus.sort(reverse=True)    
-print(f'{c+1} Sudokus gelöst in {summe_zeit:7.4f} Sek. ({summe_zeit/(c+1):7.4f})')
+print(f'{nr+1} Sudokus gelöst in {summe_zeit:.0f} Millisek. (ø {summe_zeit/(nr+1):.0f} ms)')
 for i in range(10):
-  print(f'{sudokus[i][0]:7.4f} Sek. für Nr. {sudokus[i][1]:5d}')
+  print(f'{sudokus[i][0]:5,.0f} Millisek. für Nr. {sudokus[i][1]:5d}')
