@@ -1,0 +1,150 @@
+#4-gewinnt
+import random as rnd
+from collections import defaultdict
+import time
+
+
+board = {}
+player = True
+RICHTUNGEN = [(-1,-1), (0,-1), (1,-1), (-1,0), (1, 0), (-1,1), (0,1), (1,1)]
+SPALTEN = 7
+ZEILEN = 6
+ZELLEN = SPALTEN * ZEILEN
+pos_zu_quadindex = defaultdict(list)
+
+def posGültig(pos):
+  spalte, zeile = pos
+  return spalte > -1 and spalte < SPALTEN and zeile > -1 and zeile < ZEILEN
+
+def quadGültig(pos,vec):
+  pos = (pos[0]+vec[0]*3, pos[1]+vec[1]*3)
+  return posGültig(pos)
+  
+  
+def quadPositionen(pos, vec):
+  positionen = [pos]
+  for i in range(3):
+    pos = (pos[0]+vec[0], pos[1]+vec[1])
+    positionen.append(pos)
+  return positionen
+    
+  
+def findeQuads():
+  quads = []
+  zähler = 0
+  for i in range(ZELLEN):
+    pos = i2pos(i)
+    for richtung in RICHTUNGEN:
+      if quadGültig(pos, richtung):
+        quads.append([True, True, 0, 0])
+        for position in  quadPositionen(pos, richtung):
+          pos_zu_quadindex[position].append(zähler)
+        zähler += 1
+  return quads      
+
+def i2pos(i):
+  spalte = i % SPALTEN
+  zeile = i // SPALTEN
+  return (spalte, zeile)
+  
+def finde_tiefste_stelle(spalte):
+  for zeile in range(ZEILEN):
+    if (spalte,zeile) in board:
+      return zeile-1
+  return zeile    
+  
+def liefer_gültige_spalten():
+  gültige_spalten = []
+  for spalte in range(SPALTEN):
+    gültige_spalten.append(spalte) if (spalte, 0) not in board else None
+  return gültige_spalten
+  
+def feld_setzen(player, pos):
+  board[pos] = 1 if player else 2
+  for index in pos_zu_quadindex[pos]:
+    quad = quads[index]
+    if not quad[0] and not quad[1]: continue
+    if player:
+      quad[2] += 1
+    else:
+      quad[3] += 1
+    anz1 = quad[2]
+    anz2 = quad[3]
+  
+    if anz1 > 0 and anz2 > 0:
+      quad[0] = False
+      quad[1] = False
+    if anz1 >= 0 and anz2 == 0:
+      quad[0] = True
+      quad[1] = False
+    if anz2 >= 0 and anz1 == 0:
+      quad[1] = True
+      quad[0] = False
+     
+  
+def gültigeZüge():
+  gültig = []
+  for spalte in liefer_gültige_spalten():
+    zeile = finde_tiefste_stelle(spalte)
+    gültig.append((spalte,zeile))
+  return gültig
+  
+def print_board():
+  for i in range(ZELLEN):
+    print(board[i2pos(i)],end = ' ') if i2pos(i) in board else print('_', end = ' ')
+    print() if (i+1) % SPALTEN == 0 else 0
+
+def besterZug(player,positionen):
+  best = -999
+  win = False
+  best_pos = False
+  for pos in positionen:
+    score = 0
+    for index in pos_zu_quadindex[pos]:
+      quad = quads[index]
+      if player and quad[0]:
+        score += 1+quad[2]**2
+        if quad[2]+1 == 4:
+          score = 99999
+          win = True
+          break
+      if not player and quad[1]:
+        score += 1+quad[3]**2
+        if quad[3]+1 == 4:
+          score = 99999
+          win = True
+          break
+    if score > best:
+      best = score
+      best_pos = pos
+  return best_pos, win      
+    
+start = time.perf_counter()    
+quads = findeQuads()
+
+
+while True:
+  best_Zug, win = besterZug(player, gültigeZüge()) 
+  if not best_Zug: break
+  print(f'Mein Zug : {best_Zug}')
+  feld_setzen(player, best_Zug)
+  # print_board()
+  # print('\n'*2)
+  if win:
+    print('Ich habe gewonnen!')
+    break
+  player = not player
+  # s = int(input('Ihr Zug (Spalte 0 - 6): '))
+  # z = finde_tiefste_stelle(s)
+  # meinZug = (s,z)
+  best_Zug, win = besterZug(player, gültigeZüge())
+  print(f'Ihr Zug : {best_Zug}')
+  feld_setzen(player, best_Zug)
+  # print_board()
+  # print('\n'*2)
+  if win:
+    print('Sie haben gewonnen!')
+    break
+  player = not player
+
+print(time.perf_counter()-start)
