@@ -57,7 +57,7 @@ def bestes_feld():
     anz_kandidaten = len(kandidaten)
     if anz_kandidaten < 2:
       return (pos, kandidaten)
-    if anz_kandidaten < beste_bisherige_anzahl:
+    if anz_kandidaten <= beste_bisherige_anzahl:
       best_feld = (pos, kandidaten)
       beste_bisherige_anzahl = anz_kandidaten
   return best_feld
@@ -67,6 +67,7 @@ def löse():
   if not freie_felder:
     return True
   pos, kandidaten = bestes_feld()
+  kandidaten = sorted(kandidaten)
   for kandidat in kandidaten:
     feld_setzen(pos, kandidat)
     if löse():
