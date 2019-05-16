@@ -13,7 +13,7 @@ pos_zu_quadindex = defaultdict(list)
 
 def posGültig(pos):
   spalte, zeile = pos
-  return spalte > -1 and spalte < SPALTEN and zeile > -1 and zeile < ZEILEN
+  return -1 < spalte < SPALTEN and -1 < zeile < ZEILEN
 
 
 def quadGültig(pos, vec):
@@ -68,13 +68,12 @@ def feld_ändern(player, pos, setzen):
 
   for index in pos_zu_quadindex[pos]:
     quad = quads[index]
-    anz_index = 0 if player else 1
-    if setzen:
-      quad[anz_index] += 1
-      if quad[anz_index] == 4:
+    if setzen :
+      quad[player] += 1
+      if quad[player] == 4:
         win = True
     else:
-      quad[anz_index] -= 1
+      quad[player] -= 1
   return win
 
 def gültigeZüge():
@@ -96,11 +95,11 @@ def bewertung():
   score = 0
   for pos in board:
     for index in pos_zu_quadindex[pos]:
-      quad = quads[index]
-      if quad[0] > 0 and quad[1] > 0:
+      anz1, anz2, _ = quads[index]
+      if anz1 > 0 and anz2 >0:
         continue
-      score += 1+quad[0]**3
-      score -= 1+quad[1]**3
+      score += 1+anz2*10
+      score -= 1+anz1*10
   return score
 
 
@@ -155,7 +154,7 @@ def computer():
   zugliste = sorted(bewerteteZüge(player), reverse=player)
   for pos in zugliste:
     win = feld_ändern(player, pos[1], True)
-    pos[0] = alphabeta(5, -999999, 999999, not player, win)
+    pos[0] = alphabeta(6, -999999, 999999, not player, win)
     feld_ändern(player, pos[1], False)
   zugliste.sort(reverse=player)
   best_Zug = zugliste[0][1]
@@ -172,7 +171,7 @@ def human():
 
 def spielende(win):
   if win:
-    print(f'Spieler {1 if player else 2} hat gewonnen)')
+    print(f'Spieler {1 if player else 2} hat gewonnen')
     return True
   if len(board) == ZELLEN:
     print('UNENTSCHIEDEN!!!!')
