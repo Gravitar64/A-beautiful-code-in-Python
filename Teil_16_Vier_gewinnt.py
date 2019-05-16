@@ -22,7 +22,7 @@ def quadGültig(pos, vec):
 
 def quadPositionen(pos, vec):
   positionen = {pos}
-  for i in range(3):
+  for _ in range(3):
     pos = (pos[0]+vec[0], pos[1]+vec[1])
     positionen.add(pos)
   return positionen
@@ -34,7 +34,8 @@ def findeQuads():
   for i in range(ZELLEN):
     pos = i2pos(i)
     for richtung in RICHTUNGEN:
-      if not quadGültig(pos, richtung): continue
+      if not quadGültig(pos, richtung):
+        continue
       quads[zähler] = [0, 0, quadPositionen(pos, richtung)]
       for position in quadPositionen(pos, richtung):
         pos_zu_quadindex[position].append(zähler)
@@ -68,13 +69,14 @@ def feld_ändern(player, pos, setzen):
 
   for index in pos_zu_quadindex[pos]:
     quad = quads[index]
-    if setzen :
+    if setzen:
       quad[player] += 1
       if quad[player] == 4:
         win = True
     else:
       quad[player] -= 1
   return win
+
 
 def gültigeZüge():
   gültig = []
@@ -96,7 +98,7 @@ def bewertung():
   for pos in board:
     for index in pos_zu_quadindex[pos]:
       anz1, anz2, _ = quads[index]
-      if anz1 > 0 and anz2 >0:
+      if anz1 > 0 and anz2 > 0:
         continue
       score += 1+anz2*10
       score -= 1+anz1*10
@@ -140,15 +142,18 @@ def alphabeta(depth, α, β, player, win):
         break  # α cut-off
     return value
 
+
 def löscheQuads():
   to_del = []
   for index, values in quads.items():
-    if values[0] == 0 or values[1] == 0: continue
+    if values[0] == 0 or values[1] == 0:
+      continue
     to_del.append(index)
     for position in values[2]:
       pos_zu_quadindex[position].remove(index)
   for index in to_del:
-    del quads[index]      
+    del quads[index]
+
 
 def computer():
   zugliste = sorted(bewerteteZüge(player), reverse=player)
@@ -158,16 +163,18 @@ def computer():
     feld_ändern(player, pos[1], False)
   zugliste.sort(reverse=player)
   best_Zug = zugliste[0][1]
-  win=feld_ändern(player, best_Zug, True)
+  win = feld_ändern(player, best_Zug, True)
   print(zugliste)
   print(f'Spieler {1 if player else 2}: {best_Zug}')
   return win
+
 
 def human():
   spalte = int(input('Ihr Zug (0-6): '))
   zeile = lieferZeile(spalte)
   win = feld_ändern(player, (spalte, zeile), True)
   return win
+
 
 def spielende(win):
   if win:
@@ -177,6 +184,7 @@ def spielende(win):
     print('UNENTSCHIEDEN!!!!')
     return True
 
+
 quads = findeQuads()
 start = time.perf_counter()
 
@@ -185,7 +193,7 @@ while True:
   if player:
     win = computer()
   else:
-    win = computer()  
+    win = computer()
   printBoard()
   print('\n')
   if spielende(win):
