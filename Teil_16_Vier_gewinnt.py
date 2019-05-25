@@ -36,10 +36,17 @@ def findeQuads():
     for richtung in RICHTUNGEN:
       if not quadGültig(pos, richtung):
         continue
-      quads[zähler] = [0, 0, quadPositionen(pos, richtung)]
-      for position in quadPositionen(pos, richtung):
-        pos_zu_quadindex[position].append(zähler)
-      zähler += 1
+      positionen = quadPositionen(pos, richtung)
+      aufnehmen = True
+      for quad in quads.values():
+        if positionen == quad[2]:
+          aufnehmen = False
+      if aufnehmen:    
+        quads[zähler] = [0, 0, positionen]
+        for position in positionen:
+          pos_zu_quadindex[position].append(zähler)
+        zähler += 1
+
   return quads
 
 
@@ -118,7 +125,7 @@ def bewerteteZüge(player):
 
 def alphabeta(depth, α, β, player, win):
   if win:
-    return -99999 if player else 99999
+    return -99999-depth if player else 99999+depth
   if depth == 0 or len(board) == ZELLEN:
     return bewertung()
   if player:
