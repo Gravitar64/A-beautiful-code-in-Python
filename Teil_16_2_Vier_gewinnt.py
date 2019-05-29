@@ -6,33 +6,34 @@ ZEILEN = 6
 ZELLEN = SPALTEN * ZEILEN
 RICHTUNGEN = [(-1, -1), (0, -1), (1, -1), (-1, 0),
               (1, 0), (-1, 1), (0, 1), (1, 1)]
-pos2quads = defaultdict(list)              
+pos2Index = defaultdict(list)
 
+def quadPositionen(pos, richtung):
+  positionen = set()
+  sp, ze = pos
+  rsp, rze = richtung
+  neue_sp, neue_ze = sp + rsp*3, ze+rze*3
+  if neue_sp < 0 or neue_sp >= SPALTEN or neue_ze < 0 or neue_ze >= ZEILEN:
+    return False
+  for i in range(4):
+    positionen.add((sp+rsp*i, ze+rze*i))
+  return positionen
 
-def findeQuads():
-  quads = {} # key = index, value = Liste [anz rote, gelbe Steine, koordinaten des quads]
+def quadsErmitteln():
   zähler = 0
+  quads = {}
+  bekannte_positionen = set()
   for i in range(ZELLEN):
-    spalte, zeile = i % SPALTEN, i // SPALTEN
     for richtung in RICHTUNGEN:
-      sp_neu, zeile_neu = spalte + richtung[0]*3, zeile + richtung[1]*3
-      if -1 < sp_neu < SPALTEN and -1 < zeile_neu < ZEILEN:
-        positionen = set()
-        for n in range(4):
-          sp_neu = spalte + richtung[0]*n
-          zeile_neu = zeile + richtung[1]*n
-          positionen.add((sp_neu,zeile_neu))
-        redundant = False
-        for quad in quads.values():
-          if quad[2] == positionen:
-            redundant = True
-        if not redundant:    
-          quads[zähler] = [0,0,positionen]
-          for position in positionen:
-            pos2quads[position].append(zähler)
-          zähler += 1
-  return quads      
-
+      pos = (i % SPALTEN, i // SPALTEN)
+      positionen = quadPositionen(pos, richtung)
+      if not positionen or positionen in bekannte_positionen: continue
+      quads[zähler] = [0,0] # Anzahl der gelben[0], roten[1] Steine im Quad
+      for position in positionen:
+        pos2Index[position].append(zähler)
+      bekannte_positionen.add(frozenset(positionen))
+      zähler += 1  
+  return quads
 
 def findeTiefsteZeile(spalte):
   for zeile in reversed(range(ZEILEN)):
@@ -58,83 +59,37 @@ def printSpielfeld():
       print('.', end=' ')
   print()
 
-def zugSetzen(pos, spieler):
+def steinSetzen(pos, spieler):
   win = False
   spielfeld[pos] = 'O' if spieler else 'X'
-  for i in pos2quads[pos]:
-    if spieler:
-      quads[i][0] += 1
-      if quads[i][0] == 4:
-        win = True
-    else:
-      quads[i][1] += 1
-      if quads[i][1] == 4:
-        win = True 
+  for i in pos2Index[pos]:
+    quads[i][spieler] +=1
+    if quads[i][spieler] == 4:
+      win = True
   return win
 
-def zugLöschen(pos, spieler):
+def steinLöschen(pos, spieler):
   del spielfeld[pos]
-  for i in pos2quads[pos]:
-    if spieler:
-      quads[i][0] -= 1
-    else:
-      quads[i][1] -= 1
+  for i in pos2Index[pos]:
+    quads[i][spieler] -=1
 
 def bewerten():
   score = 0
   for pos in spielfeld:
-    for i in pos2quads[pos]:
-      if quads[i][0] > 0 and quads[i][1] > 0: continue
-      score += 1+quads[i][0]*10
-      score -= 1+quads[i][1]*10
-  return score    
+    for i in pos2Index[pos]:
+      gelbe, rote = quads[i]
+      if gelbe > 0 and rote > 0: continue
+      score += rote*10
+      score -= gelbe*10
+  return score
 
 def zugliste():
   züge = []
   for spalte in range(SPALTEN):
     if not spalteGültig(spalte): continue
     zeile = findeTiefsteZeile(spalte)
-    züge.append((spalte, zeile))
-  return züge    
-
-
-def minimax(tiefe, alpha, beta, spieler, win):
-  if win:
-    return -99999-tiefe if spieler else 99999+tiefe
-  if tiefe == 0 or len(spielfeld) == ZELLEN:
-    return bewerten()
-  if spieler:
-    value = -999999
-    for zug in zugliste():
-      win = zugSetzen(zug, spieler)
-      value = max(value, minimax(tiefe-1, alpha, beta, not spieler, win))
-      zugLöschen(zug, spieler)
-      alpha = max(alpha, value)
-      if alpha >= beta:
-        break
-  else:
-    value = 999999
-    for zug in zugliste():
-      win = zugSetzen(zug, spieler)
-      value = min(value, minimax(tiefe-1, alpha, beta, not spieler, win))
-      zugLöschen(zug, spieler)
-      beta = min(beta, value)
-      if alpha >= beta:
-        break
-  return value
-
-def computer(spieler):
-  bewertete_Züge = []
-  for zug in zugliste():
-    win = zugSetzen(zug, spieler)
-    value = minimax(6,-999999, 999999, not spieler, win)
-    bewertete_Züge.append((value, zug))
-    zugLöschen(zug, spieler)
-  bewertete_Züge.sort(reverse=spieler)
-  win = zugSetzen(bewertete_Züge[0][1], spieler)
-  print(bewertete_Züge)
-  print(f'Spieler {1 if spieler else 2} setzt {bewertete_Züge[0][1]}')
-  return win  
+    züge.append((spalte,zeile))
+  return züge  
 
 def human(spieler):
   while True:
@@ -142,10 +97,48 @@ def human(spieler):
     if spalteGültig(spalte):
       break
   zeile = findeTiefsteZeile(spalte)
-  win = zugSetzen((spalte,zeile), spieler)
+  win = steinSetzen((spalte,zeile), spieler)
   return win
 
-quads = findeQuads()
+def computer(spieler):
+  bewertete_züge = []
+  for zug in zugliste():
+    win = steinSetzen(zug, spieler)
+    score = minimax(7, -999999, 999999, spieler, win)
+    steinLöschen(zug, spieler)
+    bewertete_züge.append((score,zug))
+  bewertete_züge.sort(reverse=spieler)
+  score, bester_zug = bewertete_züge[0]
+  win = steinSetzen(bester_zug, spieler)
+  print(bewertete_züge)
+  print(f'Spieler {1 if spieler else 2} setzt {bester_zug} mit der Bewertung {score}')
+  return win  
+
+def minimax(tiefe, alpha, beta, spieler, win):
+  if win:
+    return 99999+tiefe if spieler else -99999-tiefe
+  if tiefe == 0 or len(spielfeld) == ZELLEN:
+    return bewerten()
+  spieler = not spieler
+  value = -999999 if spieler else 999999
+  for zug in zugliste():
+    win = steinSetzen(zug, spieler)
+    score = minimax(tiefe-1, alpha, beta, spieler, win)
+    steinLöschen(zug, spieler)
+    if spieler:
+      value = max(value, score)
+      alpha = max(value, alpha)  
+    else:
+      value = min(value, score)
+      beta = min(value, beta)
+    if alpha >= beta:
+      break
+  return value    
+
+quads = quadsErmitteln()
+
+
+
 spieler = True
 while True:
   printSpielfeld()
