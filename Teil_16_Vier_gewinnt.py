@@ -11,42 +11,32 @@ ZELLEN = SPALTEN * ZEILEN
 pos_zu_quadindex = defaultdict(list)
 
 
-def posGültig(pos):
-  spalte, zeile = pos
-  return -1 < spalte < SPALTEN and -1 < zeile < ZEILEN
-
-
-def quadGültig(pos, vec):
-  return posGültig((pos[0]+vec[0]*3, pos[1]+vec[1]*3))
-
-
 def quadPositionen(pos, vec):
-  positionen = {pos}
-  for _ in range(3):
-    pos = (pos[0]+vec[0], pos[1]+vec[1])
-    positionen.add(pos)
+  positionen = set()
+  sp, ze = pos
+  rsp, rze = vec
+  neue_sp, neue_ze = sp + rsp*3, ze+rze*3
+  if neue_sp < 0 or neue_sp >= SPALTEN or neue_ze < 0 or neue_ze >= ZEILEN:
+    return False
+  for i in range(4):
+    positionen.add((sp+rsp*i, ze+rze*i))
   return positionen
 
 
 def findeQuads():
-  quads = {}
   zähler = 0
+  quads = {}
+  bekannte_positionen = set()
   for i in range(ZELLEN):
-    pos = i2pos(i)
     for richtung in RICHTUNGEN:
-      if not quadGültig(pos, richtung):
+      positionen = quadPositionen(i2pos(i), richtung)
+      if not positionen or positionen in bekannte_positionen:
         continue
-      positionen = quadPositionen(pos, richtung)
-      aufnehmen = True
-      for quad in quads.values():
-        if positionen == quad[2]:
-          aufnehmen = False
-      if aufnehmen:    
-        quads[zähler] = [0, 0, positionen]
-        for position in positionen:
-          pos_zu_quadindex[position].append(zähler)
-        zähler += 1
-
+      quads[zähler] = [0, 0, positionen]  # Anzahl der gelben[0], roten[1] Steine im Quad
+      for position in positionen:
+        pos_zu_quadindex[position].append(zähler)
+      bekannte_positionen.add(frozenset(positionen))
+      zähler += 1
   return quads
 
 
@@ -67,23 +57,21 @@ def lieferSpalten():
   return gültige_spalten
 
 
-def feld_ändern(player, pos, setzen):
+def SteinSetzen(player, pos):
   win = False
-  if setzen:
-    board[pos] = 'O' if player else 'X'
-  else:
-    del board[pos]
-
+  board[pos] = 'O' if player else 'X'
   for index in pos_zu_quadindex[pos]:
     quad = quads[index]
-    if setzen:
-      quad[player] += 1
-      if quad[player] == 4:
-        win = True
-    else:
-      quad[player] -= 1
+    quad[player] += 1
+    if quad[player] == 4:
+      win = True
   return win
 
+def SteinLöschen(player, pos):
+  del board[pos]
+  for index in pos_zu_quadindex[pos]:
+    quads[index][player] -= 1
+  
 
 def gültigeZüge():
   gültig = []
@@ -104,50 +92,12 @@ def bewertung():
   score = 0
   for pos in board:
     for index in pos_zu_quadindex[pos]:
-      anz1, anz2, _ = quads[index]
-      if anz1 > 0 and anz2 > 0:
+      gelbe, rote, _ = quads[index]
+      if gelbe > 0 and rote > 0:
         continue
-      score += 1+anz2*10
-      score -= 1+anz1*10
+      score += rote*10
+      score -= gelbe*10
   return score
-
-
-def bewerteteZüge(player):
-  zugliste = gültigeZüge()
-  bewerteteZüge = []
-  for pos in zugliste:
-    feld_ändern(player, pos, True)
-    score = bewertung()
-    bewerteteZüge.append([score, pos])
-    feld_ändern(player, pos, False)
-  return bewerteteZüge
-
-
-def alphabeta(depth, α, β, player, win):
-  if win:
-    return -99999-depth if player else 99999+depth
-  if depth == 0 or len(board) == ZELLEN:
-    return bewertung()
-  if player:
-    value = -999999
-    for child in gültigeZüge():
-      win = feld_ändern(player, child, True)
-      value = max(value, alphabeta(depth-1, α, β, False, win))
-      feld_ändern(player, child, False)
-      α = max(α, value)
-      if α >= β:
-        break  # β cut-off
-    return value
-  else:
-    value = 999999
-    for child in gültigeZüge():
-      win = feld_ändern(player, child, True)
-      value = min(value, alphabeta(depth-1, α, β, True, win))
-      feld_ändern(player, child, False)
-      β = min(β, value)
-      if α >= β:
-        break  # α cut-off
-    return value
 
 
 def löscheQuads():
@@ -162,24 +112,43 @@ def löscheQuads():
     del quads[index]
 
 
-def computer():
-  zugliste = sorted(bewerteteZüge(player), reverse=player)
-  for pos in zugliste:
-    win = feld_ändern(player, pos[1], True)
-    pos[0] = alphabeta(6, -999999, 999999, not player, win)
-    feld_ändern(player, pos[1], False)
-  zugliste.sort(reverse=player)
-  best_Zug = zugliste[0][1]
-  win = feld_ändern(player, best_Zug, True)
-  print(zugliste)
-  print(f'Spieler {1 if player else 2}: {best_Zug}')
+def computer(spieler):
+  win = False
+  score, bester_zug = minimax(8, -999999, 999999, spieler, win)
+  win = SteinSetzen(spieler, bester_zug)
+  print(f'Spieler {1 if spieler else 2} setzt {bester_zug} mit der Bewertung {score}')
   return win
 
 
-def human():
-  spalte = int(input('Ihr Zug (0-6): '))
+def minimax(tiefe, alpha, beta, spieler, win):
+  if win:
+    score = -99999-tiefe if spieler else 99999+tiefe
+    return (score, None)
+  if tiefe == 0 or len(board) == ZELLEN:
+    return (bewertung(), None)
+  value = -999999 if spieler else 999999
+  for zug in gültigeZüge():
+    win = SteinSetzen(spieler, zug)
+    score,_ = minimax(tiefe-1, alpha, beta, not spieler, win)
+    SteinLöschen(spieler,zug)
+    if spieler:
+      if score > value:
+        bester_zug = zug
+        value = score
+        alpha = max(value, alpha)
+    else:
+      if score < value:
+        bester_zug = zug
+        value = score
+      beta = min(value, beta)
+    if alpha >= beta:
+      break
+  return (value, bester_zug)
+
+def human(player):
+  spalte = int(input(f'Ihr Zug {lieferSpalten()}: '))
   zeile = lieferZeile(spalte)
-  win = feld_ändern(player, (spalte, zeile), True)
+  win = SteinSetzen(player, (spalte, zeile))
   return win
 
 
@@ -198,9 +167,9 @@ start = time.perf_counter()
 player = True
 while True:
   if player:
-    win = computer()
+    win = human(player)
   else:
-    win = computer()
+    win = computer(player)
   printBoard()
   print('\n')
   if spielende(win):
