@@ -37,6 +37,8 @@ grid = [9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,
 
 directions = {0:(1,0), 1:(-1,0), 2:(0,-1), 3:(0,1)}
 dir_invers = {v:k for (k,v) in directions.items()}
+grid_save = grid.copy()
+dots = {}
 
 class Dot:
   def __init__(self, x,y, image):
@@ -143,6 +145,7 @@ class Pacman(Actor):
     moveSprite(self.sprites[self.modus][0],self.x,self.y,centre=True)
     
   def eatDot(self):
+    global grid
     i = xy2i(self.x, self.y)
     if grid[i] in (1,2):
       if grid[i] == 2:
@@ -150,10 +153,19 @@ class Pacman(Actor):
       grid[i] = 0
       killSprite(dots[i].sprite)
       del dots[i]
+    if not dots:
+      changeGameStatus('nextLevel')
+      timer2 = threading.Timer(1.2, nextPacman)
+      timer2.start()
+      grid = grid_save.copy()
+      dotsAufbauen()
+
+
 
 def changeGhostMode(modus):
   for ghost in ghosts:
-    ghost.changeMode(modus)
+    if ghost.modus != 'die':
+      ghost.changeMode(modus)
   if modus == 'flucht':
     timer1 = threading.Timer(5.0, changeGhostMode, ('blink',)) 
     timer2 = threading.Timer(8.0, changeGhostMode, ('jagd',))
@@ -175,7 +187,29 @@ def i2xy(i):
   return x,y
 
 def sync(x,y):
-  return i2xy(xy2i(x,y))  
+  return i2xy(xy2i(x,y)) 
+
+def nextPacman():
+  pacman.x, pacman.y = sync(321,420)
+  blinky.x, blinky.y = sync(335,276)
+  pinky.x, pinky.y = sync(300,348)
+  inky.x, inky.y = sync(348,348)
+  clyde.x, clyde.y = sync(396,348)
+  for ghost in ghosts:
+    sprite = ghost.sprites[ghost.modus][0]
+    hideSprite(sprite)
+    ghost.modus = 'jagd'
+    sprite = ghost.sprites[ghost.modus][0]
+    moveSprite(sprite,ghost.x, ghost.y, centre=True)
+  pacman.changeMode('run')
+  timer1 = threading.Timer(1.5, changeGameStatus, ('run',))
+  timer1.start()
+
+def changeGameStatus(status):
+  global game_status
+  game_status = status
+
+
 
 setAutoUpdate(False)
 w = 672
@@ -194,18 +228,24 @@ inky = Ghosts("inky_tileset2.png", sync(348,348))
 clyde = Ghosts("clyde_tileset2.png", sync(396,348))
 ghosts = [blinky, pinky, inky, clyde]
 
-dots = {}
-for i, zahl in enumerate(grid):
-  if zahl == 1: 
-    x,y = i2xy(i)
-    dots[i] = Dot(x,y,"dot.png")
-  if zahl == 2:
-    x,y = i2xy(i)
-    dots[i] = Dot(x,y,"bit_dot.png")  
+
+
+
+def dotsAufbauen():
+  global dots
+  dots = {}
+  for i, zahl in enumerate(grid):
+    if zahl == 1: 
+      x,y = i2xy(i)
+      dots[i] = Dot(x,y,"dot.png")
+    if zahl == 2:
+      x,y = i2xy(i)
+      dots[i] = Dot(x,y,"bit_dot.png")  
 
 
 nextFrame = clock()
 game_status = "run"
+dotsAufbauen()
 while True:
   if clock() > nextFrame:
     nextFrame += 100
@@ -233,15 +273,18 @@ while True:
     
     for ghost in ghosts:
       ghost.update()
-      ghost.show()
       gh_sprite = ghost.sprites[ghost.modus][0]
       if touching(gh_sprite, pacman.sprites[pacman.modus][0]):
-        if ghost.modus == "jagd":
+        if ghost.modus == "jagd" and pacman.modus == 'run':
           pacman.changeMode('die')
-          game_status = "end"  
+          changeGameStatus('dead')
+          timer2 = threading.Timer(1.2, nextPacman)
+          timer2.start()
+
+        if ghost.modus in ("flucht", "blink"):
+          ghost.changeMode('die')
     
-    
-  
+  for ghost in ghosts: ghost.show()
   pacman.show()  
   updateDisplay()
   if keyPressed("ESC"): break
