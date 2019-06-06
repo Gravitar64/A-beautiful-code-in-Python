@@ -13,9 +13,9 @@ grid = [9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,
         9,9,9,9,9,9,1,9,9,9,9,9,0,9,9,0,9,9,9,9,9,1,9,9,9,9,9,9,
         9,9,9,9,9,9,1,9,9,9,9,9,0,9,9,0,9,9,9,9,9,1,9,9,9,9,9,9,
         9,9,9,9,9,9,1,9,9,0,0,0,0,0,0,0,0,0,0,9,9,1,9,9,9,9,9,9,
-        9,9,9,9,9,9,1,9,9,0,9,9,9,6,6,9,9,9,0,9,9,1,9,9,9,9,9,9,
+        9,9,9,9,9,9,1,9,9,0,9,9,9,7,7,9,9,9,0,9,9,1,9,9,9,9,9,9,
         9,9,9,9,9,9,1,9,9,0,9,0,0,0,0,0,0,9,0,9,9,1,9,9,9,9,9,9,
-        5,0,0,0,0,0,1,0,0,0,9,0,0,0,0,0,0,9,0,0,0,1,0,0,0,0,0,5,
+        5,0,0,0,0,0,1,0,0,0,9,0,0,0,0,0,0,9,0,0,0,1,0,0,0,0,0,6,
         9,9,9,9,9,9,1,9,9,0,9,0,0,0,0,0,0,9,0,9,9,1,9,9,9,9,9,9,
         9,9,9,9,9,9,1,9,9,0,9,9,9,9,9,9,9,9,0,9,9,1,9,9,9,9,9,9,
         9,9,9,9,9,9,1,9,9,0,0,0,0,0,0,0,0,0,0,9,9,1,9,9,9,9,9,9,
@@ -33,13 +33,12 @@ grid = [9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,
         9,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,9,
         9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9]
 
-directions = {0:[1,0], 1:[-1,0], 2:[0,-1], 3:[0,1]}
-dir_invers = {(1,0): 0, (-1,0): 1, (0,-1): 2, (0,1):3}
+directions = {0:(1,0), 1:(-1,0), 2:(0,-1), 3:(0,1)}
+dir_invers = {v:k for (k,v) in directions.items()}
 
 class Dot:
-  def __init__(self, x, y, image):
-    self.x = x
-    self.y = y
+  def __init__(self, x,y, image):
+    self.x, self.y = x,y
     self.sprite = makeSprite(image)
     moveSprite(self.sprite,x,y,centre=True)
 
@@ -64,8 +63,7 @@ class Actor:
     return grid[i] != 9
 
   def inSync(self,x,y):
-    i = xy2i(x,y)
-    sync_x, sync_y = i2xy(i)
+    sync_x, sync_y = i2xy(xy2i(x,y))
     return x == sync_x and y == sync_y
   
   def changeDir(self,i):
@@ -79,17 +77,13 @@ class Ghosts(Actor):
     self.animations = 2
     self.sprites = makeSprite(tileset,8)
     self.x,self.y = pos
+    self.modus = "jagd"
 
   def update(self):
     if self.inSync(self.x, self.y):
       i = xy2i(self.x, self.y)
-      if grid[i] == 5 and i == 392:
-        i += 27
-        self.x, self.y = i2xy(i)
-        self.x, self.y = self.x+self.vx, self.y+self.vy
-        return
-      if grid[i] == 5 and i== 419:
-        i -= 27
+      if grid[i] in (5,6):
+        i = i+27 if grid[i] == 5 else i-27
         self.x, self.y = i2xy(i)
         self.x, self.y = self.x+self.vx, self.y+self.vy
         return
@@ -123,21 +117,25 @@ class Pacman(Actor):
         if self.dirGültig(self.dir_buffer):
           self.changeDir(self.dir_buffer)
           self.dir_buffer = None
-      else:
-        if not self.dirGültig(self.dir):
-          return
+      if not self.dirGültig(self.dir):
+        return
     self.x, self.y = self.x+self.vx, self.y+self.vy
     moveSprite(self.sprites,self.x,self.y,centre=True)
     showSprite(self.sprites)
   
   def eatDot(self):
     i = xy2i(self.x, self.y)
-    if grid[i] == 1 or grid[i] == 2:
+    if grid[i] in (1,2):
       grid[i] = 0
       killSprite(dots[i].sprite)
       del dots[i]
 
-
+class Pacman_die(Actor):
+  def __init__(self,tileset,pos):
+    Actor.__init__(self)
+    self.animations = 12
+    self.sprites = makeSprite(tileset,12)
+    self.x,self.y = pos
 
 def xy2i(x,y):
   sp = round((x - raster_w / 2) / raster_w)
@@ -153,8 +151,7 @@ def i2xy(i):
   return x,y
 
 def sync(x,y):
-  i = xy2i(x,y)
-  return i2xy(i)  
+  return i2xy(xy2i(x,y))  
 
 setAutoUpdate(False)
 w = 672
@@ -162,6 +159,7 @@ h = 744
 spalten, zeilen = w // 24, h // 24
 raster_w = 24
 raster_h = 24
+zellen = spalten * zeilen
 
 screenSize(w,h)
 setBackgroundImage("pacman3.png")
@@ -170,6 +168,7 @@ blinky = Ghosts("blinky_tileset2.png",sync(348,276))
 pinky = Ghosts("pinky_tileset2.png",sync(300,348))
 inky = Ghosts("inky_tileset2.png", sync(348,348))
 clyde = Ghosts("clyde_tileset2.png", sync(396,348))
+pacman_die = Pacman_die("pacman_die.png",(pacman.x, pacman.y))
 ghosts = [blinky, pinky, inky, clyde]
 
 dots = {}
@@ -183,36 +182,53 @@ for i, zahl in enumerate(grid):
 
 
 nextFrame = clock()
+game_status = "run"
 while True:
   if clock() > nextFrame:
     nextFrame += 100
-    pacman.changeAnimationFrame()
     for ghost in ghosts:
       ghost.changeAnimationFrame()
+    if game_status == "run":
+      pacman.changeAnimationFrame() 
+    else:
+      pacman_die.changeAnimationFrame()
+    
       
     
   fps = tick(120)
   
-  if keyPressed("right"):
-    pacman.dir_buffer = 0
-  elif keyPressed("left"):
-    pacman.dir_buffer = 1
-  elif keyPressed("up"):
-    pacman.dir_buffer = 2
-  elif keyPressed("down"):
-    pacman.dir_buffer = 3   
+  if game_status == "run":
+    if keyPressed("right"):
+      pacman.dir_buffer = 0
+    elif keyPressed("left"):
+      pacman.dir_buffer = 1
+    elif keyPressed("up"):
+      pacman.dir_buffer = 2
+    elif keyPressed("down"):
+      pacman.dir_buffer = 3   
   
-  for dot in dots.values():
-   showSprite(dot.sprite)
-  
-  for ghost in ghosts:
-    ghost.update()
-  pacman.eatDot()
-  pacman.update()
-  
+    for dot in dots.values():
+      showSprite(dot.sprite)
+
+    pacman.eatDot()
+    pacman.update()  
     
-  # for label in labels:
-  #   showLabel(label)
+    for ghost in ghosts:
+      ghost.update()
+      if touching(ghost.sprites, pacman.sprites):
+        if ghost.modus == "jagd":
+          pacman.vx, pacman.vy = 0,0
+          for g in ghosts:
+            g.vx, g.vy = 0,0
+          moveSprite(pacman_die.sprites,pacman.x, pacman.y,centre = True)
+          hideSprite(pacman.sprites)
+          killSprite(pacman.sprites)
+          game_status = "end"  
+    
+    
   
+  if game_status == "end":
+    showSprite(pacman_die.sprites)
+    
   updateDisplay()
   if keyPressed("ESC"): break
