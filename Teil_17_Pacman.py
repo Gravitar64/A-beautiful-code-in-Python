@@ -1,5 +1,7 @@
 from pygame_functions import *
 import random as rnd
+import threading
+
 
 grid = [9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,
         9,1,1,1,1,1,1,1,1,1,1,1,1,9,9,1,1,1,1,1,1,1,1,1,1,1,1,9,
@@ -50,9 +52,16 @@ class Actor:
     self.dir_buffer = None
   
   def changeAnimationFrame(self):
-    self.frame = (self.frame+1) % self.animations + self.dir * self.animations
-    changeSpriteImage(self.sprites,self.frame)
+    sprite, animations, je_richtung = self.sprites[self.modus]
+    if je_richtung:
+      self.frame = (self.frame+1) % animations + self.dir * animations
+    else:
+      self.frame = (self.frame+1) % animations  
+    changeSpriteImage(sprite,self.frame)
 
+  def show(self):
+    showSprite(self.sprites[self.modus][0])
+  
   def dirGültig(self,richtung):
     vx, vy = directions[richtung]
     i = xy2i(self.x, self.y)
@@ -69,16 +78,28 @@ class Actor:
   def changeDir(self,i):
     self.dir = i
     self.vx, self.vy = directions[i]
+
+  def changeMode(self, modus):
+    sprite, _, _ = self.sprites[self.modus]
+    hideSprite(sprite)
+    self.modus = modus
+    self.frame = 0 
+    sprite, _, _ = self.sprites[self.modus]
+    moveSprite(sprite,self.x, self.y, centre= True)
+
     
 
 class Ghosts(Actor):
   def __init__(self,tileset,pos):
     Actor.__init__(self)
-    self.animations = 2
-    self.sprites = makeSprite(tileset,8)
+    self.sprites = {'jagd':[makeSprite(tileset,8),2,True],
+                    'flucht':[makeSprite("ghost_flucht.png",2),2,False],
+                    'blink':[makeSprite("ghost_blink.png",4),4,False],
+                    'die':[makeSprite("ghost_die.png",4),1, True]
+                    }
     self.x,self.y = pos
     self.modus = "jagd"
-
+  
   def update(self):
     if self.inSync(self.x, self.y):
       i = xy2i(self.x, self.y)
@@ -99,16 +120,15 @@ class Ghosts(Actor):
           self.changeDir(dir)
           break
     self.x, self.y = self.x+self.vx, self.y+self.vy
-    moveSprite(self.sprites,self.x,self.y,centre=True)
-    showSprite(self.sprites)
-
-
-
+    moveSprite(self.sprites[self.modus][0],self.x,self.y,centre=True)
+    
+  
 class Pacman(Actor):
-  def __init__(self,tileset,pos):
+  def __init__(self,pos):
     Actor.__init__(self)
-    self.animations = 3
-    self.sprites = makeSprite(tileset,12)
+    self.sprites = {'run':[makeSprite("pacman_tileset2.png",12),3,True],
+                    'die':[makeSprite("pacman_die.png",12),12,False]}
+    self.modus = 'run'
     self.x,self.y = pos
 
   def update(self):
@@ -120,22 +140,26 @@ class Pacman(Actor):
       if not self.dirGültig(self.dir):
         return
     self.x, self.y = self.x+self.vx, self.y+self.vy
-    moveSprite(self.sprites,self.x,self.y,centre=True)
-    showSprite(self.sprites)
-  
+    moveSprite(self.sprites[self.modus][0],self.x,self.y,centre=True)
+    
   def eatDot(self):
     i = xy2i(self.x, self.y)
     if grid[i] in (1,2):
+      if grid[i] == 2:
+        changeGhostMode('flucht')
       grid[i] = 0
       killSprite(dots[i].sprite)
       del dots[i]
 
-class Pacman_die(Actor):
-  def __init__(self,tileset,pos):
-    Actor.__init__(self)
-    self.animations = 12
-    self.sprites = makeSprite(tileset,12)
-    self.x,self.y = pos
+def changeGhostMode(modus):
+  for ghost in ghosts:
+    ghost.changeMode(modus)
+  if modus == 'flucht':
+    timer1 = threading.Timer(5.0, changeGhostMode, ('blink',)) 
+    timer2 = threading.Timer(8.0, changeGhostMode, ('jagd',))
+    timer1.start()
+    timer2.start()
+    
 
 def xy2i(x,y):
   sp = round((x - raster_w / 2) / raster_w)
@@ -163,12 +187,11 @@ zellen = spalten * zeilen
 
 screenSize(w,h)
 setBackgroundImage("pacman3.png")
-pacman = Pacman("pacman_tileset2.png",sync(321,420))
+pacman = Pacman(sync(321,420))
 blinky = Ghosts("blinky_tileset2.png",sync(348,276))
 pinky = Ghosts("pinky_tileset2.png",sync(300,348))
 inky = Ghosts("inky_tileset2.png", sync(348,348))
 clyde = Ghosts("clyde_tileset2.png", sync(396,348))
-pacman_die = Pacman_die("pacman_die.png",(pacman.x, pacman.y))
 ghosts = [blinky, pinky, inky, clyde]
 
 dots = {}
@@ -188,13 +211,8 @@ while True:
     nextFrame += 100
     for ghost in ghosts:
       ghost.changeAnimationFrame()
-    if game_status == "run":
-      pacman.changeAnimationFrame() 
-    else:
-      pacman_die.changeAnimationFrame()
-    
-      
-    
+    pacman.changeAnimationFrame()
+
   fps = tick(120)
   
   if game_status == "run":
@@ -211,24 +229,19 @@ while True:
       showSprite(dot.sprite)
 
     pacman.eatDot()
-    pacman.update()  
+    pacman.update()
     
     for ghost in ghosts:
       ghost.update()
-      if touching(ghost.sprites, pacman.sprites):
+      ghost.show()
+      gh_sprite = ghost.sprites[ghost.modus][0]
+      if touching(gh_sprite, pacman.sprites[pacman.modus][0]):
         if ghost.modus == "jagd":
-          pacman.vx, pacman.vy = 0,0
-          for g in ghosts:
-            g.vx, g.vy = 0,0
-          moveSprite(pacman_die.sprites,pacman.x, pacman.y,centre = True)
-          hideSprite(pacman.sprites)
-          killSprite(pacman.sprites)
+          pacman.changeMode('die')
           game_status = "end"  
     
     
   
-  if game_status == "end":
-    showSprite(pacman_die.sprites)
-    
+  pacman.show()  
   updateDisplay()
   if keyPressed("ESC"): break
