@@ -35,7 +35,7 @@ grid = [9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,
         9,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,9,
         9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9]
 
-directions = {0:(1,0), 1:(-1,0), 2:(0,-1), 3:(0,1)}
+directions = {0:,[(1,0),(0,-1),(0,1)] 1:[(-1,0),(0,-1),(0,1)] 2:[(0,-1),(-1,0),(1,0)] 3:[(0,1),(-1,0),(1,0)]}
 dir_invers = {v:k for (k,v) in directions.items()}
 grid_save = grid.copy()
 dots = {}
@@ -48,10 +48,11 @@ class Dot:
 
 class Actor:
   def __init__(self):
-    self.vx, self.vy = 1,0
+    self.vec = (1,0)
     self.frame = 0
     self.dir = 0
     self.dir_buffer = None
+    self.grid_pos = (0,0)
   
   def changeAnimationFrame(self):
     sprite, animations, je_richtung = self.sprites[self.modus]
@@ -65,21 +66,17 @@ class Actor:
     showSprite(self.sprites[self.modus][0])
   
   def dirGültig(self,richtung):
-    vx, vy = directions[richtung]
-    i = xy2i(self.x, self.y)
-    sp, ze = i % spalten, i // spalten
-    sp += vx
-    ze += vy
+    sp, zi = addVector(self.grid_pos, directions[richtung])
     i = ze * spalten + sp
     return grid[i] != 9
 
-  def inSync(self,x,y):
-    sync_x, sync_y = i2xy(xy2i(x,y))
-    return x == sync_x and y == sync_y
+  def inSync(self,pos):
+    sync_pos = i2xy(xy2i(pos))
+    return sync_pos == pos
   
   def changeDir(self,i):
     self.dir = i
-    self.vx, self.vy = directions[i]
+    self.vec = directions[i][0]
 
   def changeMode(self, modus):
     sprite, _, _ = self.sprites[self.modus]
@@ -92,36 +89,47 @@ class Actor:
     
 
 class Ghosts(Actor):
-  def __init__(self,tileset,pos):
+  def __init__(self,name,tileset,pos,target):
     Actor.__init__(self)
     self.sprites = {'jagd':[makeSprite(tileset,8),2,True],
                     'flucht':[makeSprite("ghost_flucht.png",2),2,False],
                     'blink':[makeSprite("ghost_blink.png",4),4,False],
                     'die':[makeSprite("ghost_die.png",4),1, True]
                     }
-    self.x,self.y = pos
+    self.pos = pos
     self.modus = "jagd"
+    self.target = target
+    self.name = name
   
   def update(self):
-    if self.inSync(self.x, self.y):
-      i = xy2i(self.x, self.y)
+    if self.inSync(self.pos):
+      i = xy2i(self.pos)
       if grid[i] in (5,6):
         i = i+27 if grid[i] == 5 else i-27
-        self.x, self.y = i2xy(i)
-        self.x, self.y = self.x+self.vx, self.y+self.vy
+        self.pos = addVector(i2xy(i), self.vec)
         return
-      while True:
-        dir = rnd.randrange(3)
-        vx, vy = self.vx, self.vy
-        if dir == 0:
-          vx, vy = vy, -vx
-        elif dir == 2:
-          vx, vy = -vy, vx  
-        dir = dir_invers[(vx, vy)]
-        if self.dirGültig(dir):
-          self.changeDir(dir)
-          break
-    self.x, self.y = self.x+self.vx, self.y+self.vy
+      
+      if self.name == 'blinky':
+        self.target = xy2grid(pacman.pos)
+      elif self.name == 'pinky':
+        vx, vy = pacman.vec
+        vx *= 4
+        vy *= 4
+        neue_pos = addVector(pacman.pos, (vx,vy))
+        self.target = xy2grid(neue_pos)    
+      min_abstand = 999
+      for pos in directions[self.dir]
+        sp,ze = addVector((i % spalten, i // spalten), pos)
+        i = ze * spalten + sp
+        if grid[i] != 9:
+          abstand = abs(sp-target[0])+abs(ze-target[1])
+          if abstand < min_abstand:
+            min_abstand = abstand
+            best_richtung = dir_invers[(vx, vy)]
+        self.changeDir(best_richtung)
+          
+    self.pos = addVector(self.pos, self.vec)
+    self.grid_pos = xy2grid((self.pos)
     moveSprite(self.sprites[self.modus][0],self.x,self.y,centre=True)
     
   
@@ -131,22 +139,23 @@ class Pacman(Actor):
     self.sprites = {'run':[makeSprite("pacman_tileset2.png",12),3,True],
                     'die':[makeSprite("pacman_die.png",12),12,False]}
     self.modus = 'run'
-    self.x,self.y = pos
+    self.pos = pos
 
   def update(self):
-    if self.inSync(self.x,self.y):
+    if self.inSync(pos):
       if self.dir_buffer != None:
         if self.dirGültig(self.dir_buffer):
           self.changeDir(self.dir_buffer)
           self.dir_buffer = None
       if not self.dirGültig(self.dir):
         return
-    self.x, self.y = self.x+self.vx, self.y+self.vy
+    self.pos = addVector (self.pos, self.vec)
+    self.grid_pos = xy2grid(self.pos)
     moveSprite(self.sprites[self.modus][0],self.x,self.y,centre=True)
     
   def eatDot(self):
     global grid
-    i = xy2i(self.x, self.y)
+    i = xy2i(self.pos)
     if grid[i] in (1,2):
       if grid[i] == 2:
         changeGhostMode('flucht')
@@ -172,8 +181,11 @@ def changeGhostMode(modus):
     timer1.start()
     timer2.start()
     
+def addVector(pos, vec):
+  return pos[0]+vec[0], pos[1]+vec[1]
 
-def xy2i(x,y):
+def xy2i(pos):
+  sp, ze = pos
   sp = round((x - raster_w / 2) / raster_w)
   ze = round((y - raster_h / 2) / raster_h)
   i = ze*spalten+sp
@@ -185,6 +197,12 @@ def i2xy(i):
   x = sp * raster_w + raster_w // 2
   y = ze * raster_h + raster_h // 2
   return x,y
+
+def xy2grid(pos):
+  x,y = pos
+  sp = round((x - raster_w / 2) / raster_w)
+  ze = round((y - raster_h / 2) / raster_h)
+  return sp, ze  
 
 def sync(x,y):
   return i2xy(xy2i(x,y)) 
@@ -222,10 +240,10 @@ zellen = spalten * zeilen
 screenSize(w,h)
 setBackgroundImage("pacman3.png")
 pacman = Pacman(sync(321,420))
-blinky = Ghosts("blinky_tileset2.png",sync(348,276))
-pinky = Ghosts("pinky_tileset2.png",sync(300,348))
-inky = Ghosts("inky_tileset2.png", sync(348,348))
-clyde = Ghosts("clyde_tileset2.png", sync(396,348))
+blinky = Ghosts("blinky_tileset2.png",'blinky'sync(348,276), xy2grid(pacman.pos))
+pinky = Ghosts("pinky_tileset2.png",'pinky',sync(300,348), (14,14))
+inky = Ghosts("inky_tileset2.png", 'inky', sync(348,348), (14,14))
+clyde = Ghosts("clyde_tileset2.png", 'clyde', sync(396,348), (14,14))
 ghosts = [blinky, pinky, inky, clyde]
 
 
