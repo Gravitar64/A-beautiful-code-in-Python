@@ -115,17 +115,25 @@ class Ghosts(Actor):
         vx, vy = pacman.vec
         vx *= 4
         vy *= 4
-        neue_pos = addVector(pacman.pos, (vx,vy))
-        self.target = xy2grid(neue_pos)    
+        self.target = addVector(xy2grid(pacman.pos), (vx,vy))  
+      elif self.name == "inky":
+        vx, vy = pacman.vec
+        vx *= 2
+        vy *= 2
+        neue_pos = addVector(xy2grid(pacman.pos), (vx,vy))
+        vx, vy = blinky.vec
+        vx *= 2
+        vy *= 2
+        self.target = addVector(neue_pos, (vx,vy))      
       min_abstand = 999
       for pos in directions[self.dir]
         sp,ze = addVector((i % spalten, i // spalten), pos)
         i = ze * spalten + sp
         if grid[i] != 9:
-          abstand = abs(sp-target[0])+abs(ze-target[1])
+          abstand = abs(sp-self.target[0])+abs(ze-self.target[1])
           if abstand < min_abstand:
             min_abstand = abstand
-            best_richtung = dir_invers[(vx, vy)]
+            best_richtung = dir_invers[pos]
         self.changeDir(best_richtung)
           
     self.pos = addVector(self.pos, self.vec)
