@@ -35,24 +35,55 @@ grid = [9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,
         9,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,9,
         9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9]
 
-directions = {0:,[(1,0),(0,-1),(0,1)] 1:[(-1,0),(0,-1),(0,1)] 2:[(0,-1),(-1,0),(1,0)] 3:[(0,1),(-1,0),(1,0)]}
-dir_invers = {v:k for (k,v) in directions.items()}
+class Vector:
+  def __init__(self, pos):
+    self.pos = pos
+
+  def __repr__(self):
+    return self.pos  
+
+  def __add__(self, vec):
+    vx, vy = self.pos
+    vx1, vy1 = vec
+    return Vector(vx+vx1, vy+vy1)
+
+  def __sub__(self, vec):
+    vx, vy = self.pos
+    vx1, vy1 = vec
+    return Vector(vx-vx1, vy-vy1)
+
+  def __mul__(self, factor):
+    vx, vy = self.pos
+    return Vector(vx*factor, vy*factor)
+
+  def distance(self, pos):
+    vx, vy = self.pos
+    vx1, vy1 = pos
+    return Vector(abs(vx-vx1)+abs(vy-vy1))
+
+  def set(self,pos):
+    self.pos = pos 
+
+directions = {Vector(1,0):[Vector(0,-1),Vector(0,1)], 
+              Vector(-1,0):[Vector(0,-1),Vector(0,1)], 
+              Vector(0,-1):[Vector(-1,0),Vector(1,0)], 
+              Vector(0,1):[Vector(-1,0),Vector(1,0)]}
 grid_save = grid.copy()
 dots = {}
 
+
 class Dot:
-  def __init__(self, x,y, image):
-    self.x, self.y = x,y
+  def __init__(self, pos, image):
+    self.pos = pos
     self.sprite = makeSprite(image)
-    moveSprite(self.sprite,x,y,centre=True)
+    moveSprite(self.sprite,self.pos,centre=True)
 
 class Actor:
   def __init__(self):
-    self.vec = (1,0)
+    self.vec = Vector(1,0)
     self.frame = 0
-    self.dir = 0
-    self.dir_buffer = None
-    self.grid_pos = (0,0)
+    self.dir_buffer = Vector(0,0)
+    self.grid_pos = Vector(0,0)
   
   def changeAnimationFrame(self):
     sprite, animations, je_richtung = self.sprites[self.modus]
@@ -65,8 +96,8 @@ class Actor:
   def show(self):
     showSprite(self.sprites[self.modus][0])
   
-  def dirGültig(self,richtung):
-    sp, zi = addVector(self.grid_pos, directions[richtung])
+  def dirGültig(self,vec):
+    sp, zi = self.grid_pos + vec
     i = ze * spalten + sp
     return grid[i] != 9
 
@@ -74,17 +105,13 @@ class Actor:
     sync_pos = i2xy(xy2i(pos))
     return sync_pos == pos
   
-  def changeDir(self,i):
-    self.dir = i
-    self.vec = directions[i][0]
-
   def changeMode(self, modus):
     sprite, _, _ = self.sprites[self.modus]
     hideSprite(sprite)
     self.modus = modus
     self.frame = 0 
     sprite, _, _ = self.sprites[self.modus]
-    moveSprite(sprite,self.x, self.y, centre= True)
+    moveSprite(sprite,self.pos,centre= True)
 
     
 
@@ -96,9 +123,9 @@ class Ghosts(Actor):
                     'blink':[makeSprite("ghost_blink.png",4),4,False],
                     'die':[makeSprite("ghost_die.png",4),1, True]
                     }
-    self.pos = pos
+    self.pos = Vector(pos)
     self.modus = "jagd"
-    self.target = target
+    self.target = Vector(target)
     self.name = name
   
   def update(self):
@@ -106,39 +133,29 @@ class Ghosts(Actor):
       i = xy2i(self.pos)
       if grid[i] in (5,6):
         i = i+27 if grid[i] == 5 else i-27
-        self.pos = addVector(i2xy(i), self.vec)
+        self.pos = i2xy(i) + self.vec
         return
       
       if self.name == 'blinky':
         self.target = xy2grid(pacman.pos)
       elif self.name == 'pinky':
-        vx, vy = pacman.vec
-        vx *= 4
-        vy *= 4
-        self.target = addVector(xy2grid(pacman.pos), (vx,vy))  
+        self.target = pacman.grid_pos + pacman.vec * 4  
       elif self.name == "inky":
-        vx, vy = pacman.vec
-        vx *= 2
-        vy *= 2
-        neue_pos = addVector(xy2grid(pacman.pos), (vx,vy))
-        vx, vy = blinky.vec
-        vx *= 2
-        vy *= 2
-        self.target = addVector(neue_pos, (vx,vy))      
+        neue_pos = pacman.grid_pos + pacman.vec * 2
+        diff = blinky.grid_pos - neue_pos
+        self.target = neue_pos + diff * 2   
       min_abstand = 999
-      for pos in directions[self.dir]
-        sp,ze = addVector((i % spalten, i // spalten), pos)
-        i = ze * spalten + sp
-        if grid[i] != 9:
-          abstand = abs(sp-self.target[0])+abs(ze-self.target[1])
+      for pos in directions[self.vec]:
+        if self.dirGültig(pos):
+          abstand = pos.distance(self.target)
           if abstand < min_abstand:
             min_abstand = abstand
-            best_richtung = dir_invers[pos]
-        self.changeDir(best_richtung)
+            best_richtung = pos
+        self.vec.set(best_richtung)
           
-    self.pos = addVector(self.pos, self.vec)
+    self.pos.set(self.pos + self.vec)
     self.grid_pos = xy2grid((self.pos)
-    moveSprite(self.sprites[self.modus][0],self.x,self.y,centre=True)
+    moveSprite(self.sprites[self.modus][0],self.pos,centre=True)
     
   
 class Pacman(Actor):
@@ -147,19 +164,19 @@ class Pacman(Actor):
     self.sprites = {'run':[makeSprite("pacman_tileset2.png",12),3,True],
                     'die':[makeSprite("pacman_die.png",12),12,False]}
     self.modus = 'run'
-    self.pos = pos
+    self.pos = Vector(pos)
 
   def update(self):
     if self.inSync(pos):
       if self.dir_buffer != None:
         if self.dirGültig(self.dir_buffer):
-          self.changeDir(self.dir_buffer)
+          self.vec.set(self.dir_buffer)
           self.dir_buffer = None
-      if not self.dirGültig(self.dir):
+      if not self.dirGültig(self.vec):
         return
-    self.pos = addVector (self.pos, self.vec)
+    self.pos = self.pos + self.vec
     self.grid_pos = xy2grid(self.pos)
-    moveSprite(self.sprites[self.modus][0],self.x,self.y,centre=True)
+    moveSprite(self.sprites[self.modus][0],self.pos,centre=True)
     
   def eatDot(self):
     global grid
@@ -177,8 +194,6 @@ class Pacman(Actor):
       grid = grid_save.copy()
       dotsAufbauen()
 
-
-
 def changeGhostMode(modus):
   for ghost in ghosts:
     if ghost.modus != 'die':
@@ -188,9 +203,6 @@ def changeGhostMode(modus):
     timer2 = threading.Timer(8.0, changeGhostMode, ('jagd',))
     timer1.start()
     timer2.start()
-    
-def addVector(pos, vec):
-  return pos[0]+vec[0], pos[1]+vec[1]
 
 def xy2i(pos):
   sp, ze = pos
@@ -255,8 +267,6 @@ clyde = Ghosts("clyde_tileset2.png", 'clyde', sync(396,348), (14,14))
 ghosts = [blinky, pinky, inky, clyde]
 
 
-
-
 def dotsAufbauen():
   global dots
   dots = {}
@@ -283,13 +293,13 @@ while True:
   
   if game_status == "run":
     if keyPressed("right"):
-      pacman.dir_buffer = 0
+      pacman.dir_buffer = Vector(1,0)
     elif keyPressed("left"):
-      pacman.dir_buffer = 1
+      pacman.dir_buffer = Vector(-1,0)
     elif keyPressed("up"):
-      pacman.dir_buffer = 2
+      pacman.dir_buffer = Vector(0,-1)
     elif keyPressed("down"):
-      pacman.dir_buffer = 3   
+      pacman.dir_buffer = Vector(0,1)
   
     for dot in dots.values():
       showSprite(dot.sprite)
