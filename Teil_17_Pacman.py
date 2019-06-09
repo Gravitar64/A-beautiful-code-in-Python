@@ -104,7 +104,7 @@ class Actor:
     changeSpriteImage(sprite,self.frame)
 
   def show(self):
-    showSprite(self.sprites[self.modus][0])
+    showSprite(self.sprit)
   
   def dirGültig(self,vec):
     sp, zi = self.grid_pos + vec
@@ -116,12 +116,11 @@ class Actor:
     return sync_pos == pos
   
   def changeMode(self, modus):
-    sprite, _, _ = self.sprites[self.modus]
-    hideSprite(sprite)
+    hideSprite(self.sprite)
     self.modus = modus
     self.frame = 0 
-    sprite, _, _ = self.sprites[self.modus]
-    moveSprite(sprite,self.pos,centre= True)
+    self.sprite = self.sprites[self.modus]
+    moveSprite(self.sprite,self.pos,centre= True)
 
     
 
@@ -139,6 +138,7 @@ class Ghosts(Actor):
     self.modus = modus
     self.target = Vector(target)
     self.name = name
+    self.sprite = self.sprites[modus][0]
   
   def update(self):
     if self.inSync(self.pos):
@@ -158,13 +158,13 @@ class Ghosts(Actor):
           diff = blinky.grid_pos - neue_pos
           self.target = neue_pos + diff * 2   
         elif self.name = "clyde":
-          diff = self.pos.distance(pacman.grid_pos)
-          if diff >= 8:
+          dist = self.pos.distance(pacman.grid_pos)
+          if dist >= 8:
             self.target = pacman.grid_pos
           else:
             self.target = ghost_eckfelder[self.name] 
       if self.mode == "die":
-        self.target = (14,14)
+        self.target = Vector(14,14)
       if self.mode == "flucht":
         self.target = pacman.grid_pos
       if self.mode == 'scatter':
@@ -192,9 +192,9 @@ class Ghosts(Actor):
         self.vec.set(best_richtung)
       
 
-    self.pos.set(self.pos + self.vec)
-    self.grid_pos = xy2grid((self.pos)
-    moveSprite(self.sprites[self.modus][0],self.pos,centre=True)
+    self.pos += self.vec
+    self.grid_pos = xy2grid(self.pos)
+    moveSprite(self.sprite,self.pos,centre=True)
     
   
 class Pacman(Actor):
@@ -205,18 +205,19 @@ class Pacman(Actor):
     self.modus = 'run'
     self.pos = Vector(pos)
     self.name = name
+    self.sprite = self.sprites[self.modus][0]
 
   def update(self):
     if self.inSync(pos):
       if self.dir_buffer != None:
         if self.dirGültig(self.dir_buffer):
-          self.vec.set(self.dir_buffer)
+          self.vec = self.dir_buffer
           self.dir_buffer = None
       if not self.dirGültig(self.vec):
         return
     self.pos = self.pos + self.vec
     self.grid_pos = xy2grid(self.pos)
-    moveSprite(self.sprites[self.modus][0],self.pos,centre=True)
+    moveSprite(self.sprite,self.pos,centre=True)
     
   def eatDot(self):
     global grid
@@ -246,7 +247,7 @@ def changeGhostMode(modus):
     timer2.start()
 
 def xy2i(pos):
-  sp, ze = pos
+  x,y = pos
   sp = round((x - raster_w / 2) / raster_w)
   ze = round((y - raster_h / 2) / raster_h)
   i = ze*spalten+sp
@@ -257,14 +258,12 @@ def i2xy(i):
   sp, ze = i % spalten, i // spalten
   x = sp * raster_w + raster_w // 2
   y = ze * raster_h + raster_h // 2
-  return x,y
+  return Vector((x,y))
 
 def xy2grid(pos):
-  x,y = pos
-  sp = round((x - raster_w / 2) / raster_w)
-  ze = round((y - raster_h / 2) / raster_h)
-  return sp, ze  
-
+  i  = xy2i(pos)
+  return  Vector((i % spalten, i // spalten))
+    
 def sync(x,y):
   return i2xy(xy2i(x,y)) 
 
@@ -283,8 +282,6 @@ def changeGameStatus(status):
   global game_status
   game_status = status
 
-
-
 setAutoUpdate(False)
 w = 672
 h = 744
@@ -295,6 +292,7 @@ zellen = spalten * zeilen
 
 screenSize(w,h)
 setBackgroundImage("pacman3.png")
+
 actors = {}
 for actor, pos in startpositionen.items():
   if actor == 'pacman':
@@ -308,12 +306,9 @@ def dotsAufbauen():
   dots = {}
   for i, zahl in enumerate(grid):
     if zahl == 1: 
-      x,y = i2xy(i)
-      dots[i] = Dot(x,y,"dot.png")
+      dots[i] = Dot(i2xy(i),"dot.png")
     if zahl == 2:
-      x,y = i2xy(i)
-      dots[i] = Dot(x,y,"bit_dot.png")  
-
+      dots[i] = Dot(i2xy(i),"bit_dot.png")  
 
 nextFrame = clock()
 game_status = "run"
