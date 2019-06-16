@@ -35,64 +35,23 @@ grid = [9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,
         9,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,9,
         9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9]
 
-class Vector:
-  def __init__(self, x,y):
-    self.pos = (x,y)
-
-  def __add__(self, vec):
-    vx, vy = self.pos
-    vx1, vy1 = vec.pos
-    return Vector(vx+vx1, vy+vy1)
-
-  def __sub__(self, vec):
-    vx, vy = self.pos
-    vx1, vy1 = vec.pos
-    return Vector(vx-vx1, vy-vy1)
-
-  def __mul__(self, factor):
-    vx, vy = self.pos
-    return Vector(vx*factor, vy*factor)
-
-  def manhatten_distance(self, pos):
-    vx, vy = self.pos
-    vx1, vy1 = pos.pos
-    return abs(vx-vx1)+abs(vy-vy1)
-
-  def distance(self,pos):
-    vx, vy = self.pos
-    vx1, vy1 = pos.pos
-    return math.sqrt(abs(vx-vx1)**2 + abs(vy-vy1)**2)
-
-directions = {Vector(1,0):[Vector(0,-1),Vector(0,1)], 
-              Vector(-1,0):[Vector(0,-1),Vector(0,1)], 
-              Vector(0,-1):[Vector(-1,0),Vector(1,0)], 
-              Vector(0,1):[Vector(-1,0),Vector(1,0)]}
-ghost_eckfelder = {"blinky": Vector(25,0), "pinky": Vector (3,0),
-                   "inky": Vector(30,30), "clyde": Vector (0,30)}
-startpositionen = {'pacman': Vector(321,420), 
-                   "blinky": ["blinky_tileset2.png",'blinky', Vector(348,276), 'jagd'],
-                   "inky": ["inky_tileset2.png", 'inky', Vector(300,348), 'jail'],
-                   "pinky": ["pinky_tileset2.png",'pinky',Vector(348,348), 'jail'], 
-                   "clyde" : ["clyde_tileset2.png", 'clyde', Vector(396,348), 'jail']}
-
-
-
+directions = {0:(1,0), 1:(-1,0), 2:(0,-1), 3:(0,1)}
+dir_invers = {v:k for (k,v) in directions.items()}
 grid_save = grid.copy()
 dots = {}
 
-
 class Dot:
-  def __init__(self, pos, image):
-    self.pos = pos.pos
+  def __init__(self, x,y, image):
+    self.x, self.y = x,y
     self.sprite = makeSprite(image)
-    moveSprite(self.sprite,self.pos,centre=True)
+    moveSprite(self.sprite,x,y,centre=True)
 
 class Actor:
   def __init__(self):
-    self.vec = Vector(1,0)
+    self.vx, self.vy = 1,0
     self.frame = 0
-    self.dir_buffer = Vector(0,0)
-    self.grid_pos = Vector(0,0)
+    self.dir = 0
+    self.dir_buffer = None
   
   def changeAnimationFrame(self):
     sprite, animations, je_richtung = self.sprites[self.modus]
@@ -103,124 +62,91 @@ class Actor:
     changeSpriteImage(sprite,self.frame)
 
   def show(self):
-    showSprite(self.sprite)
+    showSprite(self.sprites[self.modus][0])
   
-  def dirGültig(self,vec):
-    sp, zi = self.grid_pos + vec
+  def dirGültig(self,richtung):
+    vx, vy = directions[richtung]
+    i = xy2i(self.x, self.y)
+    sp, ze = i % spalten, i // spalten
+    sp += vx
+    ze += vy
     i = ze * spalten + sp
     return grid[i] != 9
 
-  def inSync(self,pos):
-    sync_pos = i2xy(xy2i(pos))
-    return sync_pos == pos
+  def inSync(self,x,y):
+    sync_x, sync_y = i2xy(xy2i(x,y))
+    return x == sync_x and y == sync_y
   
+  def changeDir(self,i):
+    self.dir = i
+    self.vx, self.vy = directions[i]
+
   def changeMode(self, modus):
-    hideSprite(self.sprite)
+    sprite, _, _ = self.sprites[self.modus]
+    hideSprite(sprite)
     self.modus = modus
     self.frame = 0 
-    self.sprite = self.sprites[self.modus]
-    moveSprite(self.sprite,self.pos,centre= True)
+    sprite, _, _ = self.sprites[self.modus]
+    moveSprite(sprite,self.x, self.y, centre= True)
 
     
 
 class Ghosts(Actor):
-  def __init__(self,name,tileset,pos,modus):
+  def __init__(self,tileset,pos):
     Actor.__init__(self)
     self.sprites = {'jagd':[makeSprite(tileset,8),2,True],
                     'flucht':[makeSprite("ghost_flucht.png",2),2,False],
                     'blink':[makeSprite("ghost_blink.png",4),4,False],
                     'die':[makeSprite("ghost_die.png",4),1, True]
-                    'scatter':[makeSprite(tileset,8),2, True]
-                    'jail':[makeSprite(tileset,8),2, True]
                     }
-    self.pos = pos
-    self.modus = modus
-    self.target = target
-    self.name = name
-    self.sprite = self.sprites[modus][0]
+    self.x,self.y = pos
+    self.modus = "jagd"
   
   def update(self):
-    if self.inSync(self.pos):
-      i = xy2i(self.pos)
+    if self.inSync(self.x, self.y):
+      i = xy2i(self.x, self.y)
       if grid[i] in (5,6):
         i = i+27 if grid[i] == 5 else i-27
-        self.pos = i2xy(i) + self.vec
+        self.x, self.y = i2xy(i)
+        self.x, self.y = self.x+self.vx, self.y+self.vy
         return
-      
-      if self.mode = "jagd":
-        if self.name == 'blinky':
-          self.target = pacman.grid_pos
-        elif self.name == 'pinky':
-          self.target = pacman.grid_pos + pacman.vec * 4  
-        elif self.name == "inky":
-          neue_pos = pacman.grid_pos + pacman.vec * 2
-          diff = neue_pos - blinky.grid_pos
-          self.target = neue_pos + diff   
-        elif self.name = "clyde":
-          dist = self.pos.manhatten_distance(pacman.grid_pos)
-          if dist >= 8:
-            self.target = pacman.grid_pos
-          else:
-            self.target = ghost_eckfelder[self.name] 
-      if self.mode == "die":
-        self.target = Vector(14,14)
-      if self.mode == "flucht":
-        self.target = pacman.grid_pos
-      if self.mode == 'scatter':
-        self.target = ghost_eckfelder[self.name]
-      if self.mode == 'jail':
-        self.target = Vector(14,14)      
-        
-      if self.mode != "flucht":  
-        min_abstand = 999
-        for pos in directions[self.vec]:
-          if self.dirGültig(pos):
-            abstand = pos.distance(self.target)
-            if abstand < min_abstand:
-              min_abstand = abstand
-              best_richtung = pos
-        self.vec.set(best_richtung)
-      if self.mode == "flucht":  
-        max_abstand = -999
-        for pos in directions[self.vec]:
-          if self.dirGültig(pos):
-            abstand = pos.distance(self.target)
-            if abstand > max_abstand:
-              max_abstand = abstand
-              best_richtung = pos
-        self.vec.set(best_richtung)
-      
-
-    self.pos += self.vec
-    self.grid_pos = xy2grid(self.pos)
-    moveSprite(self.sprite,self.pos.pos,centre=True)
+      while True:
+        dir = rnd.randrange(3)
+        vx, vy = self.vx, self.vy
+        if dir == 0:
+          vx, vy = vy, -vx
+        elif dir == 2:
+          vx, vy = -vy, vx  
+        dir = dir_invers[(vx, vy)]
+        if self.dirGültig(dir):
+          self.changeDir(dir)
+          break
+    self.x, self.y = self.x+self.vx, self.y+self.vy
+    moveSprite(self.sprites[self.modus][0],self.x,self.y,centre=True)
     
   
 class Pacman(Actor):
-  def __init__(self,name, pos):
+  def __init__(self,pos):
     Actor.__init__(self)
     self.sprites = {'run':[makeSprite("pacman_tileset2.png",12),3,True],
                     'die':[makeSprite("pacman_die.png",12),12,False]}
     self.modus = 'run'
-    self.pos = pos
-    self.name = name
-    self.sprite = self.sprites[self.modus][0]
+    self.x,self.y = pos
 
   def update(self):
-    if self.inSync(pos):
+    if self.inSync(self.x,self.y):
       if self.dir_buffer != None:
         if self.dirGültig(self.dir_buffer):
-          self.vec = self.dir_buffer
+          self.changeDir(self.dir_buffer)
           self.dir_buffer = None
-      if not self.dirGültig(self.vec):
+      if not self.dirGültig(self.dir):
         return
-    self.pos = self.pos + self.vec
-    self.grid_pos = xy2grid(self.pos)
-    moveSprite(self.sprite,self.pos,centre=True)
+    self.x, self.y = self.x+self.vx, self.y+self.vy
+    moveSprite(self.sprites[self.modus][0],self.x,self.y,centre=True)
     
   def eatDot(self):
     global grid
-    i = xy2i(self.pos)
+    i = xy2i(self.x, self.y)
     if grid[i] in (1,2):
       if grid[i] == 2:
         changeGhostMode('flucht')
@@ -234,19 +160,20 @@ class Pacman(Actor):
       grid = grid_save.copy()
       dotsAufbauen()
 
+
+
 def changeGhostMode(modus):
-  for actor in actors:
-    if actor.__name__ == 'Pacman': continue
-    if actor.modus != 'die':
-      actor.changeMode(modus)
+  for ghost in ghosts:
+    if ghost.modus != 'die':
+      ghost.changeMode(modus)
   if modus == 'flucht':
     timer1 = threading.Timer(5.0, changeGhostMode, ('blink',)) 
     timer2 = threading.Timer(8.0, changeGhostMode, ('jagd',))
     timer1.start()
     timer2.start()
+    
 
-def xy2i(pos):
-  x,y = pos
+def xy2i(x,y):
   sp = round((x - raster_w / 2) / raster_w)
   ze = round((y - raster_h / 2) / raster_h)
   i = ze*spalten+sp
@@ -257,29 +184,32 @@ def i2xy(i):
   sp, ze = i % spalten, i // spalten
   x = sp * raster_w + raster_w // 2
   y = ze * raster_h + raster_h // 2
-  return Vector(x,y)
+  return x,y
 
-def xy2grid(pos):
-  i  = xy2i(pos)
-  return  Vector(i % spalten, i // spalten)
-    
 def sync(x,y):
-  return Vector(i2xy(xy2i(x,y))) 
+  return i2xy(xy2i(x,y)) 
 
 def nextPacman():
-  for actor in actors:
-    if actor == 'pacman':
-      actor.pos = startpositionen[actor]
-      actor.changeMode = 'run'
-    else:
-      actor.pos = startpositionen[actor][3]
-      actor.changeMode('jagd')    
+  pacman.x, pacman.y = sync(321,420)
+  blinky.x, blinky.y = sync(335,276)
+  pinky.x, pinky.y = sync(300,348)
+  inky.x, inky.y = sync(348,348)
+  clyde.x, clyde.y = sync(396,348)
+  for ghost in ghosts:
+    sprite = ghost.sprites[ghost.modus][0]
+    hideSprite(sprite)
+    ghost.modus = 'jagd'
+    sprite = ghost.sprites[ghost.modus][0]
+    moveSprite(sprite,ghost.x, ghost.y, centre=True)
+  pacman.changeMode('run')
   timer1 = threading.Timer(1.5, changeGameStatus, ('run',))
   timer1.start()
 
 def changeGameStatus(status):
   global game_status
   game_status = status
+
+
 
 setAutoUpdate(False)
 w = 672
@@ -290,14 +220,15 @@ raster_h = 24
 zellen = spalten * zeilen
 
 screenSize(w,h)
-setBackgroundImage("pacman3.png")
+setBackgroundImage("Teil_17_pacman.png")
+pacman = Pacman(sync(321,420))
+blinky = Ghosts("blinky_tileset2.png",sync(348,276))
+pinky = Ghosts("pinky_tileset2.png",sync(300,348))
+inky = Ghosts("inky_tileset2.png", sync(348,348))
+clyde = Ghosts("clyde_tileset2.png", sync(396,348))
+ghosts = [blinky, pinky, inky, clyde]
 
-actors = {}
-for actor, pos in startpositionen.items():
-  if actor == 'pacman':
-    actors['pacman'] = Pacman(pos)
-  else:
-    actors[actor] = Ghosts(startpositionen[actor])
+
 
 
 def dotsAufbauen():
@@ -305,55 +236,55 @@ def dotsAufbauen():
   dots = {}
   for i, zahl in enumerate(grid):
     if zahl == 1: 
-      dots[i] = Dot(i2xy(i),"dot.png")
+      x,y = i2xy(i)
+      dots[i] = Dot(x,y,"dot.png")
     if zahl == 2:
-      dots[i] = Dot(i2xy(i),"bit_dot.png")  
+      x,y = i2xy(i)
+      dots[i] = Dot(x,y,"bit_dot.png")  
+
 
 nextFrame = clock()
 game_status = "run"
 dotsAufbauen()
-
-
 while True:
   if clock() > nextFrame:
     nextFrame += 100
-    for actor in actors.values():
-      actor.changeAnimationFrame()
-    
+    for ghost in ghosts:
+      ghost.changeAnimationFrame()
+    pacman.changeAnimationFrame()
 
   fps = tick(120)
   
   if game_status == "run":
     if keyPressed("right"):
-      pacman.dir_buffer = Vector(1,0)
+      pacman.dir_buffer = 0
     elif keyPressed("left"):
-      pacman.dir_buffer = Vector(-1,0)
+      pacman.dir_buffer = 1
     elif keyPressed("up"):
-      pacman.dir_buffer = Vector(0,-1)
+      pacman.dir_buffer = 2
     elif keyPressed("down"):
-      pacman.dir_buffer = Vector(0,1)
+      pacman.dir_buffer = 3   
   
     for dot in dots.values():
       showSprite(dot.sprite)
 
-    for actor, obj in actors.items():
-      if actor == 'pacman':
-        pacman = obj
-        obj.eatDot()
-      obj.update()
-      if actor != 'pacman':
-        if pacman.grid_pos == obj.grid_pos:
-          if obj.modus == "jagd" and pacman.modus == 'run':
-            pacman.changeMode('die')
-            changeGameStatus('dead')
-            timer2 = threading.Timer(1.2, nextPacman)
-            timer2.start()
-          if obj.modus in ("flucht", "blink"):
-            obj.changeMode('die')
-        if obj.modus == 'die':
-          if obj.grid_pos == obj.target:
-          obj.changeMode('jagd')
-      obj.show() 
-      
+    pacman.eatDot()
+    pacman.update()
+    
+    for ghost in ghosts:
+      ghost.update()
+      gh_sprite = ghost.sprites[ghost.modus][0]
+      if touching(gh_sprite, pacman.sprites[pacman.modus][0]):
+        if ghost.modus == "jagd" and pacman.modus == 'run':
+          pacman.changeMode('die')
+          changeGameStatus('dead')
+          timer2 = threading.Timer(1.2, nextPacman)
+          timer2.start()
+
+        if ghost.modus in ("flucht", "blink"):
+          ghost.changeMode('die')
+    
+  for ghost in ghosts: ghost.show()
+  pacman.show()  
   updateDisplay()
   if keyPressed("ESC"): break
