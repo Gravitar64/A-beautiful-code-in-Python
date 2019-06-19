@@ -1,172 +1,158 @@
-from pygame_functions import *
+import pygame_functions as pgf
 import random as rnd
 import threading
-from Teil_17_Vector import Vector
 
 
-grid = [9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
-        9, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 9, 9, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 9,
-        9, 1, 9, 9, 9, 9, 1, 9, 9, 9, 9, 9, 1, 9, 9, 1, 9, 9, 9, 9, 9, 1, 9, 9, 9, 9, 1, 9,
-        9, 2, 9, 9, 9, 9, 1, 9, 9, 9, 9, 9, 1, 9, 9, 1, 9, 9, 9, 9, 9, 1, 9, 9, 9, 9, 2, 9,
-        9, 1, 9, 9, 9, 9, 1, 9, 9, 9, 9, 9, 1, 9, 9, 1, 9, 9, 9, 9, 9, 1, 9, 9, 9, 9, 1, 9,
-        9, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 9,
-        9, 1, 9, 9, 9, 9, 1, 9, 9, 1, 9, 9, 9, 9, 9, 9, 9, 9, 1, 9, 9, 1, 9, 9, 9, 9, 1, 9,
-        9, 1, 9, 9, 9, 9, 1, 9, 9, 1, 9, 9, 9, 9, 9, 9, 9, 9, 1, 9, 9, 1, 9, 9, 9, 9, 1, 9,
-        9, 1, 1, 1, 1, 1, 1, 9, 9, 1, 1, 1, 1, 9, 9, 1, 1, 1, 1, 9, 9, 1, 1, 1, 1, 1, 1, 9,
-        9, 9, 9, 9, 9, 9, 1, 9, 9, 9, 9, 9, 0, 9, 9, 0, 9, 9, 9, 9, 9, 1, 9, 9, 9, 9, 9, 9,
-        9, 9, 9, 9, 9, 9, 1, 9, 9, 9, 9, 9, 0, 9, 9, 0, 9, 9, 9, 9, 9, 1, 9, 9, 9, 9, 9, 9,
-        9, 9, 9, 9, 9, 9, 1, 9, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 9, 1, 9, 9, 9, 9, 9, 9,
-        9, 9, 9, 9, 9, 9, 1, 9, 9, 0, 9, 9, 9, 7, 7, 9, 9, 9, 0, 9, 9, 1, 9, 9, 9, 9, 9, 9,
-        9, 9, 9, 9, 9, 9, 1, 9, 9, 0, 9, 0, 0, 0, 0, 0, 0, 9, 0, 9, 9, 1, 9, 9, 9, 9, 9, 9,
-        5, 0, 0, 0, 0, 0, 1, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 1, 0, 0, 0, 0, 0, 6,
-        9, 9, 9, 9, 9, 9, 1, 9, 9, 0, 9, 0, 0, 0, 0, 0, 0, 9, 0, 9, 9, 1, 9, 9, 9, 9, 9, 9,
-        9, 9, 9, 9, 9, 9, 1, 9, 9, 0, 9, 9, 9, 9, 9, 9, 9, 9, 0, 9, 9, 1, 9, 9, 9, 9, 9, 9,
-        9, 9, 9, 9, 9, 9, 1, 9, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 9, 1, 9, 9, 9, 9, 9, 9,
-        9, 9, 9, 9, 9, 9, 1, 9, 9, 0, 9, 9, 9, 9, 9, 9, 9, 9, 0, 9, 9, 1, 9, 9, 9, 9, 9, 9,
-        9, 9, 9, 9, 9, 9, 1, 9, 9, 0, 9, 9, 9, 9, 9, 9, 9, 9, 0, 9, 9, 1, 9, 9, 9, 9, 9, 9,
-        9, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 9, 9, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 9,
-        9, 1, 9, 9, 9, 9, 1, 9, 9, 9, 9, 9, 1, 9, 9, 1, 9, 9, 9, 9, 9, 1, 9, 9, 9, 9, 1, 9,
-        9, 1, 9, 9, 9, 9, 1, 9, 9, 9, 9, 9, 1, 9, 9, 1, 9, 9, 9, 9, 9, 1, 9, 9, 9, 9, 1, 9,
-        9, 2, 1, 1, 9, 9, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 9, 9, 1, 1, 2, 9,
-        9, 9, 9, 1, 9, 9, 1, 9, 9, 1, 9, 9, 9, 9, 9, 9, 9, 9, 1, 9, 9, 1, 9, 9, 1, 9, 9, 9,
-        9, 9, 9, 1, 9, 9, 1, 9, 9, 1, 9, 9, 9, 9, 9, 9, 9, 9, 1, 9, 9, 1, 9, 9, 1, 9, 9, 9,
-        9, 1, 1, 1, 1, 1, 1, 9, 9, 1, 1, 1, 1, 9, 9, 1, 1, 1, 1, 9, 9, 1, 1, 1, 1, 1, 1, 9,
-        9, 1, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 1, 9, 9, 1, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 1, 9,
-        9, 1, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 1, 9, 9, 1, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 1, 9,
-        9, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 9,
-        9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9]
+grid = [9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,
+        9,1,1,1,1,1,1,1,1,1,1,1,1,9,9,1,1,1,1,1,1,1,1,1,1,1,1,9,
+        9,1,9,9,9,9,1,9,9,9,9,9,1,9,9,1,9,9,9,9,9,1,9,9,9,9,1,9,
+        9,2,9,9,9,9,1,9,9,9,9,9,1,9,9,1,9,9,9,9,9,1,9,9,9,9,2,9,
+        9,1,9,9,9,9,1,9,9,9,9,9,1,9,9,1,9,9,9,9,9,1,9,9,9,9,1,9,
+        9,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,9,
+        9,1,9,9,9,9,1,9,9,1,9,9,9,9,9,9,9,9,1,9,9,1,9,9,9,9,1,9,
+        9,1,9,9,9,9,1,9,9,1,9,9,9,9,9,9,9,9,1,9,9,1,9,9,9,9,1,9,
+        9,1,1,1,1,1,1,9,9,1,1,1,1,9,9,1,1,1,1,9,9,1,1,1,1,1,1,9,
+        9,9,9,9,9,9,1,9,9,9,9,9,0,9,9,0,9,9,9,9,9,1,9,9,9,9,9,9,
+        9,9,9,9,9,9,1,9,9,9,9,9,0,9,9,0,9,9,9,9,9,1,9,9,9,9,9,9,
+        9,9,9,9,9,9,1,9,9,0,0,0,0,0,0,0,0,0,0,9,9,1,9,9,9,9,9,9,
+        9,9,9,9,9,9,1,9,9,0,9,9,9,7,7,9,9,9,0,9,9,1,9,9,9,9,9,9,
+        9,9,9,9,9,9,1,9,9,0,9,0,0,0,0,0,0,9,0,9,9,1,9,9,9,9,9,9,
+        5,0,0,0,0,0,1,0,0,0,9,0,0,0,0,0,0,9,0,0,0,1,0,0,0,0,0,6,
+        9,9,9,9,9,9,1,9,9,0,9,0,0,0,0,0,0,9,0,9,9,1,9,9,9,9,9,9,
+        9,9,9,9,9,9,1,9,9,0,9,9,9,9,9,9,9,9,0,9,9,1,9,9,9,9,9,9,
+        9,9,9,9,9,9,1,9,9,0,0,0,0,0,0,0,0,0,0,9,9,1,9,9,9,9,9,9,
+        9,9,9,9,9,9,1,9,9,0,9,9,9,9,9,9,9,9,0,9,9,1,9,9,9,9,9,9,
+        9,9,9,9,9,9,1,9,9,0,9,9,9,9,9,9,9,9,0,9,9,1,9,9,9,9,9,9,
+        9,1,1,1,1,1,1,1,1,1,1,1,1,9,9,1,1,1,1,1,1,1,1,1,1,1,1,9,
+        9,1,9,9,9,9,1,9,9,9,9,9,1,9,9,1,9,9,9,9,9,1,9,9,9,9,1,9,
+        9,1,9,9,9,9,1,9,9,9,9,9,1,9,9,1,9,9,9,9,9,1,9,9,9,9,1,9,
+        9,2,1,1,9,9,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,9,9,1,1,2,9,
+        9,9,9,1,9,9,1,9,9,1,9,9,9,9,9,9,9,9,1,9,9,1,9,9,1,9,9,9,
+        9,9,9,1,9,9,1,9,9,1,9,9,9,9,9,9,9,9,1,9,9,1,9,9,1,9,9,9,
+        9,1,1,1,1,1,1,9,9,1,1,1,1,9,9,1,1,1,1,9,9,1,1,1,1,1,1,9,
+        9,1,9,9,9,9,9,9,9,9,9,9,1,9,9,1,9,9,9,9,9,9,9,9,9,9,1,9,
+        9,1,9,9,9,9,9,9,9,9,9,9,1,9,9,1,9,9,9,9,9,9,9,9,9,9,1,9,
+        9,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,9,
+        9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9]
 
-directions = {0: (1, 0), 1: (-1, 0), 2: (0, -1), 3: (0, 1)}
-abbiegungen = {(1, 0): [(1, 0), (0, -1), (0, 1)],
-               (-1, 0): [(-1, 0), (0, -1), (0, 1)],
-               (0, -1): [(0, -1), (-1, 0), (1, 0)],
-               (0, 1): [(0, 1), (-1, 0), (1, 0)]}
-dir_invers = {v: k for (k, v) in directions.items()}
+directions = {0:(1,0), 1:(-1,0), 2:(0,-1), 3:(0,1)}
+dir_invers = {v:k for (k,v) in directions.items()}
 grid_save = grid.copy()
 dots = {}
 
-
 class Dot:
-  def __init__(self, pos, image):
-    self.pos = pos
-    self.sprite = makeSprite(image)
-    moveSprite(self.sprite, pos, centre=True)
-
+  def __init__(self, x,y, image):
+    self.x, self.y = x,y
+    self.sprite = pgf.makeSprite(image)
+    pgf.moveSprite(self.sprite,x,y,centre=True)
 
 class Actor:
-  def __init__(self, pos):
-    self.pos = pos
-    self.richtung = Vector(1, 0)
+  def __init__(self):
+    self.vx, self.vy = 1,0
     self.frame = 0
     self.dir = 0
     self.dir_buffer = None
-    self.grid = pos2grid(self.pos)
-    self.i = grid2i(self.grid)
-
+  
   def changeAnimationFrame(self):
     sprite, animations, je_richtung = self.sprites[self.modus]
     if je_richtung:
       self.frame = (self.frame+1) % animations + self.dir * animations
     else:
-      self.frame = (self.frame+1) % animations
-    changeSpriteImage(sprite, self.frame)
+      self.frame = (self.frame+1) % animations  
+    pgf.changeSpriteImage(sprite,self.frame)
 
   def show(self):
-    showSprite(self.sprites[self.modus][0])
-
-  def dirGültig(self, dir):
-    richtung = Vector(*directions[dir])
-    sp, ze = richtung + self.grid
+    pgf.showSprite(self.sprites[self.modus][0])
+  
+  def dirGültig(self,richtung):
+    vx, vy = directions[richtung]
+    i = xy2i(self.x, self.y)
+    sp, ze = i % spalten, i // spalten
+    sp += vx
+    ze += vy
     i = ze * spalten + sp
     return grid[i] != 9
 
-  def inSync(self, pos):
-    pos2 = i2xy(xy2i(pos))
-    return pos == pos2
-
-  def changeDir(self, i):
+  def inSync(self,x,y):
+    sync_x, sync_y = i2xy(xy2i(x,y))
+    return x == sync_x and y == sync_y
+  
+  def changeDir(self,i):
     self.dir = i
-    self.richtung = Vector(*directions[i])
+    self.vx, self.vy = directions[i]
 
   def changeMode(self, modus):
     sprite, _, _ = self.sprites[self.modus]
-    hideSprite(sprite)
+    pgf.hideSprite(sprite)
     self.modus = modus
-    self.frame = 0
+    self.frame = 0 
     sprite, _, _ = self.sprites[self.modus]
-    moveSprite(sprite, self.pos, centre=True)
+    pgf.moveSprite(sprite,self.x, self.y, centre= True)
 
+    
 
 class Ghosts(Actor):
-  def __init__(self, tileset, pos):
-    Actor.__init__(self, pos)
-    self.sprites = {'jagd': [makeSprite(tileset, 8), 2, True],
-                    'flucht': [makeSprite("ghost_flucht.png", 2), 2, False],
-                    'blink': [makeSprite("ghost_blink.png", 4), 4, False],
-                    'die': [makeSprite("ghost_die.png", 4), 1, True]
+  def __init__(self,tileset,pos):
+    Actor.__init__(self)
+    self.sprites = {'jagd':[pgf.makeSprite(tileset,8),2,True],
+                    'flucht':[pgf.makeSprite("ghost_flucht.png",2),2,False],
+                    'blink':[pgf.makeSprite("ghost_blink.png",4),4,False],
+                    'die':[pgf.makeSprite("ghost_die.png",4),1, True]
                     }
+    self.x,self.y = pos
     self.modus = "jagd"
-    self.target = Vector(14,14)
-
+  
   def update(self):
-    if self.inSync(self.pos):
-      if grid[self.i] in (5, 6):
-        self.i = self.i+27 if grid[self.i] == 5 else self.i-27
-        self.pos = i2xy(self.i)
-        self.pos += self.richtung
-        self.grid = pos2grid(self.pos)
+    if self.inSync(self.x, self.y):
+      i = xy2i(self.x, self.y)
+      if grid[i] in (5,6):
+        i = i+27 if grid[i] == 5 else i-27
+        self.x, self.y = i2xy(i)
+        self.x, self.y = self.x+self.vx, self.y+self.vy
         return
-      mögliche_abbiegungen = []
-      self.target = pacman.grid
-      for r in abbiegungen[self.richtung.werte]:
-        if self.dirGültig(dir_invers[r]):
-          newPos = self.grid + Vector(*r)
-          abst = self.target.abstand(newPos)
-          mögliche_abbiegungen.append((abst,r))
-      if mögliche_abbiegungen:
-        r = sorted(mögliche_abbiegungen)[0][1]
-        dir = dir_invers[r]
-        self.changeDir(dir)
-    self.pos += self.richtung
-    self.grid = pos2grid(self.pos)
-    self.i = grid2i(self.grid)
-    moveSprite(self.sprites[self.modus][0], self.pos, centre=True)
-
-
+      while True:
+        dir = rnd.randrange(3)
+        vx, vy = self.vx, self.vy
+        if dir == 0:
+          vx, vy = vy, -vx
+        elif dir == 2:
+          vx, vy = -vy, vx  
+        dir = dir_invers[(vx, vy)]
+        if self.dirGültig(dir):
+          self.changeDir(dir)
+          break
+    self.x, self.y = self.x+self.vx, self.y+self.vy
+    pgf.moveSprite(self.sprites[self.modus][0],self.x,self.y,centre=True)
+    
+  
 class Pacman(Actor):
-  def __init__(self, pos):
-    Actor.__init__(self, pos)
-    self.sprites = {'run': [makeSprite("pacman_tileset2.png", 12), 3, True],
-                    'die': [makeSprite("pacman_die.png", 12), 12, False]}
+  def __init__(self,pos):
+    Actor.__init__(self)
+    self.sprites = {'run':[pgf.makeSprite("pacman_tileset2.png",12),3,True],
+                    'die':[pgf.makeSprite("pacman_die.png",12),12,False]}
     self.modus = 'run'
+    self.x,self.y = pos
 
   def update(self):
-    if self.inSync(self.pos):
-      if grid[self.i] in (5, 6):
-        self.i = self.i+27 if grid[self.i] == 5 else self.i-27
-        self.pos = i2xy(self.i)
-        self.pos += self.richtung
-        self.grid = pos2grid(self.pos)
-        return
+    if self.inSync(self.x,self.y):
       if self.dir_buffer != None:
         if self.dirGültig(self.dir_buffer):
           self.changeDir(self.dir_buffer)
           self.dir_buffer = None
       if not self.dirGültig(self.dir):
         return
-    self.pos += self.richtung
-    self.grid = pos2grid(self.pos)
-    self.i = grid2i(self.grid)
-    moveSprite(self.sprites[self.modus][0], self.pos, centre=True)
-
+    self.x, self.y = self.x+self.vx, self.y+self.vy
+    pgf.moveSprite(self.sprites[self.modus][0],self.x,self.y,centre=True)
+    
   def eatDot(self):
     global grid
-    if grid[self.i] in (1, 2):
-      if grid[self.i] == 2:
+    i = xy2i(self.x, self.y)
+    if grid[i] in (1,2):
+      if grid[i] == 2:
         changeGhostMode('flucht')
-      grid[self.i] = 0
-      killSprite(dots[self.i].sprite)
-      del dots[self.i]
+      grid[i] = 0
+      pgf.killSprite(dots[i].sprite)
+      del dots[i]
     if not dots:
       changeGameStatus('nextLevel')
       timer2 = threading.Timer(1.2, nextPacman)
@@ -175,19 +161,19 @@ class Pacman(Actor):
       dotsAufbauen()
 
 
+
 def changeGhostMode(modus):
   for ghost in ghosts:
     if ghost.modus != 'die':
       ghost.changeMode(modus)
   if modus == 'flucht':
-    timer1 = threading.Timer(5.0, changeGhostMode, ('blink',))
+    timer1 = threading.Timer(5.0, changeGhostMode, ('blink',)) 
     timer2 = threading.Timer(8.0, changeGhostMode, ('jagd',))
     timer1.start()
     timer2.start()
+    
 
-
-def xy2i(pos):
-  x, y = pos
+def xy2i(x,y):
   sp = round((x - raster_w / 2) / raster_w)
   ze = round((y - raster_h / 2) / raster_h)
   i = ze*spalten+sp
@@ -198,47 +184,34 @@ def i2xy(i):
   sp, ze = i % spalten, i // spalten
   x = sp * raster_w + raster_w // 2
   y = ze * raster_h + raster_h // 2
-  return Vector(x, y)
+  return x,y
 
-
-def sync(pos):
-  return i2xy(xy2i(pos))
-
-
-def pos2grid(pos):
-  i = xy2i(pos)
-  return Vector(i % spalten, i // spalten)
-
-
-def grid2i(pos):
-  sp, ze = pos
-  return ze * spalten + sp
-
+def sync(x,y):
+  return i2xy(xy2i(x,y)) 
 
 def nextPacman():
-  pacman.pos = sync(Vector(321, 420))
-  blinky.pos = sync(Vector(335, 276))
-  pinky.pos = sync(Vector(300, 348))
-  inky.pos = sync(Vector(348, 348))
-  clyde.pos = sync(Vector(396, 348))
+  pacman.x, pacman.y = sync(321,420)
+  blinky.x, blinky.y = sync(335,276)
+  pinky.x, pinky.y = sync(300,348)
+  inky.x, inky.y = sync(348,348)
+  clyde.x, clyde.y = sync(396,348)
   for ghost in ghosts:
     sprite = ghost.sprites[ghost.modus][0]
-    hideSprite(sprite)
+    pgf.hideSprite(sprite)
     ghost.modus = 'jagd'
     sprite = ghost.sprites[ghost.modus][0]
-    moveSprite(sprite, ghost.pos, centre=True)
+    pgf.moveSprite(sprite,ghost.x, ghost.y, centre=True)
   pacman.changeMode('run')
-  pacman.changeDir(0)
   timer1 = threading.Timer(1.5, changeGameStatus, ('run',))
   timer1.start()
-
 
 def changeGameStatus(status):
   global game_status
   game_status = status
 
 
-setAutoUpdate(False)
+
+pgf.setAutoUpdate(False)
 w = 672
 h = 744
 spalten, zeilen = w // 24, h // 24
@@ -246,58 +219,62 @@ raster_w = 24
 raster_h = 24
 zellen = spalten * zeilen
 
-screenSize(w, h)
-setBackgroundImage("Teil_17_pacman.png")
-pacman = Pacman(sync(Vector(321, 420)))
-blinky = Ghosts("blinky_tileset2.png", sync(Vector(348, 276)))
-pinky = Ghosts("pinky_tileset2.png", sync(Vector(300, 348)))
-inky = Ghosts("inky_tileset2.png", sync(Vector(348, 348)))
-clyde = Ghosts("clyde_tileset2.png", sync(Vector(396, 348)))
+pgf.screenSize(w,h)
+pgf.setBackgroundImage("Teil_17_pacman.png")
+pacman = Pacman(sync(321,420))
+blinky = Ghosts("blinky_tileset2.png",sync(348,276))
+pinky = Ghosts("pinky_tileset2.png",sync(300,348))
+inky = Ghosts("inky_tileset2.png", sync(348,348))
+clyde = Ghosts("clyde_tileset2.png", sync(396,348))
 ghosts = [blinky, pinky, inky, clyde]
+
+
 
 
 def dotsAufbauen():
   global dots
   dots = {}
   for i, zahl in enumerate(grid):
-    pos = i2xy(i)
-    if zahl == 1:
-      dots[i] = Dot(pos, "dot.png")
-    elif zahl == 2:
-      dots[i] = Dot(pos, "bit_dot.png")
+    if zahl == 1: 
+      x,y = i2xy(i)
+      dots[i] = Dot(x,y,"dot.png")
+    if zahl == 2:
+      x,y = i2xy(i)
+      dots[i] = Dot(x,y,"bit_dot.png")  
 
 
-nextFrame = clock()
+nextFrame = pgf.clock()
 game_status = "run"
 dotsAufbauen()
 while True:
-  if clock() > nextFrame:
+  if pgf.clock() > nextFrame:
     nextFrame += 100
     for ghost in ghosts:
       ghost.changeAnimationFrame()
     pacman.changeAnimationFrame()
 
-  fps = tick(120)
-
+  fps = pgf.tick(120)
+  
   if game_status == "run":
-    if keyPressed("right"):
+    if pgf.keyPressed("right"):
       pacman.dir_buffer = 0
-    elif keyPressed("left"):
+    elif pgf.keyPressed("left"):
       pacman.dir_buffer = 1
-    elif keyPressed("up"):
+    elif pgf.keyPressed("up"):
       pacman.dir_buffer = 2
-    elif keyPressed("down"):
-      pacman.dir_buffer = 3
-
+    elif pgf.keyPressed("down"):
+      pacman.dir_buffer = 3   
+  
     for dot in dots.values():
-      showSprite(dot.sprite)
+      pgf.showSprite(dot.sprite)
 
     pacman.eatDot()
     pacman.update()
-
+    
     for ghost in ghosts:
       ghost.update()
-      if ghost.grid == pacman.grid:
+      gh_sprite = ghost.sprites[ghost.modus][0]
+      if pgf.touching(gh_sprite, pacman.sprites[pacman.modus][0]):
         if ghost.modus == "jagd" and pacman.modus == 'run':
           pacman.changeMode('die')
           changeGameStatus('dead')
@@ -306,10 +283,8 @@ while True:
 
         if ghost.modus in ("flucht", "blink"):
           ghost.changeMode('die')
-
-  for ghost in ghosts:
-    ghost.show()
-  pacman.show()
-  updateDisplay()
-  if keyPressed("ESC"):
-    break
+    
+  for ghost in ghosts: ghost.show()
+  pacman.show()  
+  pgf.updateDisplay()
+  if pgf.keyPressed("ESC"): break
