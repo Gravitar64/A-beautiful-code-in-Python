@@ -168,10 +168,9 @@ def changeGhostMode(modus):
     if actor.modus != 'die':
       actor.changeMode(modus)
   if modus == 'flucht':
-    timer1 = threading.Timer(5.0, changeGhostMode, ('blink',))
-    timer2 = threading.Timer(8.0, changeGhostMode, ('jagd',))
-    timer1.start()
-    timer2.start()
+    timer_ghost_blink = threading.Timer(5.0, changeGhostMode, ('blink',)).start()
+    timer_ghost_jagd = threading.Timer(8.0, changeGhostMode, ('jagd',)).start()
+    
 
 
 def xy2i(x, y):
@@ -193,16 +192,16 @@ def sync(x, y):
 
 
 def nextPacman():
-  pacman.x, pacman.y = sync(321, 420)
-  blinky.x, blinky.y = sync(335, 276)
+  pacman.x, pacman.y = 336, 564
+  blinky.x, blinky.y = 336, 276
+  blinky.changeDir(0)
   pinky.x, pinky.y = sync(300, 348)
   inky.x, inky.y = sync(348, 348)
   clyde.x, clyde.y = sync(396, 348)
   for actor in actors:
     actor.changeMode('jagd')
   pacman.changeDir(0)
-  timer1 = threading.Timer(1.5, changeGameStatus, ('run',))
-  timer1.start()
+  timer_game_run = threading.Timer(1.5, changeGameStatus, ('run',)).start()
 
 
 def changeGameStatus(status):
@@ -241,13 +240,12 @@ zellen = spalten * zeilen
 
 pgf.screenSize(w, h)
 pgf.setBackgroundImage("Teil_17_Spielfeld.png")
-pacman = Pacman("pacman", sync(321, 420))
-blinky = Ghosts("blinky", "Teil_17_blinky_tileset.png", sync(348, 276))
+pacman = Pacman("pacman", (336, 564))
+blinky = Ghosts("blinky", "Teil_17_blinky_tileset.png", (360, 276))
 pinky = Ghosts("pinky", "Teil_17_pinky_tileset.png", sync(300, 348))
 inky = Ghosts("inky", "Teil_17_inky_tileset.png", sync(348, 348))
 clyde = Ghosts("clyde", "Teil_17_clyde_tileset.png", sync(396, 348))
 actors = [pacman, blinky, pinky, inky, clyde]
-
 
 nextFrame = pgf.clock()
 game_status = "run"
