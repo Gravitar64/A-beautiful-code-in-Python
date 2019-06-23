@@ -13,7 +13,7 @@ score, level = 0, 1
 bilder = []
 for n in range(8):
   bilder.append(pg.transform.scale(
-      pg.image.load(f'tt3_{n}.gif'), (ABSTAND, ABSTAND)))
+      pg.image.load(f'Teil_11_tt3_{n}.gif'), (ABSTAND, ABSTAND)))
 
 pg.init()
 screen = pg.display.set_mode([BREITE, HÖHE])

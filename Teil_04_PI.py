@@ -2,7 +2,7 @@ import turtle as tu
 
 lines = 100_000
 
-with open("1_million_digits_of_pi.txt", "r") as f:
+with open("Teil_04_1_million_digits_of_pi.txt", "r") as f:
   pi = f.read()
 
 tu.mode('logo')
