@@ -1,3 +1,5 @@
+import math
+
 class Vector:
 
   def __init__(self, *args):
@@ -14,13 +16,19 @@ class Vector:
     produkte = tuple(a * faktor for a in self)
     return Vector(*produkte)
 
-  def abstand(self, other):
-    """ Liefert den Abstand zwischen vector1 und vector2, Beispiel: abstand = vector1.abstand(vector2)"""
-    abstand = sum(abs(a-b) for a, b in zip(self, other))
-    return abstand
-
   def __iter__(self):
     return self.werte.__iter__()
 
   def __eq__(self, other): 
     return self.werte == other.werte   
+
+  def ManhattanAbstand(self, other):
+    """ Liefert den Manhattan Abstand als Summe der absoluten Differenzen der Einzelkoordinaten von vector1 und vector2, Beispiel: abstand = vector1.ManhattanAbstand(vector2) \
+      z.B. Vec1(3,9), Vec2(9,5) = 10 (6 + 4) = abs(3-9) + abs(9-5)"""
+    return sum(abs(a-b) for a, b in zip(self, other))
+    
+
+  def EuklidAbstand(self, other):
+    """ Liefert den euklidischen Abstand zwischen vector1 und vector2, Beispiel: abstand = vector1.EuklidAbstand(vector2) \
+      z.B. Vec1(3,9), Vec2(9,5) = 7,21 = sqrt(52) = sqrt(36 + 16) = sqrt ((3-9)**2 + (9-5)**2)"""
+    return math.sqr(sum((a-b)**2 for a, b in zip(self, other)))
