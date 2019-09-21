@@ -7,11 +7,6 @@ WINDOW = [800, 600]
 TRANSFORM = np.array([400, 300, 300, 300])
 
 
-class Punkt:
-  def __init__(self, *args):
-    self.werte = np.array(args)
-
-
 def drehen4D(winkels, objekt):
   x, y, z, w = np.radians(winkels)
   if x:
@@ -21,8 +16,7 @@ def drehen4D(winkels, objekt):
                            [0, cos_rad, sin_rad, 0],
                            [0, -sin_rad, cos_rad, 0],
                            [0, 0, 0, 1]])
-    for punkt in objekt:
-      punkt.werte = np.matmul(punkt.werte, drehmatrix)
+    objekt = np.matmul(objekt, drehmatrix)
   if y:
     sin_rad = sin(y)
     cos_rad = cos(y)
@@ -30,8 +24,7 @@ def drehen4D(winkels, objekt):
                            [0, 1, 0, 0],
                            [sin_rad, 0, cos_rad, 0],
                            [0, 0, 0, 1]])
-    for punkt in objekt:
-      punkt.werte = np.matmul(punkt.werte, drehmatrix)
+    objekt = np.matmul(objekt, drehmatrix)
   if z:
     sin_rad = sin(z)
     cos_rad = cos(z)
@@ -39,8 +32,7 @@ def drehen4D(winkels, objekt):
                            [-sin_rad, cos_rad, 0, 0],
                            [0, 0, 1, 0],
                            [0, 0, 0, 1]])
-    for punkt in objekt:
-      punkt.werte = np.matmul(punkt.werte, drehmatrix)
+    objekt = np.matmul(objekt, drehmatrix)
   if w:
     sin_rad = sin(w)
     cos_rad = cos(w)
@@ -59,18 +51,16 @@ def drehen4D(winkels, objekt):
                            [0, 0, cos_rad, -sin_rad],
                            [0, 0, sin_rad, cos_rad],
                            ])                                              
-    for punkt in objekt:
-      punkt.werte = np.matmul(punkt.werte, drehmatrixXW)
+    objekt = np.matmul(objekt, drehmatrixXW)
+  return objekt  
 
 
 pg.init()
 screen = pg.display.set_mode(WINDOW)
-form4D = [Punkt(-1, -1, -1, -1), Punkt(1, -1, -1, -1), Punkt(1, 1, -1, -1), Punkt(-1, 1, -1, -1),
-          Punkt(-1, -1, 1, -1), Punkt(1, -1, 1, -
-                                      1), Punkt(1, 1, 1, -1), Punkt(-1, 1, 1, -1),
-          Punkt(-1, -1, -1, 1), Punkt(1, -1, -1,
-                                      1), Punkt(1, 1, -1, 1), Punkt(-1, 1, -1, 1),
-          Punkt(-1, -1, 1, 1), Punkt(1, -1, 1, 1), Punkt(1, 1, 1, 1), Punkt(-1, 1, 1, 1)]
+hyperCube = np.array([[-1, -1, -1, -1], [1, -1, -1, -1], [1, 1, -1, -1], [-1, 1, -1, -1],
+             [-1, -1, 1, -1], [1, -1, 1, -1], [1, 1, 1, -1], [-1, 1, 1, -1],
+             [-1, -1, -1, 1], [1, -1, -1, 1], [1, 1, -1, 1], [-1, 1, -1, 1],
+             [-1, -1, 1, 1], [1, -1, 1, 1], [1, 1, 1, 1], [-1, 1, 1, 1]])
 
 
 weitermachen = True
@@ -101,16 +91,16 @@ while weitermachen:
         w += 0.1
       if event.key == pg.K_SPACE:
         x = y = z = w = 0
-  drehen4D([x, y, z, w], form4D)
+  hyperCube = drehen4D([x, y, z, w], hyperCube)
   projektion2D = []
-  for punkt in form4D:
-    w1 = 2 / (4- punkt.werte[3])
+  for punkt in hyperCube:
+    w1 = 2 / (4- punkt[3])
     persp_projektion3D = np.array([[w1, 0, 0, 0],
                                  [0, w1, 0, 0],
                                  [0, 0, w1, 0],
                                  [0, 0, 0, 0]])
-    pos = np.matmul(punkt.werte, persp_projektion3D)
-    z1 = 2 / (4 - punkt.werte[2])
+    pos = np.matmul(punkt, persp_projektion3D)
+    z1 = 2 / (4 - punkt[2])
     persp_projektion2D = np.array([[z1, 0, 0, 0],
                                  [0, z1, 0, 0],
                                  [0, 0, 0, 0],
