@@ -2,8 +2,7 @@ import pygame as pg
 import numpy as np
 import quaternion as quat
 
-x = y = z = 0
-tasten = {pg.K_x: x, pg.K_y: y, pg.K_z: z}
+tasten = {pg.K_x: 0, pg.K_y: 0, pg.K_z: 0}
 
 #array mit 1 Real- und 3 imaginären Werten (= x,y,z-Koordinaten)
 #die ersten 3 Werte sind die x,y,z-Achsen, um die gedreht wird und die
@@ -12,6 +11,14 @@ würfel = np.array([[0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1], [0., -1, -1, -1],
                    [0, 1, -1, -1], [0, 1, 1, -1], [0, -1, 1, -1],
                    [0, -1, -1, 1], [0, 1, -1, 1], [0, 1, 1, 1], [0, -1, 1, 1]])
 
+def kanten_ermitteln(objekt):
+    kanten = []
+    for i in range(len(objekt) - 1):
+        for j in range(i + 1, len(objekt)):
+            abst = round(np.linalg.norm(objekt[i] - objekt[j]), 2)
+            if abst != 2.0: continue
+            kanten.append((i,j))    
+    return kanten
 
 def drehen3D(objekt, winkelwerte):
     for j, theta in enumerate(winkelwerte):
@@ -37,6 +44,7 @@ screen = pg.display.set_mode(WINDOW)
 weitermachen = True
 clock = pg.time.Clock()
 
+kanten = kanten_ermitteln(würfel[3:])
 while weitermachen:
     clock.tick(80)
     screen.fill((0, 0, 0))
@@ -51,24 +59,18 @@ while weitermachen:
 
     #hier zeichnen wir den Würfel
     gedrehterWürfel = drehen3D(würfel, tasten.values())
-    projektion2D = []
+    proj2D = []
     for punkt in gedrehterWürfel:
         punkt = punkt[1:]
         z1 = 3 / (4 - punkt[2])
         persp_projektion = np.array([[z1, 0, 0], [0, z1, 0], [0, 0, 1]])
-        pos = np.matmul(punkt, persp_projektion)
-        pos = pos[:2]
-        projektion2D.append(pos * SKALIERUNG + TRANSFORM)
-    for i in range(4):
-        p1 = projektion2D[i]
-        p2 = projektion2D[(i + 1) % 4]
-        p3 = projektion2D[i + 4]
-        p4 = projektion2D[(i + 1) % 4 + 4]
-        pg.draw.line(screen, (255, 255, 255), p1, p2, 1)
-        pg.draw.line(screen, (255, 255, 255), p3, p4, 1)
-        pg.draw.line(screen, (255, 255, 255), p1, p3, 1)
-
-    for pos in projektion2D:
+        pos = punkt @ persp_projektion
+        proj2D.append(pos[:2] * SKALIERUNG + TRANSFORM)
+    
+    for i1, i2 in kanten:
+        pg.draw.line(screen, (255, 255, 255), proj2D[i1], proj2D[i2],1)
+        
+    for pos in proj2D:
         pg.draw.circle(screen, (255, 0, 0), pos, 5)
 
     pg.display.flip()
