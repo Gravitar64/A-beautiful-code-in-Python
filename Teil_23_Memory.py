@@ -21,7 +21,7 @@ class Karte:
      color = (200,120,120) if self.animation else (120,120,200)
      pg.draw.rect(screen, color, (*self.pos, karte_breite-5, karte_höhe-5))
      if self.animation:
-       pg.draw.rect(screen, (255,255,255), (*self.pos, karte_breite, karte_höhe), 4)
+       pg.draw.rect(screen, (255,255,255), (*self.pos, karte_breite, karte_höhe), 5)
 
   def beiKlick(self):
     self.aufgedeckt = not self.aufgedeckt
@@ -117,10 +117,7 @@ for spalten, zeilen, anz_richtige, pos_tauschen in level:
 
     for karte in karten.values():
       karte.zeige()
-    if swap_animation:
-      k1.zeige()
-      k2.zeige()  
-
+    
     if not(karten):
       weitermachen = False
       nextLevel = True    
