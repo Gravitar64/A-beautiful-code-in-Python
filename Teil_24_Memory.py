@@ -3,12 +3,13 @@ import random as rnd
 
 PFADELEMENTE = 80
 
+
 class Karte:
+
   def __init__(self, bild, pos):
     self.bild = bild
     self.pos = pos
     self.aufgedeckt = False
-    self.pfad = []
     self.pfad_pos = 0
     self.animation = False
 
@@ -31,28 +32,19 @@ class Karte:
   def beiKlick(self):
     self.aufgedeckt = True
 
-  def move(self):
+  def move(self, start, ziel):
     self.pfad_pos += 1
-    self.pos = self.pfad[self.pfad_pos]
-    if self.pfad_pos == len(self.pfad) - 1:
-      self.pfad_pos = 0
-      self.animation = False
-      self.pfad = []
-      return True
-
-  def pfad_erstellen(self, ziel):
-    x1, y1 = self.pos
+    x1, y1 = start
     x3, y3 = ziel
     x2, y2 = x1, y3
-    for i in range(PFADELEMENTE + 1):
-      t = i / PFADELEMENTE
-      t1 = 1 - t
-      a = t1**2
-      b = 2 * t * t1
-      c = t**2
-      x = a * x1 + b * x2 + c * x3 + 0.5
-      y = a * y1 + b * y2 + c * y3 + 0.5
-      self.pfad.append((x, y))
+    t = self.pfad_pos / PFADELEMENTE
+    t1 = 1 - t
+    a, b, c = t1**2, 2 * t * t1, t**2
+    self.pos = (a * x1 + b * x2 + c * x3, a * y1 + b * y2 + c * y3)
+    if self.pfad_pos == PFADELEMENTE:
+      self.pfad_pos = 0
+      self.animation = False
+      return True
 
 
 level = [(2, 3, 2, False), (2, 3, 3, False), (2, 3, 2, True), (2, 3, 3, True),
@@ -88,8 +80,8 @@ for spalten, zeilen, anz_richtige, pos_tauschen in level:
     screen.fill((0, 0, 0))
 
     if swap_animation:
-      k1.move()
-      if k2.move():
+      k1.move(pos1, pos2)
+      if k2.move(pos2, pos1):
         swap_animation = False
         karten[i1], karten[i2] = karten[i2], karten[i1]
     else:
@@ -119,9 +111,7 @@ for spalten, zeilen, anz_richtige, pos_tauschen in level:
                   break
               #dazu dann die karten
               k1, k2 = karten[i1], karten[i2]
-              #und erstellen den Bewegungspfad von Karte1 zu Karte2 und umgekehrt
-              k1.pfad_erstellen(k2.pos)
-              k2.pfad_erstellen(k1.pos)
+              pos1, pos2 = k1.pos, k2.pos
               #bei diesen beiden karten wird hinterlegt, dass diese animiert werden
               k1.animation, k2.animation = True, True
               #durch swap_animation = True wird die Abfrage der Ereignisse ausgesetzt
