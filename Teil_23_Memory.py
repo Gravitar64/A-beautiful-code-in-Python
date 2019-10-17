@@ -1,5 +1,7 @@
 import pygame as pg
-import random as rnd  
+import random as rnd
+
+PFADELEMENTE = 80
 
 class Karte:
   def __init__(self, bild, pos):
@@ -9,55 +11,61 @@ class Karte:
     self.pfad = []
     self.pfad_pos = 0
     self.animation = False
-  
+
   def zeige(self):
     if self.aufgedeckt:
-      pg.draw.rect(screen, (120,200,120), (*self.pos, karte_breite-5, karte_höhe-5))
-      text = pg.font.SysFont('impact', 54).render(f' {self.bild}', False, (0,0,0))
-      x = self.pos[0] + (karte_breite-14) //2  - text.get_width() // 2
-      y = self.pos[1] + (karte_höhe-5) //2  - text.get_height() // 2
-      screen.blit(text, (x,y))
-    else:  
-     color = (200,120,120) if self.animation else (120,120,200)
-     pg.draw.rect(screen, color, (*self.pos, karte_breite-5, karte_höhe-5))
-     if self.animation:
-       pg.draw.rect(screen, (255,255,255), (*self.pos, karte_breite, karte_höhe), 5)
+      pg.draw.rect(screen, (120, 200, 120),
+                   (*self.pos, karte_breite - 5, karte_höhe - 5))
+      text = pg.font.SysFont('impact', 54).render(f' {self.bild}', False,
+                                                  (0, 0, 0))
+      x = self.pos[0] + (karte_breite - 14) // 2 - text.get_width() // 2
+      y = self.pos[1] + (karte_höhe - 5) // 2 - text.get_height() // 2
+      screen.blit(text, (x, y))
+    else:
+      color = (200, 120, 120) if self.animation else (120, 120, 200)
+      pg.draw.rect(screen, color, (*self.pos, karte_breite - 5, karte_höhe - 5))
+    if self.animation:
+      pg.draw.rect(screen, (255, 255, 255),
+                   (*self.pos, karte_breite, karte_höhe), 5)
 
   def beiKlick(self):
-    self.aufgedeckt = not self.aufgedeckt
+    self.aufgedeckt = True
 
   def move(self):
     self.pfad_pos += 1
     self.pos = self.pfad[self.pfad_pos]
-    if self.pfad_pos == len(self.pfad)-1:
+    if self.pfad_pos == len(self.pfad) - 1:
       self.pfad_pos = 0
+      self.animation = False
+      self.pfad = []
       return True
 
-
   def pfad_erstellen(self, ziel):
-    self.pfad = []
-    x,y = self.pos
-    x1, y1 = ziel
-    sx, sy = (x1-x)/79, (y1-y)/79
-    for i in range(80):
-        self.pfad.append((x+sx*i, y+sy*i))
-        
+    x1, y1 = self.pos
+    x3, y3 = ziel
+    x2, y2 = x1, y3
+    for i in range(PFADELEMENTE + 1):
+      t = i / PFADELEMENTE
+      t1 = 1 - t
+      a = t1**2
+      b = 2 * t * t1
+      c = t**2
+      x = a * x1 + b * x2 + c * x3 + 0.5
+      y = a * y1 + b * y2 + c * y3 + 0.5
+      self.pfad.append((x, y))
 
 
-level = [(2,3,2,False), (2,3,3,False), (2,3,2,True), (2,3,3,True),
-         (4,3,2,False), (4,3,3,False), (4,3,2,True), (4,3,3,True),
-         (6,3,2,False), (6,3,3,False), (6,3,2,True), (6,3,3,True),
-         (6,4,2,False), (6,4,3,False), (6,4,2,True), (6,4,3,True)
-         ]
-
+level = [(2, 3, 2, False), (2, 3, 3, False), (2, 3, 2, True), (2, 3, 3, True),
+         (4, 3, 2, False), (4, 3, 3, False), (4, 3, 2, True), (4, 3, 3, True),
+         (6, 3, 2, False), (6, 3, 3, False), (6, 3, 2, True), (6, 3, 3, True),
+         (6, 4, 2, False), (6, 4, 3, False), (6, 4, 2, True), (6, 4, 3, True)]
 
 pg.init()
 BREITE, HÖHE = 800, 640
 screen = pg.display.set_mode([BREITE, HÖHE])
 
 for spalten, zeilen, anz_richtige, pos_tauschen in level:
-
-  nextLevel = False
+  spiel_beenden = False
   swap_animation = False
   zellen = spalten * zeilen
   karte_breite = BREITE // spalten
@@ -65,65 +73,86 @@ for spalten, zeilen, anz_richtige, pos_tauschen in level:
 
   karten = {}
   aufgedeckte_karten = []
-  nummern = [i for i in range(zellen//anz_richtige)]*anz_richtige
+  nummern = [i for i in range(zellen // anz_richtige)] * anz_richtige
   rnd.shuffle(nummern)
   for i in range(zellen):
-      x = i % spalten * karte_breite
-      y = i // spalten * karte_höhe
-      karten[i] = Karte(nummern.pop(), (x,y))
-    
+    x = i % spalten * karte_breite
+    y = i // spalten * karte_höhe
+    karten[i] = Karte(nummern.pop(), (x, y))
+
   weitermachen = True
   clock = pg.time.Clock()
 
   while weitermachen:
     clock.tick(60)
-    screen.fill((0,0,0))
+    screen.fill((0, 0, 0))
 
-    if not swap_animation:
+    if swap_animation:
+      k1.move()
+      if k2.move():
+        swap_animation = False
+        karten[i1], karten[i2] = karten[i2], karten[i1]
+    else:
       for ereignis in pg.event.get():
         if ereignis.type == pg.QUIT:
           weitermachen = False
+          spiel_beenden = True
         if ereignis.type == pg.MOUSEBUTTONDOWN and pg.mouse.get_pressed()[0]:
           if len(aufgedeckte_karten) == anz_richtige:
-            if all(karten[x].bild == karten[aufgedeckte_karten[0]].bild for x in aufgedeckte_karten):
+            #haben alle aufgedeckten Karten das gleiche Bild?
+            if all(karten[x].bild == karten[aufgedeckte_karten[0]].bild
+                   for x in aufgedeckte_karten):
               for i in aufgedeckte_karten:
                 del karten[i]
+            #wenn nicht, können die Karten wieder zugedeckt werden
             else:
               for i in aufgedeckte_karten:
                 karten[i].aufgedeckt = False
             aufgedeckte_karten = []
+            #falls tauschen angesagt ist, dann sollte man nach zudecken
+            #oder entfernen der aufgedeckten Karten das Taschen vornehmen
             if pos_tauschen and karten:
+              #hier holen wir uns zwei unterschiedliche indexwerte
               while True:
-                k1,k2 = rnd.choice(list(karten.values())), rnd.choice(list(karten.values()))
-                if k1 != k2: break
+                i1, i2 = rnd.choice(list(karten)), rnd.choice(list(karten))
+                if i1 != i2:
+                  break
+              #dazu dann die karten
+              k1, k2 = karten[i1], karten[i2]
+              #und erstellen den Bewegungspfad von Karte1 zu Karte2 und umgekehrt
               k1.pfad_erstellen(k2.pos)
               k2.pfad_erstellen(k1.pos)
+              #bei diesen beiden karten wird hinterlegt, dass diese animiert werden
               k1.animation, k2.animation = True, True
+              #durch swap_animation = True wird die Abfrage der Ereignisse ausgesetzt
+              #bis swap_animation = False ist
               swap_animation = True
-          else:    
+          else:  #die Anzahl der aufgedeckten Karten ist < vorgabe
             mouseX, mouseY = pg.mouse.get_pos()
             i = mouseY // karte_höhe * spalten + mouseX // karte_breite
             if i in karten and not karten[i].aufgedeckt:
               karten[i].beiKlick()
-              aufgedeckte_karten.append(i)          
-    else:
-      k1.move()
-      if k2.move():
-        swap_animation = False
-        k1.pos, k2.pos = k2.pos, k1.pos
-        k1.bild, k2.bild = k2.bild, k1.bild
-        k1.animation, k2.animation = False, False
-
+              aufgedeckte_karten.append(i)
 
     for karte in karten.values():
-      karte.zeige()
-    
-    if not(karten):
+      #zuerst alle karten zeichnen, die nicht ainimiert werden
+      if not karte.animation:
+        karte.zeige()
+
+    #jetzt die karten, die animiert werden zeichnen (= im Vordergrund)
+    if swap_animation:
+      k1.zeige()
+      k2.zeige()
+
+    #wenn alle karten gelöscht wurden (= alle Bilder gefunden), startet
+    #das nächste Level
+    if not (karten):
       weitermachen = False
-      nextLevel = True    
 
     pg.display.flip()
 
-  if not nextLevel: break
+  #wenn Fenster-Schließen gedrückt wurde
+  if spiel_beenden:
+    break
 
 pg.quit()
