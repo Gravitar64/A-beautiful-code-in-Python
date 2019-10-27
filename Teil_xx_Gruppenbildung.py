@@ -37,7 +37,7 @@ while weitermachen:
     fps += 1
   else:
     for i, gruppe in enumerate(gruppenbildung(namen, 2)):
-      text = ", ".join(gruppe)
+      text = ",   ".join(gruppe)
       textfläche = pg.font.SysFont('impact', 36).render(
           f'Gruppe {i+1}:  {text}', False, (0, 255, 255))
       screen.blit(textfläche, (200, i*40))
