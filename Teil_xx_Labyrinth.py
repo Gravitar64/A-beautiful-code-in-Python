@@ -6,41 +6,42 @@ sys.setrecursionlimit(4000)
 
 BREITE, HÖHE = 1001, 1001
 SPALTEN = ZEILEN = 30
-ZE_BH = BREITE // SPALTEN
+GRÖßE = BREITE // SPALTEN
 FPS = 5
 ANZ_ZELLEN = SPALTEN * ZEILEN
 ri_sz     = {'l': (-1, 0), 'r': (1, 0), 'o': (0, -1), 'u': (0, 1)}
 ri_invers = {'l': 'r', 'r': 'l', 'o': 'u', 'u': 'o'}
-ri_xy     = {'l': [(0, 0), (0, ZE_BH)],
-             'r': [(ZE_BH, 0), (ZE_BH, ZE_BH)],
-             'o': [(0, 0), (ZE_BH, 0)],
-             'u': [(0, ZE_BH), (ZE_BH, ZE_BH)]}
+ri_xy     = {'l': [(0, 0), (0, GRÖßE)],
+             'r': [(GRÖßE, 0), (GRÖßE, GRÖßE)],
+             'o': [(0, 0), (GRÖßE, 0)],
+             'u': [(0, GRÖßE), (GRÖßE, GRÖßE)]}
 
 
 class Zelle:
   def __init__(self, pos):
     self.pos = pos
     self.besucht = False
-    self.wände = {'l': True, 'r': True, 'o': True, 'u': True}
+    self.wände = {'l', 'r', 'o', 'u'}
 
   def show(self):
     s, z = self.pos
-    posxy = s * ZE_BH, z * ZE_BH
-    for key, val in self.wände.items():
-      if not val: continue
-      d_von, d_bis = ri_xy[key]
-      von, bis = add_pos(posxy, (d_von)), add_pos(posxy, (d_bis))
+    posxy = s * GRÖßE, z * GRÖßE
+    for wand in self.wände:
+      d_von, d_bis = ri_xy[wand]
+      von = add_pos(posxy, (d_von))
+      bis = add_pos(posxy, (d_bis))
       pg.draw.line(screen, f_linie, von, bis, 2)
+  
+  def markiere_suche(self):
+    s, z = self.pos
+    posxy = s * GRÖßE , z * GRÖßE 
+    pg.draw.rect(screen, f_markSuche, (posxy, (GRÖßE, GRÖßE)))
 
   def markiere_weg(self):
     s, z = self.pos
-    posxy = s * ZE_BH + ZE_BH / 2 , z * ZE_BH + ZE_BH / 2
-    pg.draw.circle(screen, f_markWeg, posxy, ZE_BH // 5)
+    posxy = s * GRÖßE + GRÖßE / 2 , z * GRÖßE + GRÖßE / 2
+    pg.draw.circle(screen, f_markWeg, posxy, GRÖßE // 5)
 
-  def markiere_suche(self):
-    s, z = self.pos
-    posxy = s * ZE_BH , z * ZE_BH 
-    pg.draw.rect(screen, f_markSuche, (posxy, (ZE_BH, ZE_BH)))
 
 def ereignis_quit():
   for event in pg.event.get():
@@ -68,19 +69,19 @@ def nachbarn(zelle):
 
 def labyrinth_erstellen(zelle, richtung):
   zelle.besucht = True
-  zelle.wände[richtung] = False
+  zelle.wände.remove(richtung)
   nachb = nachbarn(zelle)
   if not nachb: return
   for richt, pos in nachb:
     if raster[pos].besucht: continue
-    zelle.wände[richt] = False
+    zelle.wände.remove(richt)
     labyrinth_erstellen(raster[pos], ri_invers[richt])
 
 
 def mögliche_richtungen(zelle):
   mögl_richt = []
   for r in ri_sz:
-    if zelle.wände[r]: continue
+    if r in zelle.wände: continue
     mögl_richt.append(r)
   return mögl_richt
 
