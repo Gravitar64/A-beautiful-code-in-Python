@@ -5,16 +5,16 @@ import sys
 sys.setrecursionlimit(4000)
 
 
-BREITE, HÖHE = 1000, 1000
+BREITE = HÖHE = 1000
 SPALTEN = ZEILEN = 30
-GRÖßE = BREITE // SPALTEN
+ZELLE_BH = BREITE // SPALTEN
 
 ri_inv = {'l': 'r', 'r': 'l', 'o': 'u', 'u': 'o'}
 ri_sz = {'l': (-1, 0), 'r': (1, 0), 'o': (0, -1), 'u': (0, 1)}
-ri_xy = {'l': [(0, 0), (0, GRÖßE)],
-         'r': [(GRÖßE, 0), (GRÖßE, GRÖßE)],
-         'o': [(0, 0), (GRÖßE, 0)],
-         'u': [(0, GRÖßE), (GRÖßE, GRÖßE)]}
+ri_xy = {'l': [(0, 0), (0, ZELLE_BH)],
+         'r': [(ZELLE_BH, 0), (ZELLE_BH, ZELLE_BH)],
+         'o': [(0, 0), (ZELLE_BH, 0)],
+         'u': [(0, ZELLE_BH), (ZELLE_BH, ZELLE_BH)]}
 
 
 def add_pos(pos1, pos2):
@@ -29,16 +29,16 @@ def pg_quit():
 
 
 class Zelle:
-  def __init__(self):
+  def __init__(self, pos):
+    self.posXY = pos[0]*ZELLE_BH, pos[1] * ZELLE_BH
     self.besucht = False
     self.wände = {c for c in 'lrou'}
 
-  def anzeigen(self, pos):
-    posXY = list(map(lambda x: x*GRÖßE, pos))
+  def anzeigen(self):
     for wand in self.wände:
       delta_von, delta_bis = ri_xy[wand]
-      von = add_pos(posXY, delta_von)
-      bis = add_pos(posXY, delta_bis)
+      von = add_pos(self.posXY, delta_von)
+      bis = add_pos(self.posXY, delta_bis)
       pg.draw.line(screen, farbe_wand, von, bis, 2)
 
 
@@ -49,37 +49,37 @@ farbe_hintergrund = pg.Color('Black')
 
 raster = {}
 for i in range(SPALTEN * ZEILEN):
-  pos = i % SPALTEN, i // SPALTEN
-  raster[pos] = Zelle()
+  posSZ = i % SPALTEN, i // SPALTEN
+  raster[posSZ] = Zelle(posSZ)
 
 
-def nachbarn(pos):
+def nachbarn(posSZ):
   nachb = []
-  for richtung, delta in ri_sz.items():
-    neue_pos = add_pos(pos, delta)
-    if neue_pos not in raster: continue
-    nachb.append((richtung, neue_pos))
+  for richtung, deltaSZ in ri_sz.items():
+    neue_posSZ = add_pos(posSZ, deltaSZ)
+    if neue_posSZ not in raster: continue
+    nachb.append((richtung, neue_posSZ))
   rnd.shuffle(nachb)
   return nachb
 
 
-def labyrinth_erstellen(pos, richtung):
-  zelle = raster[pos]
-  zelle.besucht = True
-  zelle.wände.remove(richtung)
-  nachb = nachbarn(pos)
-  for richt, pos_neu in nachb:
-    if raster[pos_neu].besucht: continue
-    zelle.wände.remove(richt)
-    labyrinth_erstellen(pos_neu, ri_inv[richt])
+def labyrinth_erstellen(posSZ_aktuell, richtung_von):
+  akt_zelle = raster[posSZ_aktuell]
+  akt_zelle.besucht = True
+  akt_zelle.wände.remove(richtung_von)
+  nachb = nachbarn(posSZ_aktuell)
+  for richtung_nach, posSZ_neu in nachb:
+    if raster[posSZ_neu].besucht: continue
+    akt_zelle.wände.remove(richtung_nach)
+    labyrinth_erstellen(posSZ_neu, ri_inv[richtung_nach])
 
 
 labyrinth_erstellen((0, 0), 'l')
 
 while not pg_quit():
   screen.fill(farbe_hintergrund)
-  for pos, zelle in raster.items():
-    zelle.anzeigen(pos)
+  for zelle in raster.values():
+    zelle.anzeigen()
   pg.display.flip()
 
 pg.quit()
