@@ -95,7 +95,7 @@ class Karte:
 
 
 pg.init()
-BREITE, HÖHE = 800, 640
+BREITE, HÖHE = 4000, 3000
 screen = pg.display.set_mode([BREITE, HÖHE])
 
 spiel = Spiel(BREITE, HÖHE)
