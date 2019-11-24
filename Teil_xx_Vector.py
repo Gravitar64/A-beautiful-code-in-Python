@@ -6,13 +6,13 @@ class Vec(tuple):
     return tuple.__new__(cls, args)
 
   def __add__(self, other):
-    if type(other) == int or type(other) == float:
+    if type(other) in (int, float):
       return Vec(*([x+other for x in self]))
     else:
       return Vec(*([sum(x) for x in zip(self, other)]))
 
   def __sub__(self, other):
-    if type(other) == int or type(other) == float:
+    if type(other) in (int, float):
       return Vec(*([x-other for x in self]))
     else:
       return Vec(*([(a-b) for a, b in zip(self, other)]))
