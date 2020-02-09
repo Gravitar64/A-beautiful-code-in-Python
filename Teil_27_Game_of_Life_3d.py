@@ -1,6 +1,7 @@
 import bpy
 import random as rnd
 from collections import Counter
+import itertools as iter 
 
 
 feld_von, feld_bis = -4, 4
@@ -13,12 +14,9 @@ animate_frame = 8
 
 
 def nachbarn(pos):
-  for z in range(-1, 2):
-    for y in range(-1, 2):
-      for x in range(-1, 2):
-        if z == y == x == 0:
-          continue
-        yield pos[0]+x, pos[1]+y, pos[2]+z
+  for x,y,z in iter.product(range(-1,2), repeat = 3):
+    if z == y == x == 0: continue
+    yield pos[0]+x, pos[1]+y, pos[2]+z
 
 
 def nächsteGeneration(spielfeld):
@@ -39,14 +37,12 @@ n = "cube"
 m = orig_cube.data.copy()
 
 cubes = {}
-for z in range(spielfeld_von, spielfeld_bis):
-  for y in range(spielfeld_von, spielfeld_bis):
-    for x in range(spielfeld_von, spielfeld_bis):
-      o = bpy.data.objects.new(n, m)
-      o.location = (x, y, z)
-      cubes[x, y, z] = o
-      bpy.context.collection.objects.link(o)
-      o.select_set(False)
+for x,y,z in iter.product(range(spielfeld_von,spielfeld_bis), repeat = 3):
+  o = bpy.data.objects.new(n, m)
+  o.location = (x, y, z)
+  cubes[x, y, z] = o
+  bpy.context.collection.objects.link(o)
+  o.select_set(False)
 
 for i in range(200):
   print(f'Durchlauf No. {i}, Anz. Zellen = {len(spielfeld)}')
