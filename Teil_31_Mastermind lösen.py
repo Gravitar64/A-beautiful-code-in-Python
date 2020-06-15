@@ -2,7 +2,7 @@ from itertools import product
 import random as rnd
 
 lösungsmenge = list(product(range(6), repeat=4))
-geheim = rnd.choice(lösungsmenge)
+GEHEIM = rnd.choice(lösungsmenge)
 
 
 def treffer(v, g):
@@ -12,9 +12,9 @@ def treffer(v, g):
 
 
 anz, versuch = 0, []
-while versuch != geheim:
+while versuch != GEHEIM:
   anz += 1
   versuch = rnd.choice(lösungsmenge)
-  erg = treffer(versuch, geheim)
+  erg = treffer(versuch, GEHEIM)
   print(f'{anz:2}. Lösungsmenge = {len(lösungsmenge):5} Elemente, {versuch}, {erg} ')
   lösungsmenge = [l for l in lösungsmenge if treffer(l, versuch) == erg]
