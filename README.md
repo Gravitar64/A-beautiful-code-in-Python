@@ -15,6 +15,8 @@ Nebenbei bemerkt, lerne ich dadurch auch noch einen ganze Menge dazu, denn nicht
 
 Falls Ihr Optimierungsmöglichkeiten entdeckt, immer gen hier unter "Issues" hinterlegen.
 
+Wenn Ihr etwas spenden wollt: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=WW3XE87GT4TZ8&source=url
+
 Viel Spass bei den Beispielen wünscht
 
 GRAVITAR
