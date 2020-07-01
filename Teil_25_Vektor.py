@@ -23,8 +23,7 @@ class Vec(tuple):
 
   def rotate2D(self, rotationspunkt, winkel_rad):
     """
-    Rotiert einen Punkt gegen den Uhrzeigersinn um einen gegebenen winkel um einen gegebenen Rotationspunkt
-
+    Rotiert einen Punkt im Uhrzeigersinn um einen gegebenen Winkel um einen gegebenen Rotationspunkt (= Pivot)
     Der Winkel ist in radiant anzugeben
     """
     rx, ry = rotationspunkt
@@ -34,6 +33,5 @@ class Vec(tuple):
     qy = ry + math.sin(winkel_rad) * (px - rx) + math.cos(winkel_rad) * (py - ry)
     return Vec(qx, qy)  
 
-def pol2cart(radius, angle):
-  return Vec(radius * math.cos(angle), radius * math.sin(angle))
-  
+def pol2cart(radius, winkel_rad):
+  return Vec(radius * math.cos(winkel_rad), radius * math.sin(winkel_rad))
