@@ -1,3 +1,5 @@
+import math
+
 class Vec(tuple):
   """Eigene Vektor-Klasse um 2D-nDimensionale Koordinaten zu hinterlegen und zu addieren, subtrahieren, etc."""
   def __new__(cls, *args):
@@ -12,6 +14,26 @@ class Vec(tuple):
   def __mul__(self, faktor):
     return Vec(*tuple(a*faktor for a in self))
 
+  def __truediv__(self, divisor):
+    return Vec(*tuple(a / divisor for a in self))  
+
   def abstand(self, other):
     """Liefert den Manhatten-Abstand (https://de.wikipedia.org/wiki/Manhattan-Metrik) zwischen 2 Koordinaten"""
     return sum(abs(a-b) for a, b in zip(self, other))
+
+  def rotate2D(self, rotationspunkt, winkel_rad):
+    """
+    Rotiert einen Punkt gegen den Uhrzeigersinn um einen gegebenen winkel um einen gegebenen Rotationspunkt
+
+    Der Winkel ist in radiant anzugeben
+    """
+    rx, ry = rotationspunkt
+    px, py = self
+
+    qx = rx + math.cos(winkel_rad) * (px - rx) - math.sin(winkel_rad) * (py - ry)
+    qy = ry + math.sin(winkel_rad) * (px - rx) + math.cos(winkel_rad) * (py - ry)
+    return Vec(qx, qy)  
+
+def pol2cart(radius, angle):
+  return Vec(radius * math.cos(angle), radius * math.sin(angle))
+  
