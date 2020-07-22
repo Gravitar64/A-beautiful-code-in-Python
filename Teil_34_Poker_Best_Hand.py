@@ -1,7 +1,6 @@
 import random as rnd
 from itertools import combinations
 from collections import defaultdict
-import time
 
 
 class Karte(object):
@@ -28,80 +27,79 @@ class Kartendeck(object):
     return [self.karten.pop() for _ in range(anz)]
 
 
+def score_berechnen(rang, karten):
+  ergebnis = str(rang) + ''.join([f'{k.wert:02d}' for k in karten])
+  print(ergebnis)
+
+
 def rang_ermitteln(board, pocket):
   karten7 = board + pocket
   karten7 = sorted(karten7, key=lambda k: k.wert, reverse=True)
-  best_score = 0
+  0
+  beste_bewertung = -1
   for karten5 in combinations(karten7, 5):
-    score, karten, rang = bewerte(karten5)
-    if score > best_score:
-      best_score = score
-      best_karten = karten
-      best_rang = rang
-  return best_score, best_karten, best_rang
-
-
-def score(rang, karten):
-  return int(str(rang)+''.join([f'{k.wert:02d}' for k in karten])), karten, rang
+    bewertung, karten = bewerte(karten5)
+    if bewertung > beste_bewertung:
+      beste_bewertung = bewertung
+      beste_karten = karten
+  return beste_bewertung, beste_karten
 
 
 def bewerte(karten):
-  farben = {k.farbe for k in karten}
   werte = {k.wert for k in karten}
+  farben = {k.farbe for k in karten}
   flush = len(farben) == 1
-  straight = len(werte) == 5 and max(werte) - min(werte) == 4
+  straight = (len(werte) == 5 and max(werte) - min(werte) == 4) or \
+      werte == {5, 4, 3, 2, 14}
+
   wert2karten = defaultdict(list)
   anz2karten = defaultdict(list)
   for k in karten:
     wert2karten[k.wert].append(k)
-  for value in wert2karten.values():
-    anz2karten[len(value)] += value
-  # Royale Flush
-  if flush and straight and max(werte) == 14:
-    return score(9, karten)
+  for v in wert2karten.values():
+    anz2karten[len(v)] += v
+
+  # Royal Flush
+  if straight and flush and max(werte) == 14:
+    return 9, karten
   # Straight Flush
-  if flush and straight:
+  if straight and flush:
     if werte == {5, 4, 3, 2, 14}:
       karten = karten[1:] + karten[:1]
-    return score(8, karten)
+    return 8, karten
   # Four of a Kind
   if 4 in anz2karten:
-    return score(7, anz2karten[4]+anz2karten[1])
+    return 7, anz2karten[4] + anz2karten[1]
   # Full House
   if 3 in anz2karten and 2 in anz2karten:
-    return score(6, anz2karten[3]+anz2karten[2])
+    return 6, anz2karten[3] + anz2karten[2]
+  # Flush
   if flush:
-    return score(5, karten)
+    return 5, karten
+  # Straight
   if straight:
     if werte == {5, 4, 3, 2, 14}:
       karten = karten[1:] + karten[:1]
-    return score(4, karten)
+    return 4, karten
   # Three of a Kind
   if 3 in anz2karten:
-    return score(3, anz2karten[3]+anz2karten[1])
+    return 3, anz2karten[3]+anz2karten[1]
   # Two Pair
   if 2 in anz2karten and len(anz2karten[2]) == 4:
-    return score(2, anz2karten[2]+anz2karten[1])
-  # One Pair
+    return 2, anz2karten[2]+anz2karten[1]
+  # one Pair
   if 2 in anz2karten:
-    return score(1, anz2karten[2]+anz2karten[1])
+    return 1, anz2karten[2]+anz2karten[1]
   # High Card
-  return score(0, karten)
+  return 0, karten
 
 
-RANG_NAMEN = {9: 'Royal Flush', 8: 'Straight Flush', 7: 'Four of a Kind', 6: 'Full House', 5: 'Flush',
-              4: 'Straight', 3: 'Three of a Kind', 2: 'Two Pair', 1: 'One Pair', 0: 'High Card'}
+deck = Kartendeck()
+pocket = deck.gib(2)
+board = deck.gib(5)
 
-
-time_start = time.perf_counter()
-rang_anz = defaultdict(int)
-loops = 100_000
-for _ in range(loops):
-  deck = Kartendeck()
-  pocket = deck.gib(2)
-  board = deck.gib(5)
-  best_score, best_karten, rang = rang_ermitteln(board, pocket)
-  rang_anz[rang] += 1
-for i in reversed(range(10)):
-  print(f'{RANG_NAMEN[i]:20} {rang_anz[i]/loops*100:.3f}%')
-print(time.perf_counter() - time_start)  
+print(pocket)
+print(board)
+bester_rang, beste_karten = rang_ermitteln(board, pocket)
+print(bester_rang, beste_karten)
+print(score_berechnen(bester_rang, beste_karten))
