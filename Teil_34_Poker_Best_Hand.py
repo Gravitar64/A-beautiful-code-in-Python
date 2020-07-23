@@ -51,7 +51,7 @@ def bewerte5(karten5):
   flush = len(farben) == 1            
   
   #Royal Flush
-  if straight and flush and max(werte) == 14:
+  if straight and flush and min(werte) == 10:
     return 9, karten5
   #Straight Flush
   if straight and flush:
@@ -70,7 +70,7 @@ def bewerte5(karten5):
   #Straight
   if straight:
     if werte == {5,4,3,2,14}:
-      karten5 = karten5[1:]+karten[:1]
+      karten5 = karten5[1:]+karten5[:1]
     return 4, karten5
   #Tree of a Kind
   if 3 in anz2karten:
@@ -88,6 +88,4 @@ deck = Kartendeck()
 pocket = deck.gib(2)
 board = deck.gib(5)
 rang, karten = beste_5_aus_7_ermitteln(pocket,board)
-
-print(pocket, board)
-print(rang,karten)
+print(pocket, board, karten, rang)
