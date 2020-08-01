@@ -1,4 +1,47 @@
 {
+  "editor.mouseWheelZoom": true,
+  "editor.fontSize": 24,
+  "editor.fontLigatures": true,
+  "editor.fontFamily": "Fira Code",
+  "editor.multiCursorModifier": "alt",
+  "editor.tabSize": 2,
+  "editor.detectIndentation": true,
+  "editor.insertSpaces": true,
+      
+  "files.autoSave": "onFocusChange",
+  
+  "terminal.integrated.fontSize": 36,
+  "python.jediEnabled": false,
+  "python.formatting.autopep8Args": [
+    "--indent-size=2"
+  ],
+  "python.linting.pylintEnabled": true,
+  "python.pythonPath": "D:\\Programme\\Python\\python.exe",
+  
+  "git.enableSmartCommit": true,
+  "git.confirmSync": false,
+  
+  
+  "window.menuBarVisibility": "visible",
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.python"
+  },
+  "window.zoomLevel": 0,
+  "workbench.colorCustomizations": {},
+  "screencastMode.verticalOffset": 5,
+  "terminal.integrated.shell.windows": "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+  "python.linting.flake8Args": [
+    "--tab-width=2",
+    "--indent-tabs-def=1"
+  ],
+  "editor.wordWrap": "on",
+  "terminal.integrated.mouseWheelScrollSensitivity": 0.3,
+  "workbench.startupEditor": "newUntitledFile",
+  "window.restoreFullscreen": true,
+  "zenMode.restore": true,
+  "python.languageServer": "Pylance",
+  "workbench.colorTheme": "Material Theme Darker",
+  
   "python.linting.pylintEnabled": false,
   "python.linting.flake8Enabled": true,
   "python.linting.enabled": true,
