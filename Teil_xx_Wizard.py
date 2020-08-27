@@ -1,87 +1,66 @@
-import random as rnd
-from collections import deque, namedtuple
-import time
+import random as rnd 
+from collections import deque
 
+def ermittle_mögliche_karte(erste_farbe, spieler):
+  if erste_farbe == -1: return spieler_karten[spieler].pop()
+  karten = spieler_karten[spieler]
+  mögliche_karten = [(wert,farbe) for wert,farbe in karten if farbe == erste_farbe and wert < 14]
+  if not mögliche_karten:
+    mögliche_karten = karten
+  else:
+    mögliche_karten.extend([(wert,farbe) for wert,farbe in karten if wert > 13])
+    if erste_farbe != trumpf: 
+      mögliche_karten.extend([(wert,farbe) for wert,farbe in karten if farbe == trumpf])
+  mögliche_karte = rnd.choice(mögliche_karten)
+  spieler_karten[spieler].remove(mögliche_karte)
+  return mögliche_karte
 
-def wandle_input(input_string):
+def wandle_input_um(input_string):
   karten = []
   teil_strings = input_string.split()
   for teil_string in teil_strings:
     wert = int(teil_string[:-1])
     farbe = teil_string[-1]
-    karten.append(Karte(wert, farbe))
+    karten.append((wert,farbe))
   return karten
 
-
-def ermittle_mögliche_karte(erste_farbe, name):
-  if erste_farbe == -1:
-    return players[name]['karten'].pop()
-  karten = players[name]['karten']
-  mögliche_karten = [k for k in karten if k.farbe ==
-                     erste_farbe and k.wert < 14]
-  if not mögliche_karten:
-    mögliche_karten = karten
-  else:
-    mögliche_karten.extend([k for k in karten if k.wert > 13])
-    if erste_farbe != trumpf:
-      mögliche_karten.extend([k for k in karten if farbe == trumpf])
-  mögliche_karte = rnd.choice(mögliche_karten)
-  players[name]['karten'].remove(mögliche_karte)
-  return mögliche_karte
-
-
-Karte = namedtuple('Karte', ['wert', 'farbe'])
-namen = deque('Andreas Peter Jan Franzi'.split())
-players = {name: {'karten': [], 'stiche': 0} for name in namen}
+spieler_namen = deque("Peter Jan Andreas".split())
 ich_spieler = "Andreas"
-
-
 while True:
-  ich_karten = wandle_input(
-      input('Eigene Karten (1-13, 14=N, 15=Z, ygbr=Farben): '))
+  ich_karten = wandle_input_um(input('Eigene Karten (1-13, 14=N, 15=Z, ygbr=Farben): '))
+  trumpf_karte = wandle_input_um(input('Trumpf Karte: '))
+  trumpf = trumpf_karte[0][1]
+  wer_startet = input('Wer startet: ')
+  anz_karten = len(ich_karten)
 
-  trumpf_karte = wandle_input(input('Trumpf Karte: '))
-  trumpf = trumpf_karte[0].wert
-
-  name = input(f'Wer startet (ENTER = {namen[1]}): ')
-  namen.rotate(-1) if not name else namen.rotate(-namen.index(name))
-
-  DECK = [Karte(wert, farbe) for wert in range(1, 16)
-            for farbe in 'rgby' if (wert, farbe) not in (ich_karten+trumpf_karte)]
-
+  spieler_stich = {name:0 for name in spieler_namen}
   simulationsläufe = 10_000
+  DECK = [(wert, farbe) for wert in range(1,16) for farbe in 'rgby' if (wert,farbe) not in (ich_karten + trumpf_karte)]
 
-  time_start = time.perf_counter()
   for _ in range(simulationsläufe):
     deck = DECK.copy()
     rnd.shuffle(deck)
-    players[ich_spieler]['karten'] = ich_karten.copy()
-    for name in namen:
-      if name == ich_spieler:
-        continue
-      players[name]['karten'].extend([deck.pop() for _ in range(len(ich_karten))])
-    höchster_spieler = namen[0]
-    while players[namen[-1]]['karten']:
+    spieler_karten = {sp:[deck.pop() for i in range(anz_karten)] for sp in spieler_namen if sp != ich_spieler}
+    spieler_karten[ich_spieler] = ich_karten.copy()
+    höchster_spieler = wer_startet
+    spieler_namen.rotate(-spieler_namen.index(höchster_spieler))
+    while spieler_karten[spieler_namen[-1]]:
       höchste_karte = höchste_trumpf_karte = aktuelle_farbe = -1
       stich = {}
-      for name in namen:
-        stich[name] = ermittle_mögliche_karte(aktuelle_farbe, name)
-        wert, farbe = stich[name]
-        if wert == 14:
-          continue
-        if wert < 14 and aktuelle_farbe == -1:
-          aktuelle_farbe = farbe
+      for spieler in spieler_namen:
+        stich[spieler] = ermittle_mögliche_karte(aktuelle_farbe , spieler)  
+        wert,farbe = stich[spieler]
+        if wert == 14: continue
+        if wert < 14 and aktuelle_farbe == -1: aktuelle_farbe = farbe
         if höchste_karte < 15 and wert == 15:
           höchste_karte = höchste_trumpf_karte = 15
-          höchster_spieler = name
+          höchster_spieler = spieler
         elif farbe == trumpf and wert > höchste_trumpf_karte:
           höchste_trumpf_karte = wert
-          höchster_spieler = name
+          höchster_spieler = spieler  
         elif wert > höchste_karte and farbe == aktuelle_farbe and wert != 14 and höchste_trumpf_karte == -1:
           höchste_karte = wert
-          höchster_spieler = name
-      players[höchster_spieler]['stiche'] += 1
-      namen.rotate(-namen.index(höchster_spieler))
-  print(
-      f'{ich_spieler} mit durchschnittlich {players[ich_spieler]["stiche"]/simulationsläufe:.2f}')
-  print(time.perf_counter()-time_start)    
+          höchster_spieler = spieler
+      spieler_stich[höchster_spieler] += 1
+      spieler_namen.rotate(-spieler_namen.index(höchster_spieler))
+  print(f'{ich_spieler} mit durchschnittlich {spieler_stich[ich_spieler]/simulationsläufe:.2f}')
