@@ -1,23 +1,24 @@
 import random as rnd 
 from collections import deque
 
-SIMULATIONEN = 1
-DEBUG_PRINT = True
+SIMULATIONEN = 10_000
+DEBUG_PRINT = False
 
 
 def ermittle_mögliche_karte(karten):
-  if aktuelle_farbe == -1: return rnd.choice(karten)
-  trumpf_joker = {(wert,farbe) for wert,farbe in karten if farbe == trumpf or wert > 13}
-  karten_der_Farbe = {(wert,farbe) for wert,farbe in karten if farbe == aktuelle_farbe and wert < 14}
+  if aktuelle_farbe == -1 or len(karten) == 1: return rnd.choice(karten)
+  trumpf_joker = {k for k in karten if k[1] == trumpf or k[0] > 13}
+  karten_der_Farbe = {k for k in karten if k[1] == aktuelle_farbe and k[0] < 14}
+  if DEBUG_PRINT:
+    print(f'{karten} {karten_der_Farbe | trumpf_joker if karten_der_Farbe else karten} {aktuelle_farbe == trumpf}')
   if karten_der_Farbe:
     return rnd.choice (list(karten_der_Farbe|trumpf_joker))
   else:
     return rnd.choice(karten)
       
 
-def ermittle_stich_gewinner(stich):
+def ermittle_stich_gewinner(stich, höchste_karte = -1):
   if all([k[0] == 14 for n,k in stich]): return stich[0][0]
-  höchste_karte = -1
   for name, (wert, farbe) in stich:
     if wert == 14: continue
     if wert == 15: return name
