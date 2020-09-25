@@ -1,2 +1,0 @@
-mögliche_positionen = {(x,y) for x in range(1,8,2) for y in range(0,8,2)}
-mögliche_positionen.union({(x,y)} for x in range(0,8,2) for y in range(1,8,2))
