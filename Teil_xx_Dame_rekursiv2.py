@@ -1,34 +1,13 @@
 import pygame as pg
 from collections import defaultdict
  
-cl_hellbraun = (254, 206, 158)
-cl_dunkelbraun = (209, 139, 71)
-cl_grün = (0,50,0)
-cl_weiss = (255,255,255)
-cl_schwarz = (0,0,0)
-cl_dunkelblau = (0, 0, 100)
-cl_hellblau = (0,0,255)
-cl_rot = (255,0,0)
+cl_hellbraun = (254, 206, 158); cl_dunkelbraun = (209, 139, 71); cl_grün = (0,50,0)
+cl_weiss = (255,255,255); cl_schwarz = (0,0,0); cl_dunkelblau = (0, 0, 100)
+cl_hellblau = (0,0,255); cl_rot = (255,0,0)
  
 def bewertung():
   return sum([stein for stein in brett.values()])
 
-def nächste_schlagmöglichkeiten(spieler, von, stein):
-  schläge = defaultdict(list)
-  for n in richtungen[stein]:
-    for i in range(1, abs(stein)+1):
-      über = von + n * i
-      zu = über + n
-      if (zu not in brett or über not in brett) or \
-         brett[über] in steine[spieler] or \
-         (brett[zu] != 0 and brett[über] != 0):
-        break
-      if brett[zu] == 0 and brett[über] in steine[not weiss]:
-        schläge[von].append([stein, von, zu, über, brett[über]])
-        break
-  return schläge  
- 
- 
 def schlage(spieler,von,stein,sequenz,sequenzen):
   dead_end = True
   for n in richtungen[stein]:
@@ -91,7 +70,7 @@ def ziehe_rückgängig(spieler, zug):
 def minimax(tiefe, maxtiefe, alpha, beta, spieler, win):
   if tiefe == maxtiefe:
     return (bewertung(), None)
-  if win or 0 in anz_steine.values():
+  if win:
     return (-99999+tiefe if spieler else 99999-tiefe, None)
   zugliste = generiere_zugliste(spieler)
   if not zugliste:
@@ -147,81 +126,63 @@ def zeichne_brett(status):
   if not status:
     for i in züge:
       pg.draw.rect(screen, cl_grün, (cell2xy(i), (ZELLE, ZELLE)),7)
-  for markTyp, felder in markierungen.items():
-    if markTyp == 'von ausgewählt':
-      pg.draw.rect(screen, cl_rot, (cell2xy(felder), (ZELLE, ZELLE)),7)
-    if markTyp == 'zu möglich':
-      for zu in felder:
-        pg.draw.circle(screen, cl_dunkelblau, feld_zentrum(zu), int(ZELLE *0.1)) 
-    if markTyp == 'computer':
-      for von,zu in felder:
-        pg.draw.line(screen, cl_hellblau, feld_zentrum(von), feld_zentrum(zu),10)
+  if status == 'von ausgewählt':
+    pg.draw.rect(screen, cl_rot, (cell2xy(sel_von), (ZELLE, ZELLE)),7)  
+    for zug in züge[sel_von]:
+      pg.draw.circle(screen, cl_dunkelblau, feld_zentrum(zug[2]), int(ZELLE *0.1)) 
+  if status == 'zeige computerzug':
+    for i in range(0,len(computerzug),5):
+      pg.draw.line(screen, cl_hellblau, feld_zentrum(computerzug[i+1]), feld_zentrum(computerzug[i+2]),10)
   
  
 def state_machine(status, feld):
-  global züge, weiss, computerzug, markierungen
-  
+  global züge, sel_von, weiss, computerzug
+  erster_schlag = None
+
   if not status:
     if feld not in züge: return
-    markierungen['von ausgewählt'] = feld
-    for feld in {zug[2] for zug in züge[feld]}:
-      markierungen['zu möglich'].append(feld)
+    sel_von = feld
     return 'von ausgewählt'
 
   if status == 'von ausgewählt':
-    if feld not in markierungen['zu möglich']:
-      return
-    von = markierungen['von ausgewählt']
-    for zug in züge[von]:
-      if zug[2] == feld:
-        if not zug[3]: #kein schlagzug
-          ziehe(weiss,zug)
-          markierungen = defaultdict(list)
+    for zug in züge[sel_von]:
+      if feld == zug[2]:
+        if len(zug) == 5:
+          ziehe(weiss, zug)
           return 'computer'
-    züge = nächste_schlagmöglichkeiten(weiss, von, brett[von])  
-    for zug in züge[von]:
-      if zug[2] == feld:
-        ziehe(weiss, zug)
-        markierungen['von ausgewählt'] = feld
-    züge = nächste_schlagmöglichkeiten(weiss, feld, brett[feld])
-    if not züge:
-      markierungen = defaultdict(list)
-      return 'computer'
-    else:  
-      markierungen['zu möglich'] = []
-      for zug in züge[feld]:
-        markierungen['zu möglich'].append(zug[2])
-      return 'von ausgewählt'  
-    
-      
-  
+        else:
+          erster_schlag = zug[:5]
+          züge[feld].append(zug[5:])
+    if not erster_schlag:
+      return 
+    ziehe(weiss, erster_schlag)
+    sel_von = feld
+    return 'von ausgewählt'
+
   if status == 'computer':
     weiss = not weiss
     _, computerzug = minimax(0,6,-999999, 999999, weiss, False)
-    for i in range(0,len(computerzug),5):
-      markierungen['computer'].append((computerzug[i+1], computerzug[i+2]))
-    return 'zeige_computerzug'
+    return 'zeige computerzug'
   
-  if status == 'zeige_computerzug':
+  if status == 'zeige computerzug':
     ziehe(weiss, computerzug)
     weiss = not weiss
     züge = generiere_zugliste(weiss)
-    markierungen = defaultdict(list)
     return
   
 brett = {i: 0 for i in range(64) if i % 8 % 2 != i // 8 % 2}
-brett[60] = 1
-brett[51] = -1
-brett[53] = -1
-brett[33] = -1
-brett[35] = -1
-brett[37] = -1
-brett[17] = -1
-brett[19] = -1
-brett[21] = -1
-# for i in brett:
-#   if i < 24: brett[i] = -1
-#   if i > 39: brett[i] = 1
+# brett[60] = 1
+# brett[51] = -1
+# brett[53] = -1
+# brett[33] = -1
+# brett[35] = -1
+# brett[37] = -1
+# brett[17] = -1
+# brett[19] = -1
+# brett[21] = -1
+for i in brett:
+  if i < 24: brett[i] = -1
+  if i > 39: brett[i] = 1
  
 richtungen = {1: (-7, -9), -1: (7, 9), -8: (-7, -9, 9, 7), 8: (-7, -9, 9, 7)}
 steine = {True: {1, 8}, False: (-1, -8)}
@@ -231,8 +192,7 @@ umwandlung = {True: {1, 3, 5, 7}, False: {56, 58, 60, 62}}
 weiss = True
 züge = generiere_zugliste(weiss)
 computerzug = []
-state = None
-markierungen = defaultdict(list)
+sel_von = state = None
  
 AUFLÖSUNG = 800
 ZELLE = AUFLÖSUNG // 8
@@ -250,12 +210,8 @@ while weitermachen:
       weitermachen = False
     if ereignis.type == pg.MOUSEBUTTONDOWN and pg.mouse.get_pressed()[0]:
       state = state_machine(state, xy2cell(pg.mouse.get_pos()))
-      if not state:
-        markierungen = defaultdict(list)
   zeichne_brett(state)
+  pg.display.flip()
   if state == 'computer':
     state = state_machine(state,None)
-
-  pg.display.flip()
- 
 pg.quit()
