@@ -22,7 +22,7 @@ def generiere_schläge(spieler, von, stein, sequenz, sequenzen):
         break
       if brett[über] in steine[not spieler] and brett[zu] == 0:
         dead_end = False
-        sequenz.extend([stein, von, zu, über, brett[über]])
+        sequenz.extend([zu, von, stein, über, brett[über]])
         ziehe(spieler, sequenz[-5:])
         generiere_schläge(spieler, zu, stein, sequenz.copy(), sequenzen)
         ziehe_rückgängig(spieler, sequenz[-5:])
@@ -47,13 +47,13 @@ def generiere_zugliste(spieler):
         zu = von+n*i
         if zu not in brett or brett[zu] != 0:
           break
-        züge[von].append([stein, von, zu, None, None])
+        züge[von].append([zu, von, stein, None, None])
   return schläge if schläge else züge
 
 
 def ziehe(spieler, zug):
   for i in range(0, len(zug), 5):
-    stein, von, zu, über, _ = zug[i:i + 5]
+    zu, von, stein, über, _ = zug[i:i + 5]
     brett[von] = 0
     brett[zu] = stein
     if über:
@@ -66,7 +66,7 @@ def ziehe(spieler, zug):
 
 def ziehe_rückgängig(spieler, zug):
   for i in reversed(range(0, len(zug), 5)):
-    stein, von, zu, über, geschlagen = zug[i:i+5]
+    zu, von, stein, über, geschlagen = zug[i:i+5]
     brett[von] = stein
     brett[zu] = 0
     if über:
@@ -140,13 +140,21 @@ def zeichne_brett(status):
     pg.draw.rect(screen, cl_rot, (cell2xy(sel_von), (ZELLE, ZELLE)), 7)
     for zug in züge[sel_von]:
       pg.draw.circle(screen, cl_dunkelblau,
-                     feld_zentrum(zug[2]), int(ZELLE * 0.1))
+                     feld_zentrum(zug[0]), int(ZELLE * 0.1))
   if status == 'zeige computerzug':
     for i in range(0, len(computerzug), 5):
       pg.draw.line(screen, cl_hellblau, feld_zentrum(
-          computerzug[i+1]), feld_zentrum(computerzug[i+2]), 10)
+          computerzug[i]), feld_zentrum(computerzug[i+1]), 10)
     pg.draw.circle(screen, cl_hellblau, feld_zentrum(
-        computerzug[-3]), int(ZELLE * 0.1))
+        computerzug[-5]), int(ZELLE * 0.1))
+  if numerierung:
+    for von in brett:
+      color = cl_weiss if brett[von] in steine[False] else cl_schwarz
+      font = pg.font.Font(None, 32)
+      text = font.render(str(von), True, color)
+      text_rect = text.get_rect(center=(feld_zentrum(von)))
+      screen.blit(text, text_rect)
+
   pg.display.flip()
 
 
@@ -162,7 +170,7 @@ def state_machine(status, feld):
 
   if status == 'von ausgewählt':
     for zug in züge[sel_von]:
-      if feld == zug[2]:
+      if feld == zug[0]:
         if len(zug) == 5:
           ziehe(weiss, zug)
           return 'computer'
@@ -188,20 +196,19 @@ def state_machine(status, feld):
 
 
 brett = {i: 0 for i in range(64) if i % 8 % 2 != i // 8 % 2}
-# brett[60] = 1
-# brett[51] = -1
-# brett[53] = -1
-# brett[33] = -1
-# brett[35] = -1
-# brett[37] = -1
-# brett[17] = -1
-# brett[19] = -1
-# brett[21] = -1
-for i in brett:
-  if i < 24:
-    brett[i] = -1
-  if i > 39:
-    brett[i] = 1
+brett[35] = 8
+brett[51] = -1
+brett[53] = -1
+brett[33] = -1
+brett[37] = -1
+brett[17] = -1
+brett[19] = -1
+brett[21] = -1
+# for i in brett:
+#   if i < 24:
+#     brett[i] = -1
+#   if i > 39:
+#     brett[i] = 1
 
 richtungen = {1: (-7, -9), -1: (7, 9), -8: (-7, -9, 9, 7), 8: (-7, -9, 9, 7)}
 steine = {True: {1, 8}, False: (-1, -8)}
@@ -212,6 +219,7 @@ weiss = True
 züge = generiere_zugliste(weiss)
 computerzug = []
 sel_von = state = None
+numerierung = False
 
 AUFLÖSUNG = 800
 ZELLE = AUFLÖSUNG // 8
@@ -228,7 +236,10 @@ while weitermachen:
       weitermachen = False
     if ereignis.type == pg.MOUSEBUTTONDOWN and pg.mouse.get_pressed()[0]:
       state = state_machine(state, xy2cell(pg.mouse.get_pos()))
+    if ereignis.type == pg.KEYDOWN and ereignis.key == pg.K_SPACE:
+      numerierung = not numerierung
   zeichne_brett(state)
   if state == 'computer':
     state = state_machine(state, None)
+    
 pg.quit()
