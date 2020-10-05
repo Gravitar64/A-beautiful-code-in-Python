@@ -11,53 +11,54 @@ def feld2zentrum(feld):
   return x + FELD//2, y + FELD//2
 
 def generiere_zugliste(spieler):
-  zugliste, schlagliste = defaultdict(list), defaultdict(list)
+  zugliste, schlagzüge_gesamt = defaultdict(list), defaultdict(list)
   for von,stein in brett.items():
     if stein not in steine[spieler]: continue
-    schlagliste.update(generiere_schlagliste(spieler, von, stein, [], defaultdict(list)))
-    if schlagliste: continue
+    schlagzüge_gesamt.update(generiere_schläge(spieler, von, stein, [], defaultdict(list)))
+    if schlagzüge_gesamt: continue
     for richtung in richtungen[stein]:
       for n in range(1,abs(stein)+1):
         zu = von + richtung * n
         if zu not in brett or brett[zu] != 0:
           break
         zugliste[von].append([zu,von,stein,None,None])
-  return schlagliste if schlagliste else zugliste 
+  return schlagzüge_gesamt if schlagzüge_gesamt else zugliste
 
-def generiere_schlagliste(spieler, von, stein, zug, schlagliste):
+def generiere_schläge(spieler, von, stein, zug, schlagzüge_von):
   sackgasse = True
   for richtung in richtungen[stein]:
     for n in range(1,abs(stein)+1):
       über = von + richtung * n
       zu = über + richtung
-      if zu not in brett or über not in brett or \
-         brett[über] in steine[spieler] or \
-         (brett[über] != 0 and brett[zu] != 0):
+      if über not in brett or zu not in brett or \
+        brett[über] in steine[spieler] or \
+        (brett[über] != 0 and brett[zu] != 0):
         break
       if brett[über] in steine[not spieler] and brett[zu] == 0:
         sackgasse = False
-        zug.extend([zu, von, stein, über, brett[über]])
-        ziehe(spieler, zug[-5:])
-        generiere_schlagliste(spieler, zu, stein, zug.copy(), schlagliste)
-        ziehe_rückgängig(spieler, zug[-5:])
+        sprung = [zu, von, stein, über, brett[über]]
+        zug.extend(sprung)
+        ziehe(spieler, sprung)
+        generiere_schläge(spieler, zu, stein, zug.copy(), schlagzüge_von)
+        ziehe_rückgängig(spieler, sprung)
         zug = zug[:-5]
         break
   if sackgasse and zug:
-    schlagliste[zug[1]].append(zug)
-  return schlagliste           
+    schlagzüge_von[zug[1]].append(zug)
+  return schlagzüge_von        
 
 def ziehe(spieler, zug):
-  for i in range(0,len(zug),5):
+  for i in range(0, len(zug), 5):
     zu, von, stein, über, geschlagen = zug[i:i+5]
     brett[von] = 0
     brett[zu] = stein
     if über:
       brett[über] = 0
   if zu in letzte_reihe[spieler] and abs(stein) == 1:
-    brett[zu] *= 8    
+    brett[zu] *= 8
 
 def ziehe_rückgängig(spieler, zug):
-  for i in reversed(range(0,len(zug),5)):
+  for i in reversed(range(0, len(zug), 5)):
     zu, von, stein, über, geschlagen = zug[i:i+5]
     brett[von] = stein
     brett[zu] = 0
@@ -66,12 +67,16 @@ def ziehe_rückgängig(spieler, zug):
   
 
 
+
+
+
 brett = {nr:0 for nr in range(64) if nr // 8 % 2 != nr % 8 % 2}
 # for feld in brett:
 #   if feld < 24:
 #     brett[feld] = -1
 #   elif feld > 39:
 #     brett[feld] = 1
+brett[60] = 1
 brett[35] = 8
 brett[51] = -1
 brett[53] = -1
