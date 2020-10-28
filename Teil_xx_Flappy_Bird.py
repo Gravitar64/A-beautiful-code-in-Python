@@ -1,5 +1,7 @@
-import pygame as pg, random as rnd
-import requests, io
+import pygame as pg
+import random as rnd
+import requests
+import io
 
 
 def lade_bild(url):
@@ -13,10 +15,18 @@ def lade_sound(url):
   return pg.mixer.Sound(io.BytesIO(r.content))
 
 
+def scrolling(bild, x, y, delta_x, endlos):
+  if endlos:
+    x = x % - BREITE
+    screen.blit(bild, (x+BREITE, y))
+  screen.blit(bild, (x, y))
+  return x - delta_x
+
+
 def generiere_röhre():
   pos_y = rnd.randrange(400, 800)
-  röhren.append(Röhre((700, pos_y), (-10,0), b_röhre_unten))
-  röhren.append(Röhre((700, pos_y-850), (-10,0), b_röhre_oben))
+  röhren.append(b_röhre_unten.get_rect(topleft=(700, pos_y)))
+  röhren.append(b_röhre_oben.get_rect(topleft=(700, pos_y-850)))
 
 
 def zeichne_Text(text, pos):
@@ -25,55 +35,9 @@ def zeichne_Text(text, pos):
   screen.blit(textsurface, pos)
 
 
-class Element():
-  def __init__(self, pos, delta, bild):
-    self.pos = pg.Vector2(pos)
-    self.delta = pg.Vector2(delta)
-    self.bild = bild
-    
-class Hintergrund(Element):
-  def update_show(self):
-    self.pos += self.delta
-    self.pos.x = self.pos.x % -BREITE
-    screen.blit(self.bild,self.pos)
-    screen.blit(self.bild,self.pos+pg.Vector2(BREITE,0))
-
-class Röhre(Element):
-  def __init__(self, pos, delta, bild):
-    Element.__init__(self, pos, delta, bild)
-    self.rect = None
-
-  def update_show(self):
-    self.pos += self.delta
-    self.rect = self.bild.get_rect(topleft=self.pos)
-    screen.blit(self.bild,self.rect)
-
-class Vogel(Element):
-  def __init__(self, pos, delta, bild):
-    Element.__init__(self, pos, delta, bild)
-    self.grav = pg.Vector2(0,1)
-    self.rect = None
-    self.anim = 0
-
-  def update_show(self):
-    self.delta += self.grav
-    self.pos += self.delta
-    self.rect = self.bild[self.anim].get_rect(topleft=self.pos)
-    screen.blit(self.bild[self.anim],self.rect)
-
-  def flap(self):
-    self.delta.y = -15
-    s_flug.play()
-
-  def animation(self):
-    self.anim = (self.anim + 1) % 3    
-
-pg.init()
-BREITE, HÖHE = 576, 1024
-screen = pg.display.set_mode((BREITE, HÖHE))
 URL = 'https://raw.githubusercontent.com/samuelcust/flappy-bird-assets/master/'
-basis = Hintergrund((0,900), (-10,0), lade_bild(URL+'sprites/base.png'))
-hintergrund = Hintergrund((0,0), (-1,0), lade_bild(URL+'sprites/background-day.png'))
+b_basis = lade_bild(URL+'sprites/base.png')
+b_hintergrund = lade_bild(URL+'sprites/background-day.png')
 b_röhre_unten = lade_bild(URL+'sprites/pipe-green.png')
 b_röhre_oben = pg.transform.flip(b_röhre_unten, False, True)
 b_ende = lade_bild(URL+'sprites/gameover.png')
@@ -85,16 +49,22 @@ s_flug = lade_sound(URL+'audio/wing.wav')
 s_punkt = lade_sound(URL+'audio/point.wav')
 s_wand = lade_sound(URL+'audio/hit.wav')
 
-score = highscore = 0
-weitermachen = True
-clock = pg.time.Clock()
+pg.init()
+BREITE, HÖHE = 576, 1024
+screen = pg.display.set_mode((BREITE, HÖHE))
+
+score = highscore = basis_x = hintergrund_x = 0
+vogel_y, vogel_grav, vogel_geschw, vogel_anim = HÖHE//2, 1, 0, 0
 röhren = []
+spielende = False
+weitermachen = True
+
 e_röhre = pg.USEREVENT
 pg.time.set_timer(e_röhre, 1400)
 e_anim = e_röhre+1
 pg.time.set_timer(e_anim, 100)
-spielende = False
-vogel = Vogel((100,HÖHE//2), (0,0), vögel)
+
+clock = pg.time.Clock()
 while weitermachen:
   clock.tick(40)
   for ereignis in pg.event.get():
@@ -103,35 +73,40 @@ while weitermachen:
     if ereignis.type == e_röhre:
       generiere_röhre()
     if ereignis.type == e_anim:
-      vogel.animation()
+      vogel_anim = (vogel_anim + 1) % 3
     if ereignis.type == pg.MOUSEBUTTONDOWN and pg.mouse.get_pressed()[0]:
-      vogel.flap()
+      vogel_geschw = -15
       if spielende:
         spielende = False
-        vogel = Vogel((100,HÖHE//2), (0,0), vögel)
+        vogel_y = HÖHE//2
         röhren.clear()
         score = 0
 
   screen.fill((0, 0, 0))
-  hintergrund.update_show()
+  hintergrund_x = scrolling(b_hintergrund, hintergrund_x, 0, 1, True)
   if not spielende:
-    for röhre in reversed(röhren):
-      röhre.update_show()
-      if röhre.pos.x == -10:
+    for rect in reversed(röhren):
+      bild = b_röhre_unten if rect.top > 399 else b_röhre_oben
+      rect.x = scrolling(bild, rect.x, rect.y, 10, False)
+      if rect.x == -10:
         score += 0.5
         s_punkt.play()
-      if röhre.pos.x < -100:
-        röhren.remove(röhre)
-    vogel.update_show()
-    if vogel.rect.collidelist([r.rect for r in röhren]) > -1 or \
-       vogel.rect.bottom > 900 or \
-       vogel.rect.top < 0:
+      if rect.x < -100:
+        röhren.remove(rect)
+    vogel_geschw += vogel_grav
+    vogel_y += vogel_geschw
+    screen.blit(vögel[vogel_anim], (100, vogel_y))
+    vogel_rect = vögel[vogel_anim].get_rect(topleft=(100, vogel_y))
+    if vogel_rect.collidelist(röhren) > -1 or \
+       vogel_rect.bottom > 900 or \
+       vogel_rect.top < 0:
       s_wand.play()
       spielende = True
   else:
     screen.blit(b_ende, (100, 400))
     zeichne_Text(f'HIGH-SCORE      {highscore:.0f}', (160, 10))
-  basis.update_show()
+
+  basis_x = scrolling(b_basis, basis_x, 900, 10, True)
   zeichne_Text(f'{score:.0f}', (275, 100))
   highscore = max(score, highscore)
   pg.display.flip()
