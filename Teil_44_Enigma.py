@@ -1,4 +1,5 @@
 from collections import deque
+from time import altzone
 
 walzenDict = dict(I    = 'EKMFLGDQVZNTOWYHXUSPAIBRCJ',
                   II   = 'AJDKSIRUXBLHWTMCQGZNPYFVOE',
@@ -22,98 +23,66 @@ kerbenDict = {name:{ord(x)-65 for x in kerbenDict[name]} for name in kerbenDict}
 
 alphabet_num = deque(range(26))          
 
-class Enigma():
-  def __init__(self):
-    self.walzen = []
-    self.reflektor = []
-    self.reflektor_name = ""
-    self.dict_steckerbr = {}
-    
+def enigma_setup(refl, walzen, walzen_pos, ring_pos, steckerbrett):
+  enigma_reflektor = reflDict[refl]
+  enigma_verdr_r, enigma_verdr_l = [], []
+  for name in walzen.split():
+    enigma_verdr_r.append(walzenDict[name].copy())
+    enigma_verdr_l.append(alphabet_num.copy())
+  enigma_pos = [ord(x)-65 for x in walzen_pos]
+  enigma_ring = [int(x)-1 for x in ring_pos.split()]
+  enigma_kerben = [kerbenDict[name] for name in walzen.split()]
+  enigma_stecker = {}
+  for paar in steckerbrett.split():
+    enigma_stecker[ord(paar[0])-65] = ord(paar[1]-65)
+    enigma_stecker[ord(paar[1])-65] = ord(paar[0]-65)
+  for i in range(len(enigma_verdr_r)):
+    offset = -enigma_pos[i]+enigma_ring[i]
+    enigma_verdr_r[i].rotate(offset)
+    enigma_verdr_l[i].rotate(offset)
+  return enigma_reflektor, enigma_verdr_r, enigma_verdr_l, enigma_pos, enigma_kerben, enigma_stecker
 
-  def setup(self, n_refl, n_walz, n_ringpos, n_steckerbr, n_walzpos):
-    self.walzen = []
-    for i, name in enumerate(n_walz.upper().split()):
-      verdr = walzenDict[name].copy()
-      kerben = kerbenDict[name]
-      walz_pos = ord(n_walzpos[i])-65
-      ring_pos = int(n_ringpos.split()[i])-1
-      self.walzen.append(Walze(name,verdr, kerben, walz_pos, ring_pos))
-    self.reflektor = reflDict[n_refl]
-    self.reflektor_name = n_refl
-    self.dict_steckerbr = {}
-    for paar in n_steckerbr.upper().split():
-      self.dict_steckerbr[ord(paar[0])-65] = ord(paar[1])-65
-      self.dict_steckerbr[ord(paar[1])-65] = ord(paar[0])-65
-
-  def rotiere(self):
-    links, mitte, rechts = self.walzen[-3:]
-    if mitte.schaltung():
-      mitte.click()
-      links.click()
-    elif rechts.schaltung():
-      mitte.click()
-    rechts.click()
+def click(nr,v_r, v_l, positionen):
+  v_r[nr].rotate(-1)
+  v_l[nr].rotate(-1)
+  positionen[nr] = (positionen[nr] + 1) % 26
 
 
-class Walze():
-  def __init__(self, name, verdr, kerb, w_pos, r_pos):
-    self.name = name
-    self.verdrahtung = verdr
-    self.verdrahtung_i = alphabet_num.copy()
-    self.kerben = kerb
-    self.walz_pos = w_pos
-    self.ring_pos = r_pos
-    self.initialize()
+def rotiere(v_r, v_l, positionen, kerben):
+  if positionen[1] == kerben[1]:
+    click(1, v_r, v_l, positionen)
+    click(0, v_r, v_l, positionen)
+  elif positionen[2] == kerben[2]:
+    click(1, v_r, v_l, positionen)
+  click(2, v_r, v_l, positionen)
 
-  def initialize(self):
-    offset = -self.walz_pos+self.ring_pos
-    self.verdrahtung.rotate(offset)
-    self.verdrahtung_i.rotate(offset)
 
-  def schaltung(self):
-    return self.walz_pos in self.kerben
-
-  def click(self):
-    self.verdrahtung.rotate(-1)
-    self.verdrahtung_i.rotate(-1)
-    self.walz_pos = (self.walz_pos + 1) % 26
-
-def encode(e, text):
+def encode(text, v_r, v_l, p, k, refl, steckbr, crib=''):
   ciphertext = ""
   text=text.upper()
-  for c in text:
-    kette = ''
+  for n,c in enumerate(text):
     c = ord(c)-65
-    if c < 0 or c > 65:
-      continue
-    e.rotiere()
-    kette += chr(c+65)
-    if c in e.dict_steckerbr:
-      c = e.dict_steckerbr[c]
-    for w in reversed(e.walzen):
-      c = w.verdrahtung[c]
-      kette += f' -> {chr(c+65)} wlz {w.name}({chr(w.walz_pos+65)})'
-      c = w.verdrahtung_i.index(c)
-    c = e.reflektor[c]
-    kette += f' -> {chr(c+65)} refl {e.reflektor_name}'
-    for w in e.walzen:
-      c = w.verdrahtung_i[c]
-      kette += f' -> {chr(c+65)} wlz {w.name}'
-      c = w.verdrahtung.index(c)
-    kette += ' ->'+chr(c+65)
-    if c in e.dict_steckerbr:
-      c = e.dict_steckerbr[c]
-      kette += ' sb->'+chr(c+65)
+    if c < 0 or c > 65: continue
+    rotiere(v_r, v_l, p, k)
+    if c in steckbr:
+      c = steckbr[c]
+    for i in reversed(range(3)):
+      c = v_r[i][c]
+      c = v_l[i].index(c)
+    c = refl[c]
+    for i in range(3):
+      c = v_l[i][c]
+      c = v_r[i].index(c)
+    if c in steckbr:
+      c =steckbr[c]
     ciphertext += chr(c+65)
-    #print(kette)    
+    if crib:
+      if chr(c+65) != crib[n]: return ''
   return ciphertext
 
 
 if __name__ == "__main__":
-  enigma = Enigma()
-  enigma.setup("B", "III II I", "01 01 01","", "CAT")
-  
-    # Main Program Starts Here
+  refl, v_r, v_l, p, k, steckbr = enigma_setup("B", "III II I", "CAT", "01 01 01","") 
   print("  ##### Enigma Simlator #####\n")
   text = input("Texteingabe: \n")
-  print(f'Umgewandelter Text: \n{encode(enigma, text)}')
+  print(f'Umgewandelter Text: \n{encode(text, v_r, v_l, p, k, refl, steckbr)}')
