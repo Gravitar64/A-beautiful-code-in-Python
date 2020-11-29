@@ -1,7 +1,7 @@
 from collections import deque
 import random as rnd
 
-SIMULATIONEN = 10_000
+SIMULATIONEN = 10000
 
 def string2karten(input_str):
   return [(int(k[0:-1]), k[-1])for k in input_str.split()]
@@ -32,6 +32,13 @@ eigene_karten = string2karten(input("Eigene Karten (1-13, Narr=14, Zauberer=15 +
 trumpf_karte = string2karten(input("Trumpf-Karte: "))
 trumpf_farbe = trumpf_karte[0][1]
 wer_startet = input("Wer startet: ")
+#wenn der Narr aufgedeckt wird, gibt es keine Trumpf-Farbe
+if trumpf_karte[0][0] == 14: trumpf_farbe = ''
+#wenn der Wizard aufgedeckt wird, kann der ausspielende Spieler auswählen,
+#nachdem er seine Karten geprüft hat, welche Farbe Trumpf sein soll
+if trumpf_karte[0][0] == 15: 
+  trumpf_farbe = input(f'Welche Farbe ist Trumpf (Spieler {wer_startet})? ')
+
 
 DECK = [(wert,farbe) for wert in range(1,16) for farbe in 'rbgy' if (wert,farbe) not in (eigene_karten + trumpf_karte)]
 spieler_stiche = {name:0 for name in spieler_namen}
