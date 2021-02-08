@@ -5,6 +5,7 @@ from itertools import product
 rot_dict = {'u': ['y', 1, 90],    'e': ['y',0, -90],    'd': ['y', -1, -90], 
             'l': ['x', -1, -90],  'm': ['x', 0, -90],   'r': ['x', 1, 90],  
             'f': ['z', -1, 90],   's': ['z',0,90],      'b': ['z', 1, -90]}
+            
 
 app = Ursina()
 window.borderless = False
