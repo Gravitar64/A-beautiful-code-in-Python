@@ -1,45 +1,40 @@
 from ursina import *
 from itertools import product
 
-
-rot_dict = {'u': ['y', 1, 90],    'e': ['y',0, -90],    'd': ['y', -1, -90], 
-            'l': ['x', -1, -90],  'm': ['x', 0, -90],   'r': ['x', 1, 90],  
-            'f': ['z', -1, 90],   's': ['z',0,90],      'b': ['z', 1, -90]}
-            
-
-app = Ursina()
-window.borderless = False
-window.size = (800, 800)
-
-Light(type='ambient', color=(0.5, 0.5, 0.5, 0.5))  # dim full spectrum
-Light(type='directional', color=(0.5, 0.5, 0.5, 1),direction=(0.8,0.8,0.8))  # dim full spectrum
-PARENT = Entity()
-cubes = []
-
-for pos in product(range(-1,2), repeat=3):
-  cubes.append(Entity(position=pos, model='textures/cube', scale=0.5, texture="textures/cube", ))
-
-
-def parent_scheibe(d, p):
-  for c in cubes:
-    if c.parent != PARENT: continue
-    wpos, wrot = c.world_position, c.world_rotation
-    c.parent = scene
-    c.position, c.rotation = round(wpos, 1), wrot
-  PARENT.rotation = 0
-
-  for c in cubes:
-    if eval(f'c.position.{d} != {p}'): continue
-    c.parent = PARENT
+rot_dict = {'u': ['y', 1, 90],    'e': ['y', 0, -90],    'd': ['y', -1, -90],
+            'l': ['x', -1, -90],  'm': ['x', 0, -90],    'r': ['x', 1, 90],
+            'f': ['z', -1, 90],   's': ['z', 0, 90],     'b': ['z', 1, -90]}
 
 def input(key):
   if key not in rot_dict: return
-  d, p, r = rot_dict[key]
-  parent_scheibe(d, p)
+  rot_achse, schicht, winkel = rot_dict[key]
+  childs_scheibe(rot_achse, schicht)
   if held_keys['shift']:
-    eval(f'PARENT.animate_rotation_{d}( {-r}, duration=0.5)')
+    eval(f'PARENT.animate_rotation_{rot_achse} ({-winkel}, duration=0.5)')
   else:
-    eval(f'PARENT.animate_rotation_{d}( {r}, duration=0.5)')
+    eval(f'PARENT.animate_rotation_{rot_achse} ({winkel}, duration=0.5)')
+
+def childs_scheibe(rot_achse, schicht):
+  for w in würfel:
+    if w.parent != PARENT: continue
+    wpos, wrot = w.world_position, w.world_rotation
+    w.parent = scene
+    w.position, w.rotation = round(wpos,1), wrot
+  
+  PARENT.rotation = 0 
+  
+  for w in würfel:
+    if eval(f'w.position.{rot_achse} != {schicht}'): continue
+    w.parent = PARENT
+
+
+app = Ursina()
+window.borderless = False
+PARENT = Entity(model='cube', size = 0.2)
+
+würfel = []
+for pos in product(range(-1,2), repeat=3):
+  würfel.append(Entity(position=pos, model='Teil_46_model.obj', texture='Teil_46_texture.png', scale=0.5))
 
 EditorCamera()
 app.run()
