@@ -10,13 +10,13 @@ import copy
 
 def fen2pos(fen):
   global weiss
-  i, position = 0, {True:{}, False:{}}
+  i, position = 0, dict()
   pos, farbe, rochade, enpassant, zug50, zugnr = fen.split() 
   for char in pos:
     if char.isnumeric():
       i += int(char)
     elif char.isalpha():
-      position[char.isupper()][i2pos(i)] = char
+      position[i2pos(i)] = char
       if char in 'kK': kings_pos[char.isupper()]=i2pos(i)
       i += 1
   weiss = farbe == 'w'
@@ -48,9 +48,8 @@ def ladeFiguren():
 
 
 def zeichneFiguren(p):
-  for farbe, positionen in p.items():
-    for pos, f in positionen.items():
-      screen.blit(FIGS[f], pos2xy(pos))
+  for pos, fig in p.items():
+    screen.blit(FIGS[fig], pos2xy(pos))
 
 def zeichneZielfelder(pos):
   for pos2 in [z[1] for z in züge if z[0] == pos]:
@@ -71,10 +70,10 @@ def zügeRochade(weiss,züge):
     safe_status = copy.deepcopy(spielstatus)
     for zu in ROCH_FELD[option]['feld']:
       zug = (kingspos, zu, False, False, False)
-      zug_ausführen(zug)
+      zug_ausführen(zug,weiss)
       if imSchach(weiss):
         schach = True
-      zug_zurücknehmen(zug)  
+      zug_zurücknehmen(zug,weiss)  
     if not schach:
       roch_züge.append((kingspos, zu, False, False, option))
     spielstatus = safe_status    
@@ -83,16 +82,15 @@ def zügeRochade(weiss,züge):
 
 def zügeBauern(pos,fig,weiss):
   züge = []
-  sp, ze, grundlinie, endlinie = PAWN_MOVE[fig]
+  sp, ze, grundlinie, endlinie = PAWN_MOVE[weiss]
   for i in range(1,3) if pos[1] == grundlinie else range(1,2):
     pos2 = pos_move(pos, (sp*i,ze*i))
-    if pos2 not in BRETT or pos2 in position[weiss] or pos2 in position[not weiss]: 
-      break
+    if pos2 not in BRETT or pos2 in position: break
     züge.append((pos, pos2, False, pos2[1] == endlinie, False))
-  for r in PAWN_CAPT[fig]:
+  for r in PAWN_CAPT[weiss]:
     pos2 = pos_move(pos, r)
-    if pos2 in BRETT and pos2 in position[not weiss]:
-      züge.append((pos, pos2, position[not weiss][pos2], pos2[1] == endlinie, False))
+    if pos2 in BRETT and pos2 in position and position[pos2].isupper() != weiss:
+      züge.append((pos, pos2, position[pos2], pos2[1] == endlinie, False))
   return züge    
 
 
@@ -105,29 +103,75 @@ def zügeFig(pos, fig, weiss):
     for i in range(MOVES[fig][0]):
       r2 = r[0]*(i+1), r[1]*(i+1)
       pos2 = pos_move(pos, r2)
-      if pos2 not in BRETT or pos2 in position[weiss]: break
-      if pos2 in position[not weiss]:
-        züge.append((pos, pos2, position[not weiss][pos2], False, False))
+      if pos2 not in BRETT: break
+      if pos2 in position and position[pos2].isupper() == weiss: break
+      if pos2 in position:
+        züge.append((pos, pos2, position[pos2], False, False))
         break
       else:
         züge.append((pos, pos2, False, False, False))
   return züge
 
+def angegriffeneFelder(weiss):
+  felder = set()
+  for pos, fig in position.items():
+    if fig.isupper() == weiss: continue
+    if fig in PAWN_CAPT:
+      for r in PAWN_CAPT[fig]:
+        pos2 = pos_move(pos, r)
+        if pos2 in position and position[pos2].isupper() == weiss:
+          felder.add(pos2)
+    else:
+      fig = fig.lower()
+      for r in MOVES[fig][1:]:
+        for i in range(MOVES[fig][0]):
+          r2 = r[0]*(i+1), r[1]*(i+1)
+          pos2 = pos_move(pos, r2)
+          if pos2 in position:
+            if position[pos2].isupper() != weiss: 
+              break
+            else:
+              felder.add(pos2)
+              break
+  return felder
+
+def könig_im_Schach(weiss):
+  kp = kings_pos[weiss]
+  for fig,moves in MOVES.items():
+    if not weiss: fig = fig.upper()
+    for r in moves[1:]:
+      for i in range(moves[0]):
+        r2 = r[0]*(i+1), r[1]*(i+1)
+        pos2 = pos_move(kp, r2)
+        if pos2 not in BRETT: break
+        if pos2 in position and position[pos2].isupper()==weiss: break
+        if pos2 in position and position[pos2] == fig: return True
+  for r in PAWN_CAPT[weiss]:
+    bauer = 'p' if weiss else 'P'
+    pos2 = pos_move(kp, r)
+    if pos2 in position and position[pos2] == bauer: return True       
+
+
+
+
+
+
 def imSchach(weiss):
-  global spielstatus
-  safe_state = copy.deepcopy(spielstatus)
-  züge = pseudoZugGenerator(not weiss)
-  spielstatus = safe_state
-  return kings_pos[weiss] in {z[1] for z in züge}
+  # global spielstatus
+  # safe_state = copy.deepcopy(spielstatus)
+  # züge = pseudoZugGenerator(not weiss)
+  # spielstatus = safe_state
+  # return kings_pos[weiss] in {z[1] for z in züge}
+  #return kings_pos[weiss] in angegriffeneFelder(weiss)
+  return könig_im_Schach(weiss)
 
 def zug_ausführen(z,weiss):
   von,zu,capture,umwandlung,rochade = z
-  fig = position[weiss][von]
-  position[weiss][zu] = fig
-  del position[weiss][von]
-  if capture: del position[not weiss][zu]
+  fig = position[von]
+  position[zu] = fig
+  del position[von]
   if umwandlung:
-    position[weiss][zu] = 'Q' if weiss else 'q'
+    position[zu] = 'Q' if weiss else 'q'
   if fig in 'pP' and abs(von[1] - zu[1]) == 2:
     spielstatus[weiss]['ep'] = (von[0], von[1] - 1 if  weiss else -1)
   if fig in 'kK': 
@@ -137,30 +181,33 @@ def zug_ausführen(z,weiss):
     spielstatus[weiss]['rochade'] = spielstatus[weiss]['rochade'].replace(ROCH_TURM[weiss][von],'')
   if rochade:
       tv, tz = ROCH_FELD[rochade]['turm']
-      tfig = position[weiss][tv]
-      position[weiss][tz] = tfig
-      del position[weiss][tv]
+      tfig = position[tv]
+      position[tz] = tfig
+      del position[tv]
       spielstatus[weiss]['rochade'] = ''
 
 def zug_zurücknehmen(z,weiss):
   von, zu, capture, umwandlung, rochade = z
-  fig = position[weiss][zu]
-  position[weiss][von] = fig
-  del position[weiss][zu]
-  if capture: position[not weiss][zu] = capture
+  fig = position[zu]
+  position[von] = fig
+  if capture: 
+    position[zu] = capture
+  else:
+    del position[zu]
   if umwandlung:
-    position[weiss][von] = 'P' if weiss else 'p'
+    position[von] = 'P' if weiss else 'p'
   if fig in 'kK': 
     kings_pos[weiss] = von
   if rochade:
       tv, tz = ROCH_FELD[rochade]['turm']
-      tfig = position[weiss][tz]
-      position[weiss][tv] = tfig
-      del position[weiss][tz] 
+      tfig = position[tz]
+      position[tv] = tfig
+      del position[tz] 
 
 def pseudoZugGenerator(weiss):
   pseudo_züge = []
-  for pos, fig in position[weiss].items():
+  for pos, fig in position.items():
+    if fig.isupper() != weiss: continue
     pseudo_züge.extend(zügeFig(pos, fig, weiss))
   return pseudo_züge
 
@@ -170,12 +217,12 @@ def zugGenerator(weiss):
   # alle Pseudo-Züge löschen, bei denen man nach dem Zug im Schach steht
   # ob man vorher im Schach stand, spielt dabei keine Rolle, da selbst dann nur noch Züge
   # übrig bleiben, die ein Schach abwehren
-  # safe_status = copy.deepcopy(spielstatus)
-  # for z in reversed(züge):
-  #   zug_ausführen(z,weiss)
-  #   if imSchach(weiss): züge.remove(z)
-  #   zug_zurücknehmen(z,weiss)
-  # spielstatus = safe_status  
+  safe_status = copy.deepcopy(spielstatus)
+  for z in reversed(züge):
+    zug_ausführen(z,weiss)
+    if imSchach(weiss): züge.remove(z)
+    zug_zurücknehmen(z,weiss)
+  spielstatus = safe_status  
   
   # if not imSchach(weiss) and spielstatus[weiss]['rochade']:
   #   züge.extend(zügeRochade(weiss,züge))   
@@ -201,46 +248,46 @@ def pos2koord(pos):
   return chr(97+pos[0])+str(8-pos[1])
 
 def bewerte_position():
-  return sum(FIG_WERTE[fig] for weiss in (True, False) for fig in position[weiss].values())
+  return sum(FIG_WERTE[fig] for fig in position.values())
 
 
-def minimax(tiefe, alpha, beta, weiss):
+def minimax(tiefe, maxTiefe, alpha, beta, weiss):
   global spielstatus, counter
   if tiefe == 0:
+    bewertete_züge = []
+  if tiefe == maxTiefe:
     counter += 1
-    return (bewerte_position(), None)
+    return bewerte_position()
   # if win(spieler):
   #   return (99999 if spieler else -99999, None)
   zugliste = zugGenerator(weiss)
   if not zugliste:
     if not imSchach(weiss):
-      return (0, None)
+      return 0
     else: 
-      return (-99999 if weiss else 99999, None)
-  beste_bewertung = -999999 if weiss else 999999
+      return -99999 if weiss else 99999
   for zug in zugliste:
     #safe_status = copy.deepcopy(spielstatus)
     zug_ausführen(zug,weiss)
-    wert, _ = minimax(tiefe-1, alpha, beta, not weiss)
+    wert = minimax(tiefe+1, maxTiefe, alpha, beta, not weiss)
     zug_zurücknehmen(zug,weiss)
+    if tiefe == 0:
+      bewertete_züge.append((wert,zug))
     #spielstatus = safe_status
     if weiss:
-      if wert > beste_bewertung:
-        beste_bewertung = wert
-        bester_zug = zug
-        alpha = max(wert, alpha)
+      alpha = max(wert, alpha)
     else:
-      if wert < beste_bewertung:
-        beste_bewertung = wert
-        bester_zug = zug
-        beta = min(wert, beta)
+      beta = min(wert, beta)
     if alpha >= beta:
       break
-  return beste_bewertung, bester_zug 
+  if tiefe == 0: 
+    return bewertete_züge
+  else:
+    return alpha if weiss else beta
 
 def print_zug(zug,weiss):
   von, zu, capture, umwandlung, rochade = zug
-  fig = position[weiss][von]
+  fig = position[von]
   if rochade:
     if von[0] - zu[0] > 0:
       return 'O-O'
@@ -257,8 +304,8 @@ MOVES = {'k': [1, (-1, -1), (-1, 1), (1, 1), (1, -1), (-1, 0), (1, 0), (0, 1), (
          'r': [8, (-1, 0), (1, 0), (0, 1), (0, -1)],
          'b': [8, (-1, -1), (-1, 1), (1, 1), (1, -1)],
          'n': [1, (-2, 1), (-2, -1), (-1, -2), (1, -2), (2, -1), (2, 1), (-1, 2), (1, 2)]}
-PAWN_CAPT = {'P': [(-1, -1), (1, -1)], 'p': [(-1, 1), (1, 1)]}
-PAWN_MOVE = {'P': (0,-1,6,0), 'p': (0,1,1,7)}
+PAWN_CAPT = {True: [(-1, -1), (1, -1)], False: [(-1, 1), (1, 1)]}
+PAWN_MOVE = {True: (0,-1,6,0), False: (0,1,1,7)}
 ROCH_FELD = {'K': {'feld': [(5,7), (6,7)], 'turm':((7,7), (5,7))},
              'Q': {'feld': [(3,7), (2,7)], 'turm':((0,7), (3,7))},
              'k': {'feld': [(5,0), (6,0)], 'turm':((7,0), (5,0))},
@@ -276,8 +323,9 @@ position = fen2pos('r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w  K
 
 start = pfc()
 counter = 0
-bewertung, zug = minimax(4,-999999, 999999, weiss)
-print(f'{print_zug(zug,weiss)}, {pfc()-start:.2f} Sek., Bewertung = {bewertung}, Nodes = {counter:,.0f}')
+bewertete_züge = minimax(0,4,-999999, 999999, weiss)
+for bewertung, zug in sorted(bewertete_züge):
+  print(f'{print_zug(zug,weiss)}, {pfc()-start:.2f} Sek., Bewertung = {bewertung}, Nodes = {counter:,.0f}')
 
 züge = zugGenerator(weiss)
 
@@ -294,14 +342,14 @@ while weitermachen:
     if ereignis.type == pg.MOUSEBUTTONDOWN and not drag:
       pos1 = xy2pos(pg.mouse.get_pos())
       if pos1 in {z[0] for z in züge}:
-        fig = position[weiss][pos1]
+        fig = position[pos1]
         drag = FIGS[fig]
-        del position[weiss][pos1]
+        del position[pos1]
     if ereignis.type == pg.MOUSEBUTTONUP and drag:
       pos2 = xy2pos(pg.mouse.get_pos())
       if pos2 in {z[1] for z in züge if z[0] == pos1}:
         zug = [z for z in züge if z[0] == pos1 and z[1] == pos2][0]
-        position[weiss][pos1] = fig
+        position[pos1] = fig
         zug_ausführen(zug,weiss)
         print(bewerte_position())
         weiss = not weiss
@@ -318,7 +366,7 @@ while weitermachen:
           else:
             print('PATT')    
       else:
-        position[weiss][pos1] = fig  
+        position[pos1] = fig  
       drag = None
   zeichneBrett(BRETT)
   zeichneFiguren(position)
