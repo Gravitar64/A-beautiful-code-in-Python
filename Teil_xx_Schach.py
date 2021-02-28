@@ -204,7 +204,6 @@ def pos2koord(pos):
 def bewerte_position():
   return sum(FIG_WERTE[fig] for fig in position.values())
 
-
 def minimax(tiefe, alpha, beta, weiss):
   global spielstatus, counter
   if tiefe == MAX_TIEFE:
@@ -224,15 +223,15 @@ def minimax(tiefe, alpha, beta, weiss):
     zug_zurücknehmen(zug,weiss)
     spielstatus = safe_status
     if weiss:
+      alpha = max(wert, alpha)
       if wert > beste_bewertung:
         beste_bewertung = wert
         bester_zug = zug
-        alpha = max(wert, alpha)
     else:
+      beta = min(wert, beta)
       if wert < beste_bewertung:
         beste_bewertung = wert
         bester_zug = zug
-        beta = min(wert, beta)
     if alpha >= beta:
       break
   return beste_bewertung, bester_zug 
@@ -277,9 +276,6 @@ position = fen2pos('r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w  K
 MAX_TIEFE = 4
 
 züge = zugGenerator(weiss)
-for i,zug in enumerate(züge):
-  print(i+1, print_zug(zug))
-
 
 weitermachen = True
 clock = pg.time.Clock()
