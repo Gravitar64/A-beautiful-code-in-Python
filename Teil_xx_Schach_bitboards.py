@@ -52,7 +52,8 @@ def pretty(bb):
   return output+'\n'
     
 def shitty_hash(masked_composite, square):
-  return (masked_composite * MAGICS[square]) >> SHIFTS[square]    
+  return (masked_composite * MAGICS[square]) >> SHIFTS[square]
+  #return masked_composite+square    
 
 def create_move_bitboards():
   bb = {}
@@ -83,15 +84,17 @@ def create_move_bitboards():
   return bb
 
 def fen2pos(fen):
-  i,position = 0,{}
+  i,position,kingspos = 0,{},{}
   pos, farbe, rochade, enpassant, zug50, zugnr = fen.split() 
   for char in pos:
     if char.isnumeric():
       i += int(char)
     elif char.isalpha():
+      if char == 'K': kingspos[True] = i
+      if char == 'k': kingspos[False] = i
       position[i] = char
       i += 1
-  return farbe=='w', position         
+  return farbe=='w', position, kingspos         
 
 def create_pieces_bb(position):
   bb, all_pieces = {}, {}
@@ -127,22 +130,21 @@ def zuggenerator(weiss, position):
       blocker = move_bb[fig][i] & occupied_bb
       if not blocker: continue
       if fig in 'rb':
-        moves = sliding_move_bb[fig+str(i)+str(blocker)]
+        moves = sliding_move_bb[fig][shitty_hash(blocker,i)]
       else: #Queen 
         blocker = move_bb['r'][i] & occupied_bb
-        moves = sliding_move_bb['r'+str(i)+str(blocker)]
+        moves = sliding_move_bb['r'][shitty_hash(blocker,i)]
         blocker = move_bb['b'][i] & occupied_bb
-        moves |= sliding_move_bb['b'+str(i)+str(blocker)]
+        moves |= sliding_move_bb['b'][shitty_hash(blocker,i)]
       moves &= ~all_pieces_bb[weiss]
       attacked |= moves
-    züge.append([i,moves,fig])    
+    if moves:
+      züge.append([i,moves,fig])    
   return züge,attacked
 
 def get_ones_position(bb):
-  ones = []
-  for i,c in enumerate(bin(bb)[:1:-1]):
-    if c == '1': ones.append(i)
-  return ones
+  return [i for i,c in enumerate(bin(bb)[:1:-1]) if c == '1']
+   
 
 def i2A8(i):
   s,z = i%8, i//8
@@ -163,14 +165,33 @@ def imSchach2(weiss):
       else:
         if move_bb[fig][i] & kingpos: return True
     else:
-      if fig in 'rRbB':
-        hash = move_bb[fig][i] & occupied_bb
-        if sliding_move_bb[fig+str(i)+str(hash)] & kingpos: return True
+      if fig in 'rb':
+        blocker = move_bb[fig][i] & occupied_bb
+        if sliding_move_bb[fig][shitty_hash(blocker,i)] & kingpos: return True
       else:
-        hash = move_bb['r'][i] & occupied_bb
-        if sliding_move_bb['r'+str(i)+str(hash)] & kingpos: return True
-        hash = move_bb['b'][i] & occupied_bb
-        if sliding_move_bb['b'+str(i)+str(hash)] & kingpos: return True
+        blocker = move_bb['r'][i] & occupied_bb
+        if sliding_move_bb['r'][shitty_hash(blocker,i)] & kingpos: return True
+        blocker = move_bb['b'][i] & occupied_bb
+        if sliding_move_bb['b'][shitty_hash(blocker,i)] & kingpos: return True
+
+def imSchach3(weiss):
+  i = kingspos[weiss]
+  if move_bb['n'][i] & pieces_bb['n' if weiss else 'N']:return True
+  if move_bb['k'][i] & pieces_bb['k' if weiss else 'K']:return True
+  if move_bb['Pc' if weiss else 'pc'][i] & pieces_bb['p' if weiss else 'P']: 
+    return True
+  for fig in 'rb':
+    blocker = move_bb[fig][i] & occupied_bb
+    if sliding_move_bb[fig][shitty_hash(blocker,i)] & pieces_bb[fig if weiss else fig.upper()]:
+      return True
+    if sliding_move_bb[fig][shitty_hash(blocker,i)] & pieces_bb['q' if weiss else 'Q']:
+      return True
+
+
+  
+  
+
+
 
 
 
@@ -198,7 +219,7 @@ def gen_blockerboards():
   return blockerboards
 
 def gen_sliding_move_bb(blockerboards):
-  sliding_move_bb = {}
+  sliding_move_bb = defaultdict(dict)
   for fig in blockerboards:
     for feld, values in blockerboards[fig].items():
       for blocker in values:
@@ -210,7 +231,8 @@ def gen_sliding_move_bb(blockerboards):
             if (s2,z2) not in BRETT: break
             moves |= 1 << s2+z2*8
             if 1 << s2+z2*8 & blocker: break
-        sliding_move_bb[fig+str(feld)+str(blocker)] = moves
+        hash = shitty_hash(blocker,feld)    
+        sliding_move_bb[fig][hash] = moves
   return sliding_move_bb        
 
 
@@ -219,7 +241,7 @@ BRETT = {(s,z): s % 2 == z % 2 for s in range(8) for z in range(8)}
 NON_SLIDING_PIECES = {'K','k','p','P','n','N'}
 #fen = chess.get_random_daily_puzzle().json['fen']
 fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
-weiss, position = fen2pos(fen)
+weiss, position, kingspos = fen2pos(fen)
 
 
 move_bb = create_move_bitboards()
@@ -228,17 +250,17 @@ pieces_bb, all_pieces_bb, occupied_bb = create_pieces_bb(position)
 blockerboards = gen_blockerboards()
 sliding_move_bb = gen_sliding_move_bb(blockerboards)
 
-print(len(sliding_move_bb.values()))
-print(len(set(sliding_move_bb.values())))
+print(len(sliding_move_bb['r']), len(sliding_move_bb['b']))
 
 
-# start = pfc()
-# for i in range(10_000):
-#   pseudo,attacked = zuggenerator(weiss, position)
-#   for von, zus, fig in pseudo:
-#     for zu in get_ones_position(zus):
-#       imSchach2(weiss)
-# print(pfc()-start)
+start = pfc()
+for i in range(10_000):
+  pseudo,attacked = zuggenerator(weiss, position)
+  for von, zus, fig in pseudo:
+    for zu in get_ones_position(zus):
+      imSchach3(weiss)
+print(pfc()-start)
+print(len(pseudo))
 
 # pseudo, attacked = zuggenerator(weiss, position)
 # for von, zus, fig in pseudo:
