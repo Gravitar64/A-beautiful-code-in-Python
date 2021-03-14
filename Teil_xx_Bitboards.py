@@ -48,14 +48,14 @@ def gen_sliding_move_bb(blockerboards):
             s2, z2 = s+ds*m, z+dz*m
             if (s2, z2) not in BRETT:
               break
-            moves |= 1 << s2+z2*8
+            moves |= 1 << s2 + z2 * 8
             if 1 << s2+z2*8 & blocker:
               break
-        sliding_move_bb[fig][blocker] = moves
+        sliding_move_bb[fig][blocker+feld] = moves
   return sliding_move_bb
 
 
-def create_move_bitboards():
+def gen_move_bitboards():
   bb = {}
   for fig, vals in MOVES.items():
     richtungen = vals[1:]
@@ -90,7 +90,7 @@ def create_move_bitboards():
   return bb
 
 
-def create_pieces_bb(position):
+def gen_pieces_bb(position):
   bb, all_pieces = {}, [0,0]
   w = b = 0
   for i, fig in position.items():
@@ -114,3 +114,10 @@ def pretty(bb):
       output += f'\n{8-i//8}  '
     output += '. ' if char == '0' else '1 '
   return output+'\n   A B C D E F G H'
+
+if __name__ == '__main__':
+  move = gen_move_bitboards()
+  blocker = gen_blockerboards(move)
+  slider = gen_sliding_move_bb(blocker)
+  
+
