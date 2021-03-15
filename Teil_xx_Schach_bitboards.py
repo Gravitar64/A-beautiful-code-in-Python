@@ -3,7 +3,6 @@ import chessdotcom as chess
 from collections import defaultdict
 import Teil_xx_Bitboards as bitboards
 
-# TODO Rochade fehlt
 # TODO enPassant fehlt
 # FEAUTURE SLIDING_BB auf minimale Größe optimieren (MAGIC_KEYS Rook 100570->4855 Einträge)
 
@@ -13,7 +12,7 @@ def i2A8(i):
 
 
 def fen2pos(fen):
-  i, position, = 0, {}
+  i, position, roch_state= 0, {}, ['','']
   pos, farbe, rochade, enpassant, zug50, zugnr = fen.split()
   for char in pos:
     if char.isnumeric():
@@ -21,7 +20,10 @@ def fen2pos(fen):
     elif char.isalpha():
       position[i] = char
       i += 1
-  return farbe == 'w', position
+  for char in rochade:
+    if char == '-': continue
+    roch_state[char.isupper()] += char
+  return farbe == 'w', position, roch_state
 
 
 def pseudo_züge(weiss, position):
@@ -67,14 +69,34 @@ def zuggenerator(weiss, position):
   züge = []
   for von, zus, fig in pseudo:
     for zu in [i for i in range(64) if zus & SQUARE_BB[i]]:
-      capture = ziehe(weiss, von, zu)
+      capture = ziehe(weiss, von, zu, None)
       if not imSchach(weiss):
-        züge.append((fig, von, zu))
-      ziehe_rückgängig(weiss, von, zu, capture)
+        züge.append((fig, von, zu, None, capture))
+      ziehe_rückgängig(weiss, von, zu, None, capture)
+  #Rochade
+  if not imSchach(weiss) and roch_state[weiss]:
+    züge.extend(gen_rochade_züge(weiss))
   return züge
 
+def gen_rochade_züge(weiss):
+  roch_züge = []
+  for roch in roch_state[weiss]:
+    mask = ROCH_BB[roch][0]
+    könig_zieht_durch = ROCH_BB[roch][1]
+    if occupied_bb & mask: continue
+    im_schach = False
+    kingspos = ONLY1POS[pieces_bb['K' if weiss else 'k']]
+    for feld in könig_zieht_durch:
+      capture = ziehe(weiss, kingspos, feld, None)
+      if imSchach(weiss): im_schach = True
+      ziehe_rückgängig(weiss, kingspos, feld, None, capture)
+    if not im_schach:
+      roch_züge.append(('K' if weiss else 'k', kingspos, feld, roch, None))  
+  return roch_züge
 
-def ziehe(weiss, von, zu):
+
+
+def ziehe(weiss, von, zu, rochade):
   global occupied_bb
   capture = position.get(zu, None)
   vonzu = SQUARE_BB[von] | SQUARE_BB[zu]
@@ -86,12 +108,20 @@ def ziehe(weiss, von, zu):
     occupied_bb ^= SQUARE_BB[von]
   else:
     occupied_bb ^= vonzu
+  if rochade:
+    tvon, tzu = ROCH_BB[rochade][2]
+    tvonzu = SQUARE_BB[tvon] | SQUARE_BB[tzu]
+    pieces_bb['R' if weiss else 'r'] ^= tvonzu
+    all_pieces_bb[weiss] ^= tvonzu
+    position[tzu] = position[tvon]
+    del position[tvon]
+
   position[zu] = position[von]
   del position[von]
   return capture
 
 
-def ziehe_rückgängig(weiss, von, zu, capture):
+def ziehe_rückgängig(weiss, von, zu, rochade, capture):
   global occupied_bb
   vonzu = SQUARE_BB[von] | SQUARE_BB[zu]
   pieces_bb[position[zu]] ^= vonzu
@@ -102,6 +132,13 @@ def ziehe_rückgängig(weiss, von, zu, capture):
     occupied_bb ^= SQUARE_BB[von]
   else:
     occupied_bb ^= vonzu
+  if rochade:
+    tvon, tzu = ROCH_BB[rochade][2]
+    tvonzu = SQUARE_BB[tvon] | SQUARE_BB[tzu]
+    pieces_bb['R' if weiss else 'r'] ^= tvonzu
+    all_pieces_bb[weiss] ^= tvonzu
+    position[tvon] = position[tzu]
+    del position[tzu]
 
   position[von], position[zu] = position[zu], capture
   if not capture:
@@ -128,12 +165,16 @@ NON_SLIDING_PIECES = {'K', 'k', 'p', 'P', 'n', 'N'}
 #fen = chess.get_random_daily_puzzle().json['fen']
 #fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 fen = 'r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w  KQkq - 0 1'
-weiss, position = fen2pos(fen)
+weiss, position, roch_state = fen2pos(fen)
 
 MOVE_BB = bitboards.gen_move_bitboards()
 SLIDING_MOVE_BB = bitboards.gen_sliding_move_bb(MOVE_BB)
 SQUARE_BB = bitboards.gen_square_bb()
 ONLY1POS = {mask: i for i, mask in enumerate(SQUARE_BB)}
+ROCH_BB = {'K': [1 << 61 | 1 << 62, (61,62), (63,61)],
+           'Q': [1 << 57 | 1 << 58 | 1 << 59, (59,58), (56,59)],
+           'k': [1 << 5 | 1 << 6, (5,6), (7,5)],
+           'q': [1<<1 | 1<<2 | 1<<3, (3,2), (0,3)]}
 pieces_bb, all_pieces_bb, occupied_bb = bitboards.gen_pieces_bb(position)
 save_occ = occupied_bb
 save_all = all_pieces_bb.copy()
@@ -145,9 +186,19 @@ for i in range(10_000):
 print(pfc()-start)
 
 
-# züge = zuggenerator(weiss, position)
-# for fig, von, zu in züge:
-#   print(f'{fig} {i2A8(von)} - {i2A8(zu)}')
+züge = zuggenerator(weiss, position)
+for fig, von, zu, rochade, capture in züge:
+  zug = ''
+  if rochade and rochade in 'qQ':
+    zug += 'O-O-O'
+  elif rochade and rochade in 'kK':
+    zug += 'O-O'
+  else:
+    zug += fig.upper() if fig not in 'pP' else ''
+    zug += 'x' if capture else ''
+    zug += i2A8(zu)
+  print(zug)  
+
 
 # for pos, fig in position.items():
 #   print(bitboards.pretty(pieces_bb[fig]))
