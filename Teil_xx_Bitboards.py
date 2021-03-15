@@ -1,4 +1,6 @@
 from collections import defaultdict
+from time import perf_counter as pfc
+
 
 MOVES = {'k': [1, (-1, -1), (-1, 1), (1, 1), (1, -1), (-1, 0), (1, 0), (0, 1), (0, -1)],
          'q': [8, (-1, -1), (-1, 1), (1, 1), (1, -1), (-1, 0), (1, 0), (0, 1), (0, -1)],
@@ -36,7 +38,8 @@ def gen_blockerboards(move_bb):
   return blockerboards
 
 
-def gen_sliding_move_bb(blockerboards):
+def gen_sliding_move_bb(move_bb):
+  blockerboards = gen_blockerboards(move_bb)
   sliding_move_bb = defaultdict(dict)
   for fig in blockerboards:
     for feld, values in blockerboards[fig].items():
@@ -58,20 +61,18 @@ def gen_sliding_move_bb(blockerboards):
 def gen_move_bitboards():
   bb = {}
   for fig, vals in MOVES.items():
-    richtungen = vals[1:]
-    multi = vals[0]
     boards = []
-    if fig not in 'pPpcPc':
+    if fig not in {'p', 'P', 'pc', 'Pc'}:
       fig = fig.lower()
     for i in range(64):
       b = 0
       s1, z1 = i % 8, i // 8
-      for ds, dz in richtungen:
-        for n in range(1, multi+1):
+      for ds, dz in vals[1:]:
+        for n in range(1, vals[0]+1):
           s2, z2 = s1+ds*n, z1+dz*n
           if (s2, z2) not in BRETT:
             break
-          if fig in 'rbq':
+          if fig in {'r', 'b', 'q'}:
             if ds == -1 and s2 == 0:
               continue
             if ds == 1 and s2 == 7:
@@ -81,10 +82,6 @@ def gen_move_bitboards():
             if dz == 1 and z2 == 7:
               continue
           b |= 1 << z2*8+s2
-      if fig == 'p' and z1 == 1:
-        b |= 1 << (i+16)
-      if fig == 'P' and z1 == 6:
-        b |= 1 << (i-16)
       boards.append(b)
     bb[fig] = boards
   return bb
@@ -92,7 +89,6 @@ def gen_move_bitboards():
 
 def gen_pieces_bb(position):
   bb, all_pieces = {}, [0,0]
-  w = b = 0
   for i, fig in position.items():
     board = 0 if fig not in bb else bb[fig]
     board |= 1 << i
@@ -116,8 +112,8 @@ def pretty(bb):
   return output+'\n   A B C D E F G H'
 
 if __name__ == '__main__':
+  start = pfc()
   move = gen_move_bitboards()
-  blocker = gen_blockerboards(move)
-  slider = gen_sliding_move_bb(blocker)
+  print(pfc()-start)
   
 
