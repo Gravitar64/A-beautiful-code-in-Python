@@ -43,12 +43,11 @@ def zeichneFiguren(p):
   for sz, fig in p.items():
     screen.blit(FIGUREN[fig], sz2xy(sz))
 
-def zeichne_Zielfelder(von, züge):
+def zeichneZielfelder(von, züge):
   zielfelder = {z[2] for z in züge if z[1] == von}
   for ziel in zielfelder:
-    x,y = sz2xy(ziel)
+    x, y = sz2xy(ziel)
     pg.draw.circle(screen, pg.Color('bisque4'), (x+50, y+50), 8)
-      
 
 
 
@@ -67,10 +66,7 @@ fen = 'r3k2r/ppp1npbp/b3p1p1/4P3/4N3/4PN2/PPQ2PPP/R3K2R b KQkq - 3 12'
 position,zugrecht,rochaderecht = fen2position(fen)
 weiss = zugrecht == 'w'
 print(f'{"Weiss" if weiss else "Schwarz"} ist am Zug')
-print(rochaderecht)
 züge, königspos = zuggen.zugGenerator(weiss, position, rochaderecht)
-for zug in züge:
-  print(zug)
 
 weitermachen = True
 clock = pg.time.Clock()
@@ -103,9 +99,9 @@ while weitermachen:
   zeichneBrett(zuggen.BRETT)
   zeichneFiguren(position)
   if drag:
+    zeichneZielfelder(von, züge)
     rect = drag.get_rect(center=pg.mouse.get_pos())
     screen.blit(drag, rect)
-    zeichne_Zielfelder(von, züge)
 
   
 
