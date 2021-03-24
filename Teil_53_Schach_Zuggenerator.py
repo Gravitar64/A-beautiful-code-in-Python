@@ -16,8 +16,6 @@ _MOVES_ROCH = {'K': [((5, 7), (6, 7)), ((7, 7), (5, 7))],
                'Q': [((3, 7), (2, 7)), ((0, 7), (3, 7))],
                'q': [((3, 0), (2, 0)), ((0, 0), (3, 0))]}
 
-
-
 _GRUNDLINIE = [1,6]          
 
 BRETT = {(s,z): s % 2 == z % 2 for s in range(8) for z in range(8)}          
@@ -31,16 +29,15 @@ def zugGenerator(weiss, position, rochaderecht):
       züge.append(zug)
     zug_zurücknehmen(zug, position, königspos)
   if rochaderecht[weiss] and not imSchach(weiss, position, königspos[weiss]):
-    _zügeRochade(weiss, züge, position, königspos[weiss], rochaderecht[weiss])  
+    _zügeRochade(weiss, züge, position, königspos[weiss], rochaderecht[weiss])
   return züge, königspos
 
 def _zügeRochade(weiss, züge, position, von, rochade):
   for roch in rochade:
     turmzug = _MOVES_ROCH[roch][1]
-    if turmzug not in {(zug[1], zug[2]) for zug in züge if not zug[3]}: continue
+    if turmzug not in {(z[1], z[2]) for z in züge if not z[3]}: continue
     if all([not imSchach(weiss, position, zu) for zu in _MOVES_ROCH[roch][0]]):
-      züge.append(('K' if weiss else 'k', von, _MOVES_ROCH[roch][0][1], False, False, roch))
-
+      züge.append(('K' if weiss else 'k', von, _MOVES_ROCH[roch][0][1], False, False, roch))  
 
 def imSchach(weiss, position, von):
   for figs, moves in _MOVES.items():
@@ -68,8 +65,7 @@ def zug_ausführen(zug, position, königspos):
     königspos[fig.isupper()] = zu
   if rochade:
     tv, tz = _MOVES_ROCH[rochade][1]
-    position[tz] = position.pop(tv)
-
+    position[tz] = position.pop(tv)   
 
 
 def zug_zurücknehmen(zug, position, königspos):
@@ -83,7 +79,8 @@ def zug_zurücknehmen(zug, position, königspos):
     königspos[fig.isupper()] = von
   if rochade:
     tv, tz = _MOVES_ROCH[rochade][1]
-    position[tv] = position.pop(tz)     
+    position[tv] = position.pop(tz)   
+       
 
 
 def _pseudoZugGenerator(weiss, position):
