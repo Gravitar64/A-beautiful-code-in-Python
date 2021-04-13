@@ -1,5 +1,7 @@
 import pygame as pg
 import chessdotcom as chess
+import Teil_50_Schach_Zuggenerator as zuggen
+
 
 def sz2xy(sz):
   return sz[0]*FELD, sz[1]*FELD
@@ -46,12 +48,20 @@ BREITE, HÖHE = 800,800
 FELD = BREITE // 8
 FPS = 40
 screen = pg.display.set_mode((BREITE, HÖHE))
-BRETT = {(s,z): s % 2 == z % 2 for s in range(8) for z in range(8)}
 FIGUREN = ladeFiguren()
 #fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+
+#je nach eigesetzter Python-Version (bei mir 3.9.2) und der chess.com-Version (bei mir 21.0.1)
+#funktioniert der nachfolgende Aufruf oder es ist noch ein zusätzlicher KEY vor fen notwendig:
+#
+#also fen = chess.get_random_daily_puzzle().json['puzzle]['fen']
+
 fen = chess.get_random_daily_puzzle().json['fen']
 position,zugrecht = fen2position(fen)
-print(zugrecht) 
+print(zugrecht)
+weiss = zugrecht == 'w'
+züge = zuggen.zugGenerator(weiss, position)
+print(züge)
 
 weitermachen = True
 clock = pg.time.Clock()
@@ -75,7 +85,7 @@ while weitermachen:
       
            
   screen.fill((0,0,0))
-  zeichneBrett(BRETT)
+  zeichneBrett(zuggen.BRETT)
   zeichneFiguren(position)
   if drag:
     rect = drag.get_rect(center=pg.mouse.get_pos())
