@@ -1,6 +1,6 @@
 import pygame as pg
 import chessdotcom as chess
-import Teil_52_Schach_Zuggenerator as zuggen
+import Teil_53_Schach_Zuggenerator as zuggen
 
 
 def sz2xy(sz):
