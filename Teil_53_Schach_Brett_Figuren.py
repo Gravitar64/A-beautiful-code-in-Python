@@ -1,6 +1,6 @@
 import pygame as pg
 import chessdotcom as chess
-import Teil_53_Schach_Zuggenerator as zuggen
+import Teil_52_Schach_Zuggenerator as zuggen
 
 
 def sz2xy(sz):
@@ -15,7 +15,7 @@ def zeichneBrett(BRETT):
     pg.draw.rect(screen, farbe, (*sz2xy(sz), FELD, FELD))
 
 def fen2position(fen):
-  position, s, z, rochaderecht = {}, 0, 0, ['','']
+  position, s, z = {}, 0, 0
   figurenstellung, zugrecht, rochaderechte, enpassant, zug50, zugnr = fen.split()
   for char in figurenstellung:
     if char.isalpha():
@@ -24,12 +24,8 @@ def fen2position(fen):
     elif char.isnumeric():
       s += int(char)
     else:
-      s, z = 0, z + 1
-  for char in rochaderechte:
-    if char == '-': break
-    rochaderecht[char.isupper()] += char    
-      
-  return position, zugrecht, rochaderecht
+      s,z = 0, z+1
+  return position, zugrecht
 
 def ladeFiguren():
   bilder = {}
@@ -44,12 +40,6 @@ def zeichneFiguren(p):
   for sz, fig in p.items():
     screen.blit(FIGUREN[fig], sz2xy(sz))
 
-def zeichneZielfelder(zielfelder):
-  for ziel in zielfelder:
-    x, y = sz2xy(ziel)
-    pg.draw.circle(screen, pg.Color('bisque4'), (x+50, y+50), 10)
-
-
 
 
 
@@ -62,14 +52,13 @@ FIGUREN = ladeFiguren()
 #fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 #fen = chess.get_random_daily_puzzle().json['fen']
 #fen = '1q2r1k1/P4ppp/3n4/4P3/8/2N3b1/1PPP1PPP/R5K1 w - - 0 1'
-#fen = 'k6r/R7/B1N4n/P7/1P2P3/2P4b/5Pq1/8 b - - 0 1'
-fen = 'r3k2r/ppp1npbp/b3p1p1/4P3/4N3/4PN2/PPQ2PPP/R3K2R w KQkq - 3 12'
-position,zugrecht,rochaderecht = fen2position(fen)
+fen = 'k6r/R7/B1N4n/P7/1P2P3/2P4b/5Pq1/8 b - - 0 1'
+position,zugrecht = fen2position(fen)
+print(zugrecht)
 weiss = zugrecht == 'w'
-print(f'{"Weiss" if weiss else "Schwarz"} ist am Zug')
-züge, königspos = zuggen.zugGenerator(weiss, position, rochaderecht)
-
-  
+züge = zuggen.zugGenerator(weiss, position)
+for zug in züge:
+  print(zug)
 
 weitermachen = True
 clock = pg.time.Clock()
@@ -82,21 +71,13 @@ while weitermachen:
       weitermachen = False
     elif ereignis.type == pg.MOUSEBUTTONDOWN and not drag:
       von = xy2sz(pg.mouse.get_pos())
-      if von in {z[1] for z in züge}:
-        fig = position.pop(von)
+      if von in position:
+        fig = position[von]
         drag = FIGUREN[fig]
-        zielfelder = {z[2] for z in züge if z[1] == von}
+        del position[von]
     elif ereignis.type == pg.MOUSEBUTTONUP and drag:
       zu = xy2sz(pg.mouse.get_pos())
-      if zu in zielfelder:
-        zug = [z for z in züge if z[1] == von and z[2] == zu][0]
-        position[von] = fig
-        zuggen.zug_ausführen(zug, position, königspos)
-        weiss = not weiss
-        züge, königspos = zuggen.zugGenerator(weiss, position, rochaderecht)
-        print(f'{"Weiss" if weiss else "Schwarz"} ist am Zug')
-      else:
-        position[von] = fig  
+      position[zu] = fig
       drag = None
       
            
@@ -106,7 +87,6 @@ while weitermachen:
   if drag:
     rect = drag.get_rect(center=pg.mouse.get_pos())
     screen.blit(drag, rect)
-    zeichneZielfelder(zielfelder)
 
   
 
