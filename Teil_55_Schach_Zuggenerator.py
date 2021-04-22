@@ -23,7 +23,7 @@ _FIG_WERTE = dict(P=1, K=99999, Q=9, R=5, B=3, N=3,
 
 BRETT = {(s, z): s % 2 == z % 2 for s in range(8) for z in range(8)}
 
-MAX_TIEFE = 4
+MAX_TIEFE = 5
 
 
 def zugGenerator(weiss, position, rochaderecht):
