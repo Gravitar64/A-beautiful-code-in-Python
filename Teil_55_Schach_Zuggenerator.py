@@ -16,15 +16,14 @@ _MOVES_ROCH = {'K': [((5, 7), (6, 7)), ((7, 7), (5, 7))],
                'Q': [((3, 7), (2, 7)), ((0, 7), (3, 7))],
                'q': [((3, 0), (2, 0)), ((0, 0), (3, 0))]}
 
-_GRUNDLINIE = [1, 6]
+_GRUNDLINIE = [1,6]          
 
-_FIG_WERTE = dict(P=1, K=99999, Q=9, R=5, B=3, N=3,
-                  p=-1, k=-99999, q=-9, r=-5, b=-3, n=-3)
+BRETT = {(s,z): s % 2 == z % 2 for s in range(8) for z in range(8)} 
 
-BRETT = {(s, z): s % 2 == z % 2 for s in range(8) for z in range(8)}
+_FIG_WERTE = dict (P=1, K=99999, Q=9, R=5, B=3, N=3,
+                   p=-1, k=-99999, q=-9, r=-5, b=-3, n=-3)
 
-MAX_TIEFE = 5
-
+MAX_TIEFE = 4                   
 
 def zugGenerator(weiss, position, rochaderecht):
   züge = []
@@ -38,33 +37,28 @@ def zugGenerator(weiss, position, rochaderecht):
     _zügeRochade(weiss, züge, position, königspos[weiss], rochaderecht[weiss])
   return züge, königspos
 
-
 def _zügeRochade(weiss, züge, position, von, rochade):
   for roch in rochade:
     turmzug = _MOVES_ROCH[roch][1]
-    if turmzug not in {(z[1], z[2]) for z in züge if not z[3]}:
-      continue
+    if turmzug not in {(z[1], z[2]) for z in züge if not z[3]}: continue
     if all([not imSchach(weiss, position, zu) for zu in _MOVES_ROCH[roch][0]]):
-      züge.append(('K' if weiss else 'k', von,
-                   _MOVES_ROCH[roch][0][1], False, False, roch))
-
+      züge.append(('K' if weiss else 'k', von, _MOVES_ROCH[roch][0][1], False, False, roch))  
 
 def imSchach(weiss, position, von):
   for figs, moves in _MOVES.items():
-    if figs in 'pP':
-      continue
+    if figs in 'pP': continue
     for ds, dz in moves[1:]:
       for m in range(1, moves[0] + 1):
         zu = von[0] + ds * m, von[1] + dz * m
-        if zu not in BRETT:
-          break
+        if zu not in BRETT: break
         if zu in position:
           if position[zu].isupper() == weiss:
             break
           else:
             if position[zu].lower() in figs:
               return True
-            break
+            break  
+
 
 
 def zug_ausführen(zug, position, königspos):
@@ -76,7 +70,7 @@ def zug_ausführen(zug, position, königspos):
     königspos[fig.isupper()] = zu
   if rochade:
     tv, tz = _MOVES_ROCH[rochade][1]
-    position[tz] = position.pop(tv)
+    position[tz] = position.pop(tv)   
 
 
 def zug_zurücknehmen(zug, position, königspos):
@@ -90,66 +84,56 @@ def zug_zurücknehmen(zug, position, königspos):
     königspos[fig.isupper()] = von
   if rochade:
     tv, tz = _MOVES_ROCH[rochade][1]
-    position[tv] = position.pop(tz)
+    position[tv] = position.pop(tz)   
+       
 
 
 def _pseudoZugGenerator(weiss, position):
-  pseudo, königspos = [], [0, 0]
+  pseudo, königspos = [], [0,0]
   for von, fig in position.items():
-    if fig.isupper() != weiss:
-      continue
+    if fig.isupper() != weiss: continue
     if fig in 'pP':
       _zügeBauern(weiss, fig, von, position, pseudo)
       continue
     f = fig.lower()
-    if f == 'k':
-      königspos[weiss] = von
+    if f == 'k': königspos[weiss] = von
     richtungen = _MOVES[f][1:]
     multiplikator = _MOVES[f][0]
     for ds, dz in richtungen:
       for m in range(1, multiplikator + 1):
         zu = von[0] + ds * m, von[1] + dz * m
-        if zu not in BRETT:
-          break
-        if zu in position and position[zu].isupper() == weiss:
-          break
+        if zu not in BRETT: break
+        if zu in position and position[zu].isupper() == weiss: break
         if zu in position and position[zu].isupper() != weiss:
           pseudo.append((fig, von, zu, position[zu], False, False))
           break
         else:
           pseudo.append((fig, von, zu, False, False, False))
-  return pseudo, königspos
-
+  return pseudo, königspos 
 
 def _zügeBauern(weiss, fig, von, position, pseudo):
   # Stiller Zug
   for ds, dz in _MOVES[fig][1:]:
-    for m in range(1, _MOVES[fig][0] + 1):
+    for m in range(1,_MOVES[fig][0] + 1):
       zu = von[0], von[1] + dz * m
-      if zu not in BRETT or zu in position:
-        break
-      if m == 2 and von[1] != _GRUNDLINIE[weiss]:
-        break
+      if zu not in BRETT or zu in position: break
+      if m == 2 and von[1] != _GRUNDLINIE[weiss]: break
       if zu[1] in (0, 7):
         pseudo.append((fig, von, zu, False, True, False))
       else:
-        pseudo.append((fig, von, zu, False, False, False))
+        pseudo.append((fig, von, zu, False, False, False))         
   # Schlagzug
   for ds, dz in _MOVES[fig+'c'][1:]:
     zu = von[0] + ds, von[1] + dz
-    if zu not in position:
-      continue
-    if position[zu].isupper() == weiss:
-      continue
+    if zu not in position: continue
+    if position[zu].isupper() == weiss: continue
     if zu[1] in (0, 7):
       pseudo.append((fig, von, zu, position[zu], True, False))
     else:
-      pseudo.append((fig, von, zu, position[zu], False, False))
-
+      pseudo.append((fig, von, zu, position[zu], False, False)) 
 
 def bewerte_position(position):
   return sum(_FIG_WERTE[fig] for fig in position.values())
-
 
 def minimax(tiefe, alpha, beta, weiss, position, rochaderecht):
   if tiefe == MAX_TIEFE:
@@ -159,7 +143,7 @@ def minimax(tiefe, alpha, beta, weiss, position, rochaderecht):
     if not imSchach(weiss, position, königspos[weiss]):
       return (0, None)
     else:
-      return (-99999+tiefe if weiss else 99999-tiefe, None)
+      return(-99999+tiefe if weiss else 99999-tiefe, None)
   beste_bewertung = -999999 if weiss else 999999
   for zug in zugliste:
     safe_roch = rochaderecht.copy()
@@ -179,4 +163,5 @@ def minimax(tiefe, alpha, beta, weiss, position, rochaderecht):
         beta = min(wert, beta)
     if alpha >= beta:
       break
-  return beste_bewertung, bester_zug
+  return beste_bewertung, bester_zug          
+
