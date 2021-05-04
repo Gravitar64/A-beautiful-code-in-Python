@@ -55,7 +55,8 @@ def imSchach(weiss, position, von):
           if position[zu].isupper() == weiss:
             break
           else:
-            if position[zu].lower() in figs:
+            #Fehlerkorrektur: ....in figs zu in figs.lower() geändert
+            if position[zu].lower() in figs.lower():
               return True
             break  
 
