@@ -13,47 +13,29 @@ def wiegen(gesucht, seite):
 
 def statusänderung(wiegung, seite):
   for nr, status in kugeln:
-    if wiegung == 0 and seite[nr] == 0:
-      continue
+    if wiegung == 0 and seite[nr] == 0: continue
     if (wiegung == 0 and seite[nr] != 0) or (wiegung != 0 and seite[nr] == 0):
       kugeln[nr][1] = 9
     else:
       kugeln[nr][1] = stati[wiegung == seite[nr]][status]
-
-def int2prt(nr, status):
-  return f'{nr}{ausg[status]}'
-
-
-def ausgabe(liste):
-  text = ''
-  for nr in liste:
-    text += f'{int2prt(*kugeln[nr])} '
-  return text
-
 
 def prüfung(v1, v2m, v2lr):
   prüfergebnisse = []
   text = ''
   for nr in range(anz_kugeln):
     gesucht = (nr, rnd.choice((-1, 1)))
-    text += f'Gesucht = {int2prt(*gesucht)}\n'
+    text += f'Gesucht = {gesucht}\n'
     for k in kugeln: k[1] = 0
-
-    seite = seite_ermitteln(v1)
-    wiegung = wiegen(gesucht, seite)
-    statusänderung(wiegung, seite)
-    text += f'{wieg[wiegung]} {ausgabe(v1)} ({ausgabe(set(range(anz_kugeln)) - set(v1))})\n'
-
-    v2 = v2m if wiegung == 0 else v2lr
-    seite = seite_ermitteln(v2)
-    wiegung = wiegen(gesucht, seite)
-    statusänderung(wiegung, seite)
-    text += f'{wieg[wiegung]} {ausgabe(v2)} ({ausgabe(set(range(anz_kugeln)) - set(v2))})\n'
-
+    for n in range(2):
+      v = v1 if n == 0 else v2m if wiegung == 0 else v2lr
+      seite = seite_ermitteln(v)
+      wiegung = wiegen(gesucht, seite)
+      statusänderung(wiegung, seite)
+      text += f'{wiegung} {[kugeln[nr] for nr in v]}\n'
     kandidaten = [k for k in kugeln if k[1] != 9]
     anz_unbek = [k[1] for k in kandidaten].count(0)
     prüfergebnisse.append(len(kandidaten) < 4 and anz_unbek < 2)
-    text += f'Kandidaten = {ausgabe([k[0] for k in kandidaten])}\n\n'
+    text += f'Kandidaten = {kandidaten}\n\n'
   return all(prüfergebnisse), text
 
 
@@ -73,11 +55,8 @@ def alle_varianten():
   print(anz_lösungen//2)
 
 
-stati = {True:  {0: 1,  1: 1, 9: 9, -1: 9},
-         False: {0: -1, -1: -1, 9: 9, 1: 9}}
-
-ausg = {0: '?', 1: '+', -1: '-', 9: '='}
-wieg = {-1: 'l', 0: 'm', 1: 'r'}
+stati = {True:  {0:  1,  1:  1, 9: 9, -1: 9},
+         False: {0: -1, -1: -1, 9: 9,  1: 9}}
 
 anz_kugeln = 12
 kugeln = [[nr, 0] for nr in range(anz_kugeln)]
