@@ -28,7 +28,7 @@ omega = list(product(range(1,7), repeat = würfel))
 
 a = wahrscheinlichkeit(lambda wurf: sum(wurf) > 9)
 b = wahrscheinlichkeit(lambda wurf: sum(wurf) < 9)
-c = wahrscheinlichkeit(lambda wurf: len(set(wurf)) < 3)
+c = wahrscheinlichkeit(lambda wurf: len(set(wurf)) < würfel)
 
 print(f'Wahrscheinlichkeit a) = {a:0.1f}%')
 print(f'Wahrscheinlichkeit b) = {b:0.1f}%')

@@ -17,7 +17,7 @@ weitermachen = True
 clock = pg.time.Clock()
 
 rotierender_winkel = 0
-anz_segemente = 0
+anz_segemente = 10
 while weitermachen:
   clock.tick(40)
   for ereignis in pg.event.get():

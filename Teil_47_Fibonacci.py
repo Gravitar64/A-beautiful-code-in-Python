@@ -17,4 +17,6 @@ def fibd(n,tiefe=0):
   print("   "*tiefe,"Fib_n-2",b)
   return a+b
 
-print(fibd(7))  
+# for n in range(40):
+#   print(n,fibr(n)) 
+print(fibi(4000))

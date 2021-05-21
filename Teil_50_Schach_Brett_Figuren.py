@@ -50,12 +50,14 @@ FPS = 40
 screen = pg.display.set_mode((BREITE, HÖHE))
 FIGUREN = ladeFiguren()
 #fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
-fen = chess.get_random_daily_puzzle().json['fen']
+#fen = chess.get_random_daily_puzzle().json['fen']
+fen = '1q2r1k1/P4ppp/3n4/4P3/8/2N3b1/1PPP1PPP/R5K1 w - - 0 1'
 position,zugrecht = fen2position(fen)
 print(zugrecht)
 weiss = zugrecht == 'w'
 züge = zuggen.zugGenerator(weiss, position)
-print(züge)
+for zug in züge:
+  print(zug)
 
 weitermachen = True
 clock = pg.time.Clock()

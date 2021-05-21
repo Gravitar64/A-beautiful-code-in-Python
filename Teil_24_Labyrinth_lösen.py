@@ -98,7 +98,9 @@ while not pg_quit():
   pg.display.flip()
 
 i = 0
+clock = pg.time.Clock()
 while not pg_quit():
+  clock.tick(80)
   pos = besucht[i]
   pg.draw.rect(screen, farbe_suche, (pos, (ZE_BH, ZE_BH)))
   for pos, wände in raster.items():
@@ -106,17 +108,14 @@ while not pg_quit():
   pg.display.flip()
   i = min(i+1, len(besucht)-1)
 
-i = 0
-clock = pg.time.Clock()
-while not pg_quit():
-  clock.tick(5)
-  x,y = weg[i]
-  x,y = x + ZE_BH // 2, y + ZE_BH // 2
-  pg.draw.circle(screen, farbe_weg, (x,y), ZE_BH // 6)
-  for pos, wände in raster.items():
+for (x,y),(x2,y2) in zip(weg,weg[1:]):
+  pg.draw.line(screen, farbe_weg, (x+ZE_BH/2, y+ZE_BH/2), (x2+ZE_BH/2, y2+ZE_BH/2))
+for pos, wände in raster.items():
     zeichne_zelle(pos, wände)
-  pg.display.flip()
-  i = min(i+1, len(weg)-1)    
+pg.display.flip()
+    
+while not pg_quit():
+  pass
 
 pg.quit()    
 

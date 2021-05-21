@@ -4,7 +4,6 @@ from collections import defaultdict
 import string
 import time
 import pickle
-from numba import njit
 verschlüsselt = 'TLZHWCKAGXNJJUIEHKMGFE'
 crib = 'WUEBYYNULLSEQSNULLNULL'
 

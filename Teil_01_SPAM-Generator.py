@@ -5,7 +5,7 @@ superlatives = "amazing gorgeous blazing stunning tremendous greatest best fanta
                super cool magical revolutionary beautiful jaw-dropping lovely".upper().split()
 shuffle(superlatives)
 
-for strophe in range(5):
+for strophe in range(20):
     for zeile in range(2):
         for word in range(4):
             print("SPAM ", end='')

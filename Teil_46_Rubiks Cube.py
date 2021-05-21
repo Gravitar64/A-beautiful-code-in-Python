@@ -1,6 +1,8 @@
 from ursina import *
 from itertools import product
 
+app = Ursina()
+
 def eltern_kind_beziehung(achse, schicht):
   
   for w in würfel:
@@ -21,7 +23,6 @@ def input(key):
   shift = held_keys['shift']
   eval(f'zentrum.animate_rotation_{achse} ({-winkel if shift else winkel}, duration = 0.5)')
 
-app = Ursina()
 window.borderless = False
 window.size = (800,800)
 window.position = (2000, 200)

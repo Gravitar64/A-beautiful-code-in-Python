@@ -77,16 +77,26 @@ def löse():
 
 def print_board():
   for i in range(81):
+    if (i) % 3 == 0:
+      print(" ",end='') 
     pos = i2pos(i)
-    print(board[pos], end=' ')
-    if (i+1) % 9 == 0:
+    if board[pos]:
+      print(board[pos], end=' ')
+    else:
+      print('.', end = ' ')  
+    if not (i+1) % 9:
       print()
+    if not ((i+1) / 9) % 3:
+      print()
+  print()    
 
 
 start = time.perf_counter()
 leeres_sudoku_erstellen()
 sudoku_einlesen(
     '5......1....4..2...8.2......2....6......3..7.....1....1.3....5....6..4..7........')
-löse()
-print(time.perf_counter()-start)
 print_board()
+löse()
+print(f"Lösung gefunden in {time.perf_counter()-start} Sekunden")
+print_board()
+

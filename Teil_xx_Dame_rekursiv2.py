@@ -196,19 +196,11 @@ def state_machine(status, feld):
 
 
 brett = {i: 0 for i in range(64) if i % 8 % 2 != i // 8 % 2}
-brett[35] = 8
-brett[51] = -1
-brett[53] = -1
-brett[33] = -1
-brett[37] = -1
-brett[17] = -1
-brett[19] = -1
-brett[21] = -1
-# for i in brett:
-#   if i < 24:
-#     brett[i] = -1
-#   if i > 39:
-#     brett[i] = 1
+for i in brett:
+  if i < 24:
+    brett[i] = -1
+  if i > 39:
+    brett[i] = 1
 
 richtungen = {1: (-7, -9), -1: (7, 9), -8: (-7, -9, 9, 7), 8: (-7, -9, 9, 7)}
 steine = {True: {1, 8}, False: (-1, -8)}
@@ -217,6 +209,9 @@ anz_steine = {True: sum([1 for feld in brett.values() if feld > 0]),
 umwandlung = {True: {1, 3, 5, 7}, False: {56, 58, 60, 62}}
 weiss = True
 züge = generiere_zugliste(weiss)
+for von,zug in züge.items():
+  for z in zug:
+    print(f'Von: {von}->{z}')
 computerzug = []
 sel_von = state = None
 numerierung = False

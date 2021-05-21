@@ -79,6 +79,7 @@ def zuggenerator(weiss, position):
   return züge
 
 def gen_rochade_züge(weiss):
+  global roch_state
   roch_züge = []
   for roch in roch_state[weiss]:
     mask = ROCH_BB[roch][0]
@@ -87,9 +88,11 @@ def gen_rochade_züge(weiss):
     im_schach = False
     kingspos = ONLY1POS[pieces_bb['K' if weiss else 'k']]
     for feld in könig_zieht_durch:
+      save_state = roch_state.copy()
       capture = ziehe(weiss, kingspos, feld, None)
       if imSchach(weiss): im_schach = True
       ziehe_rückgängig(weiss, kingspos, feld, None, capture)
+      roch_state = save_state
     if not im_schach:
       roch_züge.append(('K' if weiss else 'k', kingspos, feld, roch, None))  
   return roch_züge
@@ -147,24 +150,25 @@ def ziehe_rückgängig(weiss, von, zu, rochade, capture):
 
 def imSchach(weiss):
   i = ONLY1POS[pieces_bb['K' if weiss else 'k']]
-  if MOVE_BB['n'][i] & pieces_bb['n' if weiss else 'N']:
+  if MOVE_BB['n'][i] & pieces_bb.get('n' if weiss else 'N',0):
     return True
-  if MOVE_BB['k'][i] & pieces_bb['k' if weiss else 'K']:
+  if MOVE_BB['k'][i] & pieces_bb.get('k' if weiss else 'K', 0):
     return True
-  if MOVE_BB['Pc' if weiss else 'pc'][i] & pieces_bb['p' if weiss else 'P']:
+  if MOVE_BB['Pc' if weiss else 'pc'][i] & pieces_bb.get('p' if weiss else 'P', 0):
     return True
   for fig in 'rb':
     blocker = MOVE_BB[fig][i] & occupied_bb
-    if SLIDING_MOVE_BB[fig][blocker+i] & pieces_bb[fig if weiss else fig.upper()]:
+    if SLIDING_MOVE_BB[fig][blocker+i] & pieces_bb.get(fig if weiss else fig.upper(), 0):
       return True
-    if SLIDING_MOVE_BB[fig][blocker+i] & pieces_bb['q' if weiss else 'Q']:
+    if SLIDING_MOVE_BB[fig][blocker+i] & pieces_bb.get('q' if weiss else 'Q', 0):
       return True
 
 
 NON_SLIDING_PIECES = {'K', 'k', 'p', 'P', 'n', 'N'}
 #fen = chess.get_random_daily_puzzle().json['fen']
 #fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
-fen = 'r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w  KQkq - 0 1'
+#fen = 'r3k2r/1b4bq/2N5/8/8/6n1/7B/R3K2R w KQkq - 0 1'
+fen = 'k6r/8/B1N4n/P7/1P2P3/2P4b/5Pq1/8 b - - 0 1'
 weiss, position, roch_state = fen2pos(fen)
 
 MOVE_BB = bitboards.gen_move_bitboards()
@@ -186,18 +190,18 @@ for i in range(10_000):
 print(pfc()-start)
 
 
-züge = zuggenerator(weiss, position)
-for fig, von, zu, rochade, capture in züge:
-  zug = ''
-  if rochade and rochade in 'qQ':
-    zug += 'O-O-O'
-  elif rochade and rochade in 'kK':
-    zug += 'O-O'
-  else:
-    zug += fig.upper() if fig not in 'pP' else ''
-    zug += 'x' if capture else ''
-    zug += i2A8(zu)
-  print(zug)  
+# züge = zuggenerator(weiss, position)
+# for fig, von, zu, rochade, capture in züge:
+#   zug = ''
+#   if rochade and rochade in 'qQ':
+#     zug += 'O-O-O'
+#   elif rochade and rochade in 'kK':
+#     zug += 'O-O'
+#   else:
+#     zug += fig.upper() if fig not in 'pP' else ''
+#     zug += 'x' if capture else ''
+#     zug += i2A8(zu)
+#   print(zug)  
 
 
 # for pos, fig in position.items():

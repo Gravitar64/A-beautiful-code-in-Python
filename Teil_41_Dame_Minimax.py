@@ -144,7 +144,8 @@ weitermachen = True
 clock = pg.time.Clock()
 
 
-def zeichne_brett():
+def zeichne_brett(fps):
+  clock.tick(fps)
   screen.fill((0, 0, 0))
   for feld in range(64):
     farbe = (209, 139, 71) if feld in brett else (254, 206, 158)
@@ -200,7 +201,7 @@ def status_maschine(status, pos):
     return 'feld1 selektiert'
   if status == 'computer':
     am_zug = not am_zug
-    bewertung, computerzug = minimax(6, -999999, 999999, am_zug)
+    bewertung, computerzug = minimax(8, -999999, 999999, am_zug)
     print(bewertung)
     return 'zeige computerzug'
   if status == 'zeige computerzug':
@@ -217,8 +218,7 @@ while weitermachen:
     if ereignis.type == pg.MOUSEBUTTONDOWN and pg.mouse.get_pressed()[0]:
       pos = pg.mouse.get_pos()
       clickstatus = status_maschine(clickstatus, pos)
-  clock.tick(20)
-  zeichne_brett()
+  zeichne_brett(20)
   if clickstatus == 'computer':
     clickstatus = status_maschine(clickstatus, (0, 0))
 

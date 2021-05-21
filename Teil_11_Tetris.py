@@ -21,7 +21,7 @@ TETROMINODOWN = pg.USEREVENT+1
 SPEEDUP = pg.USEREVENT+2
 pg.time.set_timer(TETROMINODOWN, speed)
 pg.time.set_timer(SPEEDUP, 30_000)
-pg.key.set_repeat(1, 100)
+pg.key.set_repeat(100, 50)
 
 tetrominoes = [[0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                [0, 0, 0, 0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -113,11 +113,11 @@ while weitermachen:
     if event.type == pg.KEYDOWN:
       if event.key == pg.K_LEFT:
         figur.update(0, -1)
-      if event.key == pg.K_RIGHT:
+      elif event.key == pg.K_RIGHT:
         figur.update(0, 1)
-      if event.key == pg.K_DOWN:
+      elif event.key == pg.K_DOWN:
         figur.update(1, 0)
-      if event.key == pg.K_LCTRL:
+      elif event.key == pg.K_LCTRL:
         figur.rotate()
 
   screen.fill((0, 0, 0))
@@ -127,11 +127,12 @@ while weitermachen:
       x = n % SPALTEN * ABSTAND
       y = n // SPALTEN * ABSTAND
       screen.blit(bilder[farbe], (x, y))
-  textsurface = pg.font.SysFont('impact', 40).render(
-      f'{score:,}', False, (255, 255, 255))
-  screen.blit(textsurface, (BREITE // 2 - textsurface.get_width() // 2, 5))
-  textsurface = pg.font.SysFont('impact', 20).render(
-      f'Level: {level}', False, (150, 150, 150))
+  
+  farbe = (255,255,0)
+  textfläche = pg.font.SysFont('impact', 40).render(f'Score {score:,}', False, farbe)
+  screen.blit(textfläche, (BREITE // 2 - textfläche.get_width() // 2, 5))
+    
+  textsurface = pg.font.SysFont('impact', 20).render(f'Level: {level}', False, farbe)
   screen.blit(textsurface, (BREITE - textsurface.get_width() - 10, 5))
 
   pg.display.flip()

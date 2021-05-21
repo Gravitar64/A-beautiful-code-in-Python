@@ -84,8 +84,13 @@ def bewerte5(karten5):
   #High Card
   return 0, karten5
 
-deck = Kartendeck()
-pocket = deck.gib(2)
-board = deck.gib(5)
-rang, karten = beste_5_aus_7_ermitteln(pocket,board)
-print(pocket, board, karten, rang)
+hand_stat = defaultdict(int)
+loops = 100_000
+for _ in range(loops):
+  deck = Kartendeck()
+  pocket = deck.gib(2)
+  board = deck.gib(5)
+  rang, karten = beste_5_aus_7_ermitteln(pocket,board)
+  hand_stat[rang] += 1
+for i in reversed(range(10)):
+  print(f'Rang {i} {hand_stat[i]:8d} = {hand_stat[i]/loops*100:8.3f}%')

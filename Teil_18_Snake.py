@@ -11,15 +11,27 @@ with open('Teil_18_Highscore.txt','r') as f:
   high = int(f.readline())
 
 pg.init()
+pg.mixer.init()
 screen = pg.display.set_mode([BREITE, HÖHE])
 pg.mouse.set_visible(False)
+sounds = []
+for i in range(4):
+  sounds.append(pg.mixer.Sound(f"Teil_18_move_{i}.wav"))
+
+
+ 
 
 weitermachen = True
 clock = pg.time.Clock()
+s_nr, f_nr = 0, 0
 
 while weitermachen:
-  clock.tick(tempo)
+  f_nr += 1
+  clock.tick_busy_loop(tempo)
   screen.fill((0,0,0))
+  # if f_nr % 10 == 0:
+  #   pg.mixer.Sound.play(sounds[s_nr])
+  #   s_nr = (s_nr + 1) % len(sounds)
 
   for ereignis in pg.event.get():
     if ereignis.type == pg.QUIT:
@@ -30,7 +42,7 @@ while weitermachen:
   x,y = snake[-1]
   x,y = x + richt_x * GRÖßE, y + richt_y * GRÖßE
   if x < 0 or x + GRÖßE > BREITE or y < 0 or y + GRÖßE > HÖHE or (x,y) in snake:
-    weitermachen = False    
+    weitermachen = False
   snake.append((x,y))
 
   if x == bonus_x and y == bonus_y:

@@ -59,16 +59,13 @@ FELD = BREITE // 8
 FPS = 40
 screen = pg.display.set_mode((BREITE, HÖHE))
 FIGUREN = ladeFiguren()
-#fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 #fen = chess.get_random_daily_puzzle().json['fen']
-#fen = '1q2r1k1/P4ppp/3n4/4P3/8/2N3b1/1PPP1PPP/R5K1 w - - 0 1'
-#fen = 'k6r/R7/B1N4n/P7/1P2P3/2P4b/5Pq1/8 b - - 0 1'
-fen = 'r3k2r/ppp1npbp/b3p1p1/4P3/4N3/4PN2/PPQ2PPP/R3K2R w KQkq - 3 12'
 position,zugrecht,rochaderecht = fen2position(fen)
 weiss = zugrecht == 'w'
 print(f'{"Weiss" if weiss else "Schwarz"} ist am Zug')
 züge, königspos = zuggen.zugGenerator(weiss, position, rochaderecht)
-spieler = [True, False]
+spieler = [False, True]
 
   
 

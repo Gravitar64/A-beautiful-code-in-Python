@@ -2,7 +2,97 @@ import pygame as pg
 from collections import defaultdict
 
 
-def schlage(von, stein):
+def bewertung():
+  return sum([stein for stein in brett.values()])
+
+# def computer(weiss):
+#   bewertete_züge = []
+#   züge = generiere_zugliste(weiss)
+#   for von,ziele in züge.items():
+#     for zu,über,stein,geschlagen in ziele:
+#       win = ziehe(weiss,von,zu,über,stein)
+#       score = minimax(5, -999999, 999999, weiss, win, über, von, stein)
+#       ziehe_rückgängig(weiss,von,zu,über,stein,geschlagen)
+#       bewertete_züge.append([score,von,zu,über,stein,geschlagen])
+      
+#   bewertete_züge.sort(reverse=weiss)
+#   score, von,zu,über,stein,geschlagen = bewertete_züge[0]
+#   win = ziehe(weiss,von,zu,über,stein)
+#   while über:
+#     bewertete_züge = []
+#     score = minimax(5,-999999, 999999, weiss, win, über, von, stein)
+#     bewerte_züge.append([score,von,zu,über,stein,geschlagen])
+#     for zu,über,stein,geschlagen in ziele
+#   print(f'{"weiss" if weiss else "schwarz"} setzt {von}-{zu} mit der Bewertung {score}')
+#   return win  
+
+# # def minimax(tiefe, alpha, beta, weiss, win, über, von, stein):
+#   if win:
+#     return 99999+tiefe if weiss else -99999-tiefe
+#   if tiefe == 0:
+#     return bewerten()
+#   if über and schlage(weiss, von,stein):
+#     züge = schlage(weiss, von,stein)
+#   else:
+#     weiss = not weiss
+#     züge = generiere_zugliste(weiss)
+#   value = -999999 if weiss else 999999
+#   for von,ziele in züge.items():
+#     for zu,über,stein,geschlagen in ziele:
+#       win = ziehe(weiss, von,zu,über,stein)
+#       score = minimax(tiefe-1, alpha, beta, weiss, win, über, von, stein)
+#       ziehe_rückgängig(weiss, von,zu,über,stein,geschlagen)
+#     if weiss:
+#       value = max(value, score)
+#       alpha = max(value, alpha)  
+#     else:
+#       value = min(value, score)
+#       beta = min(value, beta)
+#     if alpha >= beta:
+#       break
+#   return value  
+
+def minimax(tiefe, player, alpha, beta, von, über, stein):
+  if tiefe == 5:
+    return bewertung()
+  if über and schlage(player, von, stein):
+    children = schlage(player,von,stein)
+  else:
+    children = generiere_zugliste(player)
+  if player:
+    for von, ziele in children.items():
+      for zu,über,stein,geschlagen in ziele:
+        ziehe(player, von,zu,über,stein)
+        if über:
+          score = minimax(tiefe+1, player, alpha, beta, von, über, stein)
+        else:
+          score = minimax(tiefe+1, not player, alpha, beta, von, über, stein)  
+        ziehe_rückgängig(player, von,zu,über,stein,geschlagen)
+        if tiefe == 0:
+          bewertete_züge.append((score,von,zu,über,stein,geschlagen))
+        alpha = max(score, alpha)
+        if alpha >= beta:
+          break
+    return alpha
+  else:
+    for von, ziele in children.items():
+      for zu,über,stein,geschlagen in ziele:
+        ziehe(player, von,zu,über,stein)
+        if über:
+          score = minimax(tiefe+1, player, alpha, beta, von, über, stein)
+        else:
+          score = minimax(tiefe+1, not player, alpha, beta, von, über, stein)  
+        ziehe_rückgängig(player, von,zu,über,stein,geschlagen)
+        if tiefe == 0:
+          bewertete_züge.append((score,von,zu,über,stein,geschlagen))
+        beta = min(score,beta)
+        if alpha >= beta:
+          break
+    return beta   
+
+     
+
+def schlage(weiss, von, stein):
   schläge = defaultdict(list)
   for n in richtungen[stein]:
     über = False
@@ -21,7 +111,7 @@ def generiere_zugliste(weiss):
   züge, schläge = defaultdict(list), {}
   for von, stein in brett.items():
     if stein not in steine[weiss]: continue
-    schläge.update(schlage(von, stein))
+    schläge.update(schlage(weiss, von, stein))
     if schläge: continue
     for n in richtungen[stein]:
       for i in range(1, abs(stein)+1):
@@ -32,18 +122,21 @@ def generiere_zugliste(weiss):
   return züge if not schläge else schläge
 
 
-def ziehe(von, zu, über, stein):
+def ziehe(weiss, von, zu, über, stein):
   brett[von], brett[zu] = 0, stein
   if über:
     brett[über] = 0
+    anz_steine[not weiss] -= 1
   if zu in umwandlung[weiss] and abs(stein) == 1:
     brett[zu] *= 8
+  return anz_steine[not weiss] == 0  
 
 
-def ziehe_rückgängig(von, zu, über, stein, geschlagen):
+def ziehe_rückgängig(weiss, von, zu, über, stein, geschlagen):
   brett[von], brett[zu] = stein, 0
   if über:
     brett[über] = geschlagen
+    anz_steine[not weiss] += 1
   if zu in umwandlung[weiss] and abs(stein) == 1:
     brett[von] = stein
 
@@ -70,6 +163,7 @@ for i in brett:
   if i > 39: brett[i] = 1
 richtungen = {1: (-7, -9), -1: (7, 9), -8: (-7, -9, 9, 7), 8: (-7, -9, 9, 7)}
 steine = {True: {1, 8}, False: (-1, -8)}
+anz_steine = {True:12, False:12}
 umwandlung = {True: {1, 3, 5, 7}, False: {56, 58, 60, 62}}
 
 
@@ -91,30 +185,36 @@ while weitermachen:
     if ereignis.type == pg.QUIT:
       weitermachen = False
     if ereignis.type == pg.MOUSEBUTTONDOWN and pg.mouse.get_pressed()[0]:
-      if state == 'start':
+      if state == 'von':
         feld2 = xy2cell(pg.mouse.get_pos())
         if feld2 in {f for f, _, _, _ in züge[feld1]}:
-          state = 'ziel'
+          state = 'zu'
         else:
           state = None
       if not state:
         feld1 = xy2cell(pg.mouse.get_pos())
         if feld1 in züge:
-          state = 'start'
-    if state == 'ziel':
+          state = 'von'
+    if state == 'zu':
       for zu, über, stein, _ in züge[feld1]:
         if zu == feld2:
-          ziehe(feld1, feld2, über, stein)
-          if über and schlage(feld2, stein):
-            züge = schlage(feld2, stein)
+          win = ziehe(weiss, feld1, feld2, über, stein)
+          if über and schlage(weiss, feld2, stein):
+            züge = schlage(weiss, feld2, stein)
             feld1 = feld2
-            state = 'start'
+            state = 'von'
             break
           else:
             state = None
             weiss = not weiss
+            bewertete_züge = []
+            erg = minimax(0, weiss, -99999, 99999, None, None, None)
+            bewertete_züge.sort(reverse=weiss)
+            score,von,zu,über,stein,geschlagen = bewertete_züge[0]
+            print(score)
+            ziehe(weiss,von,zu,über,stein)
+            weiss = not weiss
             züge = generiere_zugliste(weiss)
-            print(züge)
             break
 
   for i in range(64):
@@ -126,13 +226,13 @@ while weitermachen:
       pg.draw.circle(screen, color, feld_zentrum(i), int(ZELLE*0.2))
       if abs(brett[i]) == 8:
         color = (255, 255, 255) if brett[i] - 8 else (0, 0, 0)
-        pg.draw.circle(screen, color, feld_zentrum(i), int(ZELLE*0.1))
+        pg.draw.circle(screen, color, feld_zentrum(i), int(ZELLE*0.05))
       if i in züge:
-        pg.draw.rect(screen, (0, 50, 0), (cell2xy(i), (ZELLE, ZELLE)), 5)
-      if state == 'start':
-        pg.draw.rect(screen, (255, 0, 0), (cell2xy(feld1), (ZELLE, ZELLE)), 5)
-        for zu, _, _, _ in züge[feld1]:
-          pg.draw.circle(screen, (0, 0, 100), feld_zentrum(zu), int(ZELLE*0.1))
+        pg.draw.rect(screen, (0, 50, 0), (cell2xy(i), (ZELLE, ZELLE)), 7)
+  if state == 'von':
+    pg.draw.rect(screen, (255, 0, 0), (cell2xy(feld1), (ZELLE, ZELLE)), 7)
+    for zu, _, _, _ in züge[feld1]:
+      pg.draw.circle(screen, (0, 0, 100), feld_zentrum(zu), int(ZELLE*0.1))
   pg.display.flip()
 
 pg.quit()

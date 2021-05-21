@@ -1,6 +1,5 @@
 from Teil_25_Vektor import Vec
 
-
 def generiere_feld():
   feld = map(int,
              """9 9 1 1 1 9 9
@@ -10,6 +9,7 @@ def generiere_feld():
                 1 1 1 1 1 1 1
                 9 9 1 1 1 9 9
                 9 9 1 1 1 9 9""".split())
+             
   feld_dict = {Vec(i % 7, i // 7): f for i, f in enumerate(feld) if f != 9}
   return feld_dict, len(feld_dict)-1
 

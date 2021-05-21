@@ -1,5 +1,6 @@
 import random as rnd
 from itertools import combinations
+from time import perf_counter as pfc
 
 
 def seite_ermitteln(versuch):
@@ -29,7 +30,6 @@ def kugel2str(liste):
 
 def prüfung(v1, v2m, v2lr):
   text = ''
-  prüfungsergebnisse = []
   for nr in range(anz_kugeln):
     for k in kugeln: k[1] = '?'
     gesucht = (nr, rnd.choice((-1, 1)))
@@ -41,36 +41,37 @@ def prüfung(v1, v2m, v2lr):
       statusänderung(wiegung, seite)
       text += f'{wiegung} {kugel2str(v)}\n'
     kandidaten = [k[0] for k in kugeln if k[1] != '=']
-    prüfungsergebnisse.append(len(kandidaten) < 4)
+    if len(kandidaten) > 3: return False, text
     text += f'Kandidaten = {kugel2str(kandidaten)}\n\n'
-  return all(prüfungsergebnisse), text
+  return True, text
 
 
 def prüfe_varianten(modus):
   anz_lösungen = 0
+  vs = set()
   for anz in range(1, anz_kugeln//2+1):
     for v2l in combinations(range(anz_kugeln), anz):
       for v2r in combinations(range(anz_kugeln), anz):
-        if set(v2l) & set(v2r):continue
+        if set(v2l) & set(v2r): continue 
+        if (v2r,v2l) in vs: continue
+        vs.add((v2l, v2r))
         e, text = prüfung(v1, v2m, v2l+v2r)
         if e:
           anz_lösungen += 1
-          if modus > 0:
-            print(f'Lösung Nr. {anz_lösungen} {v2l} <-> {v2r}')
-          if modus > 1:
-            print(text+'\n\n')
-          if modus > 2:
-            return
-  print(anz_lösungen//2)
+          if modus > 0: print(f'Lösung Nr. {anz_lösungen} für V2lr {v2l} <-> {v2r}')
+          if modus > 1: print(text+'\n\n')
+          if modus > 2: return
+  print(f'Anzahl Lösungen für V2lr: {anz_lösungen}')
 
-
+start = pfc()
 stati = {True:  {'?': '+', '-': '='},
          False: {'?': '-', '+': '='}}
 
 anz_kugeln = 12
 kugeln = [[nr, '?'] for nr in range(anz_kugeln)]
 
-v1 = [0, 1, 2, 3, 4, 5, 6, 7]
-v2m = [8, 9, 10, 0, 1, 2]
+v1 = [0, 1, 2, 3,    4, 5, 6, 7]
+v2m = [8, 9, 10,     0, 1, 2]
 
-prüfe_varianten(3)
+prüfe_varianten(0)
+print(f'{pfc()-start:.2f} Sek.')

@@ -29,6 +29,8 @@ def zugGenerator(weiss, position, rochaderecht):
   züge = []
   pseudo, königspos = _pseudoZugGenerator(weiss, position)
   for zug in pseudo:
+    if zug[3] and zug[3] in 'kK':
+      print(zug)
     zug_ausführen(zug, position, königspos)
     if not imSchach(weiss, position, königspos[weiss]):
       züge.append(zug)

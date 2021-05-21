@@ -26,7 +26,7 @@
   "[python]": {
     "editor.defaultFormatter": "ms-python.python"
   },
-  "window.zoomLevel": 0,
+  "window.zoomLevel": 1,
   "workbench.colorCustomizations": {},
   "screencastMode.verticalOffset": 5,
   "terminal.integrated.shell.windows": "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
@@ -39,12 +39,13 @@
   "workbench.startupEditor": "newUntitledFile",
   "window.restoreFullscreen": true,
   "zenMode.restore": true,
-  "python.languageServer": "Pylance",
-  "workbench.colorTheme": "Material Theme Darker",
+  "python.languageServer": "Jedi",
+  "workbench.colorTheme": "Material Theme Darker High Contrast",
   
   "python.linting.pylintEnabled": false,
   "python.linting.flake8Enabled": true,
-  "python.linting.enabled": true,
+  "python.linting.enabled": false,
 "python.pythonPath": "D:\\Programme\\Python\\python.exe",
-"jupyter.jupyterServerType": "local"
+"jupyter.jupyterServerType": "local",
+"todo-tree.tree.showBadges": false
 }
