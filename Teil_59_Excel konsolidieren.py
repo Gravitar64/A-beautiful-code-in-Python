@@ -1,33 +1,36 @@
-import glob, os
+import glob
+from openpyxl import Workbook, load_workbook
 import re
-from openpyxl import load_workbook, Workbook
 
-
-dateien = glob.glob("Teil_59_excel/*.xlsx")
+pfad = "Teil_59_excel/"
+dateien = glob.glob(pfad+"Prio_*.xlsx")
 z_wb = Workbook()
 z_ws = z_wb.active
+
 sp_themen = "A"
 sp_punkte = "B"
 
-p2t = {}
+thema2zeile = {}
 for n,datei in enumerate(dateien):
-  teiln = re.findall("_[\w]+", datei)[1][1:]
+  teiln = re.findall("_[\w]+",datei)[1][1:]
   q_wb = load_workbook(datei)
   q_ws = q_wb.active
-  t = [x.value for x in q_ws[sp_themen]]
-  p = [x.value for x in q_ws[sp_punkte]]
-  p_int = [x for x in p if type(x)==int and 0<x<4]
+  themen = [x.value for x in q_ws[sp_themen]]
+  punkte = [x.value for x in q_ws[sp_punkte]]
+  p_int = [x for x in punkte if type(x) == int and 0<x<4]
   if sum(p_int) != 6 or not {1,2,3}.issubset(p_int):
-    print(f'Rückmeldung von {teiln} nicht korrekt {p}')
+    print(f'Rückmeldung von {teiln} ist fehlerhaft {punkte}')
     continue
-  if not p2t:
-    p2t = {thema:n+1 for n,thema in enumerate(t)}
-    for thema in zip(t):
+  if not thema2zeile:
+    thema2zeile = {thema:zeile+1 for zeile,thema in enumerate(themen)}
+    for thema in zip(themen):
       z_ws.append(thema)
-  for thema,punkt in zip(t,p):
-    if type(punkt) != int or punkt > 3: continue
-    z_ws.cell(p2t[thema],n+2).value = punkt
-    z_ws.cell(1,n+2).value = teiln
+  for thema, punkt in zip(themen, punkte):
+    z_ws.cell(thema2zeile[thema],n+2).value = punkt
+  z_ws.cell(1,n+2).value = teiln
 
-z_wb.save("Teil_59_ergebnis.xlsx")    
+z_wb.save(pfad+"Ergebnis_gesamt.xlsx")  
+
+
+
 
