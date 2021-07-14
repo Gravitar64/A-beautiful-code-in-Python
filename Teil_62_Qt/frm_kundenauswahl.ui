@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>frm_kundenauswahl</class>
+ <widget class="QWidget" name="frm_kundenauswahl">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>578</width>
+    <height>382</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <widget class="QLabel" name="label">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>581</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>14</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>Bitte Kunden auswählen</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+  </widget>
+  <widget class="QTableView" name="tableView">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>60</y>
+     <width>581</width>
+     <height>261</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="bt_ok">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>330</y>
+     <width>75</width>
+     <height>24</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>OK</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="bt_abbruch">
+   <property name="geometry">
+    <rect>
+     <x>480</x>
+     <y>340</y>
+     <width>75</width>
+     <height>24</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Abbruch</string>
+   </property>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
