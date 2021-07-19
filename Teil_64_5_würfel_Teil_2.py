@@ -1,6 +1,5 @@
 import pygame as pg
 import random as rnd
-from itertools import groupby 
 
 
 class Element(pg.sprite.Sprite):
@@ -17,7 +16,7 @@ class Element(pg.sprite.Sprite):
     self.selektiert = False
     self.mögl_punkte = 0
     self.punkte = 0
-
+    
   def change_enabled(self, t):
     self.enabled = t
     self.image = self.image_e.copy() if self.enabled else self.image_d.copy()
@@ -55,6 +54,7 @@ def clicked_würfel(e):
   e.selektiert = not e.selektiert
   e.image = e.image_d if e.selektiert else e.image_e
 
+
 def clicked_feld(e):
   e.selektiert = not e.selektiert
   e.image = e.image_e.copy()
@@ -65,14 +65,16 @@ def clicked_feld(e):
       if e2.typ == 'Feld' and e2.selektiert and e2 != e:
         e2.selektiert = False
         e2.image = e2.image_e.copy()
-  e.mögl_punkte = punkte_ermitteln(e.id)
-  render_punkte(e, e.mögl_punkte)
+    e.mögl_punkte = punkte_ermitteln(e.id)
+    render_punkte(e, e.mögl_punkte)    
+    
 
 def render_punkte(e,punkte):
   text = pg.font.SysFont('arial',40).render(str(punkte), True, '#B7FF7A')
   cx, cy = e.image.get_width()//2, e.image.get_height()//2
   rect = text.get_rect(center=(cx,cy))
   e.image.blit(text, rect)
+
 
 def render_summen():
   global gesamt_summe
@@ -93,6 +95,7 @@ def render_summen():
     e.image = e.image_d.copy()
     render_punkte(e, e.punkte)                
 
+
 def start_würfeln(e):
   global anim_würfeln, würfel_zähler
   pg.time.set_timer(pg.USEREVENT, 1000, True)
@@ -110,29 +113,21 @@ def würfeln():
     e.image_d = bild_würfel_d[e.id-1]
     e.image = e.image_e  
 
-def punkte_ermitteln(i):
-  
-  def punkte_straße(wurf,i):
-    wurf = sorted(set(wurf))
-    abst = [b-a for a,b in zip(wurf, wurf[1:])]
-    if 1 not in abst: return 0
-    max_seq = max(len(list(g)) for k,g in groupby(abst) if k == 1)
-    return (max_seq == 4) * 40 if i == 13 else (max_seq > 2) * 30
-  
-  wurf = sorted([e.id for e in group_elemente if e.typ == "Würfel"])
-  set_wurf, set_länge = set(wurf), len(set(wurf))
-  max_pasch = max(len(list(g)) for _,g in groupby(wurf))
-  if i < 6: return wurf.count(i+1) * (i+1)
-  if i==9: return (max_pasch >= 3) * sum(wurf)
-  if i==10: return (max_pasch >= 4) * sum(wurf)
-  if i==11:
-    s = {wurf.count(a) for a in set_wurf}
-    return (s == {2,3}) * 25
-  if i in (12,13): return punkte_straße(wurf, i)  
-  if i==14: return (set_länge == 1) * 50
-  if i==15: return sum(wurf)
-  if i==16: return (set_länge == 1) * (50 +sum(wurf))  
 
+def punkte_ermitteln(i):
+  wurf = [e.id for e in group_elemente if e.typ == 'Würfel']
+  sw, sl = set(wurf), len(set(wurf))
+  paschs = [wurf.count(w) for w in sw]
+  if i <   6: return wurf.count(i+1) * (i+1)
+  if i ==  9: return (max(paschs) >= 3) * sum(wurf)
+  if i == 10: return (max(paschs) >= 4) * sum(wurf)
+  if i == 11: return (set(paschs) == {2,3}) * 25
+  if i == 12: return (any({w, w+1, w+2, w+3} <= sw for w in sw)) * 30
+  if i == 13: return (max(sw) - min(sw) == 4 and sl == 5) * 40
+  if i == 14: return (max(paschs) == 5) * 50
+  if i == 15: return sum(wurf)
+  if i == 16: return (max(paschs) == 5) * (50 + sum(wurf))
+  
 
 pg.init()
 BREITE, HÖHE = 1280, 720
