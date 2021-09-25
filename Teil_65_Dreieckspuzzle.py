@@ -11,8 +11,7 @@ def dfs(lösung,benutzt,tiefe):
     if i in benutzt: continue
     for _ in range(3):
       teil = teil[1:] + teil[:1]
-      if tiefe > 0:
-        if not all([teil[k]+lösung[p][k] == 0 for p,k in kanten[tiefe]]): continue
+      if tiefe > 0 and not all([teil[k]+lösung[p][k] == 0 for p,k in kanten[tiefe]]): continue
       if (l := dfs(lösung + [teil], benutzt.union({i}), tiefe+1)): return l
   
 print(dfs([], set(), 0))
