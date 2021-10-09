@@ -1,33 +1,19 @@
+import pygame as pg
 #pygame ab Version 2.0 wird benötigt
 #Installation im Terminal mit 
 #   --> pip install pygame (windows) 
 #   --> pip3 install pygame (mac)
 #   --> sudo apt-get install python3-pygame (Linux Debian/Ubuntu/Mint)
 
-import pygame as pg
+screen = pg.display.set_mode((1000,1000))
+zentrum = (screen.get_width() / 2, screen.get_height() / 2)
 
-
-pg.init()
-BREITE, HÖHE = 1000,1000
-FPS = 40
-zentrum = (BREITE / 2, HÖHE / 2)
-screen = pg.display.set_mode((BREITE, HÖHE))
-
-weitermachen = True
 clock = pg.time.Clock()
+FPS = 40
 
-while weitermachen:
+while True:
   clock.tick(FPS)
   for ereignis in pg.event.get():
-    if ereignis.type == pg.QUIT:
-      weitermachen = False
+    if ereignis.type == pg.QUIT: quit()
   screen.fill((0,0,0))
-  #ab hier wird mit 40 FPS das Bild im Hintergrund gezeichnet 
-  
-
-  
-
-  #und hier wird das im Hintergrund gezeichnete Bild angezeigt
   pg.display.flip()
-
-pg.quit()
