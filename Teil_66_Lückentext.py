@@ -8,7 +8,7 @@ def findeEindeutigesWort(lücke):
                 all([a == b for a,b in zip(w, lücke) if b != '_'])]
   if len(set(kandidaten)) == 1: return kandidaten[0]              
 
-start = pfc()
+
 for n in range(5):
   lücken, wörter = leseDatei(f'teil_66_raetsel{n}.txt')
   while wörter:
