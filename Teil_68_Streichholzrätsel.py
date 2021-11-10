@@ -1,24 +1,23 @@
-from pprint import pprint
 import math
 
 
-def dateiLesen(datei):
+def dateiLesen(dateiname):
   figuren = []
-  with open(datei) as f:
+  with open(dateiname) as f:
     for figur in f.read().split('\n\n'):
       figuren.append([list(map(int, (zeile.split(','))))
                      for zeile in figur.split('\n')])
   return figuren
 
 
-def addVec(pos, delta):
-  return tuple(round(a+b, 1) for a, b in zip(pos, delta))
-
-
 def pol2cart(winkel, von, radius=100):
   winkel_radiant = math.radians(winkel)
   delta = radius * math.cos(winkel_radiant), radius * math.sin(winkel_radiant)
   return addVec(von, delta)
+
+
+def addVec(pos, delta):
+  return tuple(round(a+b, 1) for a, b in zip(pos, delta))
 
 
 def genKoordinaten(figuren):
@@ -41,7 +40,7 @@ def verschiebe(nachher):
   for (x, y), *args in vorher:
     for (x1, y1), *args in nachher:
       delta = x-x1, y-y1
-      yield {frozenset((addVec(von, delta), addVec(zu, delta))) for von, zu in nachher}
+      yield{frozenset(((addVec(von, delta), addVec(zu, delta)))) for von, zu in nachher}
 
 
 def findeLösung():
@@ -53,13 +52,13 @@ def findeLösung():
 
 
 for n in range(6):
-  figuren = dateiLesen(f'Teil_68_streichhoelzer{n}.txt')
+  dateiname = f'Teil_68_streichhoelzer{n}.txt'
+  figuren = dateiLesen(dateiname)
   vorher, nachher = genKoordinaten(figuren)
-  übereinst = vorher & nachher
+  gleich = vorher & nachher
   bestVerschoben = findeLösung()
   gleich = vorher & bestVerschoben
   löschen = vorher - bestVerschoben
   setzen = bestVerschoben - vorher
   alle = vorher | bestVerschoben
-  print(f'Optimale Übereinstimmung = {len(gleich)}')
-  print(f'Optimale Anzahl der versetzenden Streichhölzer = {len(löschen)}')
+  print(f'{dateiname}, Beste Lösung umzulegende Streichhölzer = {len(löschen)}')
