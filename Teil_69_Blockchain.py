@@ -15,8 +15,8 @@ class Block():
   def __str__(self):
     erg = ''
     erg += f'Block Nr.     : {self.nr}\n'
+    erg += f'vorh. Hash    : {self.vorHash}\n'
     erg += f'Transaktionen : {self.transaktionen}\n'
-    erg += f'vor. Hash     : {self.vorHash}\n'
     erg += f'Hash          : {self.hash}\n'
     erg += f'tats. Hash    : {self.generiereHash()}\n'
     return erg
@@ -29,13 +29,14 @@ class BlockChain():
   def append(self, transaktionen):
     nr = len(self.blocks)
     vorHash = self.blocks[-1].hash
-    self.blocks.append(Block(nr, transaktionen, vorHash))
+    self.blocks.append(Block(nr, transaktionen, vorHash)
+                       )
 
   def __str__(self):
     return '\n'.join([str(block) for block in self.blocks])
 
 
 chain = BlockChain()
-chain.append(['Alice zahlt an Bob 0.1 BC', 'Bob zahlt an Charlie 0.05 BC'])
-chain.append(['Charlie zahlt an Alice 0.2 BC', 'Bob zahlt an Alice 0.4 BC'])
+chain.append(['Alice zahlt an Bob 0.1', 'Bob zahlt an Charlie 0.05'])
+chain.append(['Charlie zahlt an Alice 0.2', 'Bob zahlt an Alice 0.4'])
 print(chain)
