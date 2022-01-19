@@ -1,7 +1,7 @@
 # A-beautiful-code-in-Python
 Eine launige Einführung in Python
 
-Die Serie dient Anfängern zum Erlenen der Sprache. Anhand von Aufgaben werden Python-Befehle eingeführt und erläutert.
+Die Serie dient Anfängern zum Erlernen der Sprache. Anhand von Aufgaben werden Python-Befehle eingeführt und erläutert.
 
 Zu jedem Programm gibt es ein Video auf YouTube
 
