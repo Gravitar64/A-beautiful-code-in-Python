@@ -15,10 +15,13 @@ def vertausche(feld):
   felder[leer], felder[feld] = felder[feld], felder[leer]
   leer = feld
 
+
 def get_nachbarn():
   x, y = i2pos(leer)
-  n = [pos for pos in ((x+breite, y), (x-breite, y), (x, y+höhe), (x, y-höhe))]
-  return [pos2i(x, y) for x, y in n if 0 <= x < screen_breite and 0 <= y < screen_höhe]
+  b, h, sb, sh = breite, höhe, screen_breite, screen_höhe
+  n = [(x1, y1) for x1, y1 in ((x+b, y), (x-b, y), (x, y+h), (x, y-h))]
+  return [pos2i(x1, y1) for x1, y1 in n
+          if 0 < x1+b <= sb and 0 < y1+h <= sh]
 
 
 def mischen():
@@ -27,18 +30,24 @@ def mischen():
     vertausche(feld)
 
 
+def generiere_felder(bild):
+  bild = bild.copy()
+  breite, höhe = screen_breite//spalten, screen_höhe//zeilen
+  felder = [bild.subsurface((s*breite, z*höhe, breite, höhe))
+            for z in range(zeilen) for s in range(spalten)]
+  pg.draw.rect(felder[-1], '#1BA6A6', (0, 0, breite, höhe))
+  return felder, len(felder)-1, breite, höhe
+
+
 spalten = zeilen = 3
 screen_breite = screen_höhe = 800
-breite, höhe = screen_breite / spalten, screen_höhe / zeilen
 screen = pg.display.set_mode((screen_breite, screen_höhe))
 
 
 bild = pg.image.load('Teil_71_katze.jpg')
 bild = pg.transform.smoothscale(bild, (screen_breite, screen_höhe))
-felder = [bild.subsurface((s*breite, z*höhe, breite, höhe))
-           for z in range(zeilen) for s in range(spalten)]
-pg.draw.rect(felder[-1], '#1BA6A6', (0, 0, breite, höhe))
-leer = len(felder)-1
+felder, leer, breite, höhe = generiere_felder(bild)
+
 
 clock = pg.time.Clock()
 FPS = 20
@@ -56,7 +65,11 @@ while True:
           vertausche(feld)
       if ereignis.button == 3:
         mischen()
-
+    if ereignis.type == pg.MOUSEWHEEL:
+      spalten = max(3, spalten+ereignis.y)
+      zeilen = max(3, zeilen+ereignis.y)
+      felder, leer, breite, höhe = generiere_felder(bild)
+  screen.fill('#000000')
   for i, feld in enumerate(felder):
     pos = i2pos(i)
     screen.blit(feld, pos)
