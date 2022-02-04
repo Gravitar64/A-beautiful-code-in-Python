@@ -17,11 +17,10 @@ def vertausche(feld):
 
 
 def get_nachbarn():
-  x, y = i2pos(leer)
-  b, h, sb, sh = breite, höhe, screen_breite, screen_höhe
-  n = [(x1, y1) for x1, y1 in ((x+b, y), (x-b, y), (x, y+h), (x, y-h))]
-  return [pos2i(x1, y1) for x1, y1 in n
-          if 0 < x1+b <= sb and 0 < y1+h <= sh]
+  s, z = leer % spalten, leer // spalten
+  n = [(s, z) for s,z in ((s+1, z), (s-1, z), (s, z+1), (s, z-1))]
+  return [s+z*spalten for s,z in n 
+          if -1 < s < spalten and -1 < z < zeilen]
 
 
 def mischen():
@@ -32,7 +31,7 @@ def mischen():
 
 def generiere_felder(bild):
   bild = bild.copy()
-  breite, höhe = screen_breite//spalten, screen_höhe//zeilen
+  breite, höhe = screen_breite/spalten, screen_höhe/zeilen
   felder = [bild.subsurface((s*breite, z*höhe, breite, höhe))
             for z in range(zeilen) for s in range(spalten)]
   pg.draw.rect(felder[-1], '#1BA6A6', (0, 0, breite, höhe))
