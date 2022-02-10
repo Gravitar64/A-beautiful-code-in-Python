@@ -14,31 +14,28 @@ class Feld:
     self.rect = pg.Rect(rect)
     self.char = char
     self.state = state
-    self.img = self.generate_img()
+    self.img = self.render()
 
   def change_char(self, char):
     self.char = char
-    self.img = self.generate_img()
+    self.img = self.render()
 
   def change_state(self, state):
     self.state = state
-    self.img = self.generate_img()
+    self.img = self.render()
 
-  def generate_img(self):
+  def render(self):
     bild = pg.Surface(self.rect.size)
     bild_rect = bild.get_rect()
     farbe_hg, farbe_txt = self.FARBEN[self.state]
     pg.draw.rect(bild, farbe_hg, bild_rect)
-
     if self.state == -1:
       pg.draw.rect(bild, '#D3D6DA', bild_rect, 3)
-
     if self.char != '':
       text = pg.font.SysFont('Arial_bold', 32).render(
           self.char, True, farbe_txt)
       text_rect = text.get_rect(center=bild_rect.center)
       bild.blit(text, text_rect)
-
     return bild
 
 
@@ -53,50 +50,42 @@ def generiere_felder():
   return felder
 
 
-def vergleich(versuch):
-  ergebnis = [0]*5
+def vergleich(geheim,versuch):
   bv, bg = list(versuch), list(geheim)
   for i in range(5):
-    if bv[i] != bg[i]:
-      continue
-    ergebnis[i] = 2
-    bv[i] = bg[i] = '*'
-  for i, b in enumerate(bv):
-    if b == '*':
-      continue
+    if bv[i] == bg[i]: 
+      bv[i] = bg[i] = 2
+  for i,b in enumerate(bv):
+    if b == 2: continue
     if b in bg:
-      ergebnis[i] = 1
-      bg[bg.index(b)] = '*'
-  return ergebnis
-
+      bv[i] = 1
+      bg[bg.index(b)] = 1
+    else:
+      bv[i] = 0
+  return bv      
+  
 
 def eingabe(key):
   global cursor, cursor_min, cursor_max
-  if key == pg.K_BACKSPACE:
-    if cursor == cursor_min:
-      return
+  if key == pg.K_BACKSPACE: 
+    if cursor == cursor_min: return
     cursor -= 1
     felder[cursor].change_char('')
-  elif key == pg.K_RETURN:
-    if cursor != cursor_max:
-      return
+  elif key == pg.K_RETURN: 
+    if cursor != cursor_max: return
     versuch = ''.join(f.char for f in felder[cursor_min:cursor_max])
-    if versuch not in wörter:
-      return
-    ergebnis = vergleich(versuch)
+    if versuch not in wörter: return
+    ergebnis = vergleich(geheim,versuch)
     for i in range(5):
       feld_pos = cursor_min+i
       tasten_pos = ord(felder[feld_pos].char)-65
       felder[feld_pos].change_state(ergebnis[i])
       felder[tasten_pos].change_char('')
       felder[tasten_pos].change_state(-1)
-    cursor_min = cursor
-    cursor_max = cursor_min + 5
+    cursor_min, cursor_max = cursor, cursor + 5
     if cursor_max > 56:
       print(geheim)
-  else:
-    if cursor == cursor_max:
-      return
+  elif cursor < cursor_max:
     felder[cursor].change_char(chr(key).upper())
     cursor += 1
 
