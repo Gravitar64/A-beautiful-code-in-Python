@@ -1,9 +1,14 @@
+import Teil_65_Generate_Topology as generate
+
 with open("Teil_65_puzzle1.txt") as f:
   puzzle = [[int(nr) for nr in zeile.split()] for zeile in f][2:]
 
 kanten = {1:[(0,2)], 2:[(1,1)], 3:[(1,0)],
           4:[(2,2)], 5:[(4,1)], 6:[(4,0)],
           7:[(6,1), (3,2)], 8:[(7,0)]}
+
+kanten = generate.calculate_template_for_a_puzzle_of(9)
+
 
 def dfs(lösung, benutzt, reihenfolge):
   if reihenfolge == 9: return lösung
