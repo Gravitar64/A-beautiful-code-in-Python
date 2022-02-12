@@ -10,7 +10,7 @@
       
   "files.autoSave": "onFocusChange",
   
-  "terminal.integrated.fontSize": 36,
+  "terminal.integrated.fontSize": 18,
   "python.jediEnabled": false,
   "python.formatting.autopep8Args": [
     "--indent-size=2"
