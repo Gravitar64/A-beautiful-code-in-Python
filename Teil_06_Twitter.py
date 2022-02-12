@@ -7,7 +7,7 @@ auth = tweepy.OAuthHandler(ConsumerKey, ConsumerSecret)
 api = tweepy.API(auth)
 text = ''
 
-tweeds = api.user_timeline(screen_name='andrewneeme',
+tweeds = api.user_timeline(screen_name='realDonaldTrump',
                            count=100, include_rts=False, tweet_mode='extended')
 for tweed in tweeds:
     text = text + ' ' + tweed.full_text
