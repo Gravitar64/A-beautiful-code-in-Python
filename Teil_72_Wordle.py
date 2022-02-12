@@ -1,6 +1,7 @@
 import pygame as pg
 import random as rnd
 
+
 class Feld:
 
   STATES = {0: ('#ffffff', '#000000'),
@@ -10,10 +11,9 @@ class Feld:
             4: ('#D3D6DA', '#000000')}
 
   def __init__(self, x, y, char, state):
-    self.rect = pg.Rect(x,y,45,44)
+    self.rect = pg.Rect(x, y, 45, 44)
     self.char = char
     self.state = state
-    
 
   @property
   def img(self):
@@ -30,6 +30,7 @@ class Feld:
       bild.blit(text, text_rect)
     return bild
 
+
 def generiere_felder():
   felder = []
   for i in range(26):
@@ -39,6 +40,7 @@ def generiere_felder():
     x, y = i % 5 * 50 + 352, i // 5 * 50 + 80
     felder.append(Feld(x, y, '', 0))
   return felder
+
 
 def vergleich(geheim, versuch):
   for i in range(5):
@@ -52,12 +54,14 @@ def vergleich(geheim, versuch):
     else:
       versuch[i] = 1
   return versuch
- 
+
+
 def zeichne_felder():
   screen.blit(bild, (0, 0))
   for feld in felder:
     screen.blit(feld.img, feld.rect.topleft)
   pg.display.flip()
+
 
 def eingabe(key):
   global cursor, cursor_min, cursor_max
@@ -77,13 +81,15 @@ def eingabe(key):
       felder[tasten_pos].char = ''
       felder[tasten_pos].state = 0
     cursor_min, cursor_max = cursor, cursor + 5
-    if cursor_max > 56: print(geheim)
+    if cursor_max > 56:
+      print(geheim)
   elif cursor < cursor_max:
     felder[cursor].char = chr(key).upper()
-    cursor += 1  
+    cursor += 1
+
 
 pg.init()
-screen = pg.display.set_mode((920,647))
+screen = pg.display.set_mode((920, 647))
 bild = pg.image.load('Teil_72_Wordle.jpg')
 with open('Teil_72_wörter.txt') as f:
   wörter = [w.strip() for w in f]
@@ -93,15 +99,14 @@ zeichne_felder()
 cursor, cursor_min, cursor_max = 26, 26, 31
 
 
-
-
 clock = pg.time.Clock()
 FPS = 40
 
 while True:
   clock.tick(FPS)
   for ereignis in pg.event.get():
-    if ereignis.type == pg.QUIT: quit()
+    if ereignis.type == pg.QUIT:
+      quit()
     if ereignis.type == pg.KEYDOWN:
       eingabe(ereignis.key)
       zeichne_felder()
