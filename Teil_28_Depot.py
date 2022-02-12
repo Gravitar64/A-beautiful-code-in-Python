@@ -26,8 +26,6 @@ for symbol, details in bestand.items():
   nachricht += f'{details["Bez"] + " ("+symbol+") ":<40} {yahoo_ergebnis[symbol]:>8.2f} x {anz:>5} = Summe {summe:>10,.2f}\n'
 nachricht += f'{gesamt_summe:>76,.2f}\n'
 
-print(nachricht)
-
 
 msg = MIMEMultipart()
 msg["From"] = cred.FROM

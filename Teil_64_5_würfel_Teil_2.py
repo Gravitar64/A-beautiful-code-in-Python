@@ -23,10 +23,10 @@ class Element(pg.sprite.Sprite):
 
 
 def clicked_button(e):
-  global würfel_zähler, gesamt_summe, game_over
+  global würfel_zähler
   if e.id == 0:
     start_würfeln(e)
-  elif e.id == 1:
+  if e.id == 1:
     for e2 in group_elemente:
       if e2.typ == 'Feld' and e2.selektiert:
         e2.punkte += e2.mögl_punkte
@@ -44,27 +44,10 @@ def clicked_button(e):
         e2.selektiert = False
         e2.image = e2.image_e  
     e.change_enabled(False)
-    game_over = sum([el.enabled for el in group_elemente if el.typ == 'Feld']) == 0 
     group_elemente.sprites()[-3].change_enabled(True)
-    render_summen()      
-    
-    if game_over:
-      group_elemente.sprites()[-1].change_enabled(True)
-      group_elemente.sprites()[-3].change_enabled(False)
-    else:    
-      würfel_zähler = 0
-      start_würfeln(e)
-  elif e.id == 2:
-    e.change_enabled(False)
-    group_elemente.sprites()[-3].change_enabled(True)
-    for e in group_elemente:
-      e.punkte = 0
-      e.selected = False
-      if e.typ == 'Feld':
-        e.change_enabled(e.id not in (6,7,8,16,17))
-    würfel_zähler = gesamt_summe = 0        
-    game_over = False
+    würfel_zähler = 0
     start_würfeln(e)
+    render_summen()      
 
 
 def clicked_würfel(e):
@@ -91,12 +74,6 @@ def render_punkte(e,punkte):
   cx, cy = e.image.get_width()//2, e.image.get_height()//2
   rect = text.get_rect(center=(cx,cy))
   e.image.blit(text, rect)
-
-def render_text(t,y,font,size):
-  text = pg.font.SysFont(font,size).render(t, True, '#B7FF7A')
-  cx = zentrum[0]
-  rect = text.get_rect(center=(cx,y))
-  screen.blit(text,rect)  
 
 
 def render_summen():
@@ -154,13 +131,13 @@ def punkte_ermitteln(i):
 
 pg.init()
 BREITE, HÖHE = 1280, 720
-clock = pg.time.Clock()
 FPS = 40
 zentrum = (BREITE / 2, HÖHE / 2)
 screen = pg.display.set_mode((BREITE, HÖHE))
 pg.time.set_timer(pg.USEREVENT, 1000, True)
-anim_würfeln, game_over = True, False
-würfel_zähler, gesamt_summe = 1,0
+anim_würfeln = True
+würfel_zähler = 1
+gesamt_summe = 0   
 
 pfad = 'Teil_63_Bilder/'
 bild_gui = pg.image.load(f'{pfad}gui.png')
@@ -183,11 +160,14 @@ for n in range(3):
   group_elemente.add(Element(n, 'Button', f'{pfad}Button{n}', pos[n], enabled)) 
 
 
-while True:
+weitermachen = True
+clock = pg.time.Clock()
+
+while weitermachen:
   clock.tick(FPS)
   for ereignis in pg.event.get():
     if ereignis.type == pg.QUIT:
-     quit()
+      weitermachen = False
     if ereignis.type == pg.USEREVENT:
       anim_würfeln = False
     if ereignis.type == pg.MOUSEBUTTONDOWN:
@@ -200,12 +180,14 @@ while True:
 
   screen.blit(bild_gui, (0,0))
   group_elemente.draw(screen)
-  render_text(str(gesamt_summe), 40, 'impact', 60)
   if anim_würfeln:
     würfeln()
-  if game_over:
-    render_text('GAME OVER', zentrum[1], 'impact', 180)
-      
+
+  text = pg.font.SysFont('impact', 60).render(str(gesamt_summe), True, '#B7FF7A')
+  rect = text.get_rect(center = zentrum)
+  rect[1] = 5
+  screen.blit(text, rect)  
+  
   pg.display.flip()
 
 pg.quit()
