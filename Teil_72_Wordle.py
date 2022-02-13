@@ -4,48 +4,50 @@ import random as rnd
 
 class Feld:
 
-  STATES = {0: ('#ffffff', '#000000'),
+  STATI =  {0: ('#ffffff', '#000000'),
             1: ('#787C7E', '#ffffff'),
             2: ('#C9B458', '#ffffff'),
             3: ('#6AAA64', '#ffffff'),
             4: ('#D3D6DA', '#000000')}
 
-  def __init__(self, x, y, char, state):
+  def __init__(self, x, y, buchst, status):
     self.rect = pg.Rect(x, y, 45, 44)
-    self.char = char
-    self.state = state
+    self.buchst = buchst
+    self.status = status
 
   @property
-  def img(self):
-    bild = pg.Surface(self.rect.size)
-    bild_rect = bild.get_rect()
-    bg, fg = self.STATES[self.state]
-    pg.draw.rect(bild, bg, bild_rect)
-    if self.state == 0:
-      pg.draw.rect(bild, '#D3D6DA', bild_rect, 3)
-    if self.char != '':
-      text = pg.font.SysFont('Arial_bold', 32).render(
-          self.char, True, fg)
-      text_rect = text.get_rect(center=bild_rect.center)
-      bild.blit(text, text_rect)
-    return bild
+  def bild(self):
+    b_hg = pg.Surface(self.rect.size)
+    b_hg_rect = b_hg.get_rect()
+    hg, vg = self.STATI[self.status]
+    pg.draw.rect(b_hg, hg, b_hg_rect)
+    
+    if self.status == 0:
+      pg.draw.rect(b_hg, '#D3D6DA', b_hg_rect, 3)
+    
+    if self.buchst != '':
+      b_vg = pg.font.SysFont('Arial_bold', 32).render(self.buchst, True, vg)
+      b_vg_rect = b_vg.get_rect(center=b_hg_rect.center)
+      b_hg.blit(b_vg, b_vg_rect)
+    return b_hg
 
 
 def generiere_felder():
-  felder = []
-  for i in range(26):
-    x, y = i % 13 * 50 + 152, i // 13 * 50 + 500
-    felder.append(Feld(x, y, chr(65+i), 4))
+  eingaben, buchstaben = [], []
   for i in range(30):
     x, y = i % 5 * 50 + 352, i // 5 * 50 + 80
-    felder.append(Feld(x, y, '', 0))
-  return felder
+    eingaben.append(Feld(x, y, '', 0))
+  for i in range(26):
+    x, y = i % 13 * 50 + 152, i // 13 * 50 + 500
+    buchstaben.append(Feld(x, y, chr(65+i), 4))
+  return eingaben, buchstaben
 
 
 def vergleich(geheim, versuch):
   for i in range(5):
     if versuch[i] == geheim[i]:
       versuch[i] = geheim[i] = 3
+  
   for i, b in enumerate(versuch):
     if b == 3: continue
     if b in geheim:
@@ -58,8 +60,10 @@ def vergleich(geheim, versuch):
 
 def zeichne_felder():
   screen.blit(bild, (0, 0))
-  for feld in felder:
-    screen.blit(feld.img, feld.rect.topleft)
+  for feld in eingaben:
+    screen.blit(feld.bild, feld.rect.topleft)
+  for feld in buchstaben:
+    screen.blit(feld.bild, feld.rect.topleft)
   pg.display.flip()
 
 
@@ -68,23 +72,23 @@ def eingabe(key):
   if key == pg.K_BACKSPACE:
     if cursor == cursor_min: return
     cursor -= 1
-    felder[cursor].char = ''
+    eingaben[cursor].buchst = ''
+  
   elif key == pg.K_RETURN:
     if cursor != cursor_max: return
-    versuch = ''.join(f.char for f in felder[cursor_min:cursor_max])
+    versuch = ''.join(f.buchst for f in eingaben[cursor_min:cursor_max])
     if versuch not in wörter: return
     ergebnis = vergleich(list(geheim), list(versuch))
     for i in range(5):
-      feld_pos = cursor_min+i
-      tasten_pos = ord(felder[feld_pos].char)-65
-      felder[feld_pos].state = ergebnis[i]
-      felder[tasten_pos].char = ''
-      felder[tasten_pos].state = 0
+      eingaben[cursor_min+i].status = ergebnis[i]
+      buchstaben[ord(versuch[i])-65].buchst = ''
+      buchstaben[ord(versuch[i])-65].status = 0
     cursor_min, cursor_max = cursor, cursor + 5
-    if cursor_max > 56:
+    if cursor_max > 30:
       print(geheim)
+  
   elif cursor < cursor_max:
-    felder[cursor].char = chr(key).upper()
+    eingaben[cursor].buchst = chr(key).upper()
     cursor += 1
 
 
@@ -94,19 +98,17 @@ bild = pg.image.load('Teil_72_Wordle.jpg')
 with open('Teil_72_wörter.txt') as f:
   wörter = [w.strip() for w in f]
 geheim = rnd.choice(wörter)
-felder = generiere_felder()
+eingaben, buchstaben = generiere_felder()
 zeichne_felder()
-cursor, cursor_min, cursor_max = 26, 26, 31
-
+cursor, cursor_min, cursor_max = 0,0,5
 
 clock = pg.time.Clock()
-FPS = 40
+FPS = 20
 
 while True:
   clock.tick(FPS)
   for ereignis in pg.event.get():
-    if ereignis.type == pg.QUIT:
-      quit()
+    if ereignis.type == pg.QUIT: quit()
     if ereignis.type == pg.KEYDOWN:
       eingabe(ereignis.key)
       zeichne_felder()
