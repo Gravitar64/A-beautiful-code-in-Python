@@ -34,13 +34,13 @@ class Feld:
 
 def zeichne():
   screen.blit(bild_hg, (0, 0))
-  
+
   for eingabe in eingaben:
     screen.blit(eingabe.bild, eingabe.rect.topleft)
-  
+
   for buchstabe in buchstaben.values():
     screen.blit(buchstabe.bild, buchstabe.rect.topleft)
-  
+
   pg.display.flip()
 
 
@@ -56,21 +56,21 @@ def vergleich(versuch, geheim):
       geheim[geheim.index(b)] = 2
     else:
       versuch[i] = 1
-  
+
   return versuch
 
 
 def generiere_felder():
   eingaben, buchstaben = [], {}
-  
+
   for i in range(30):
     x, y = i % 5 * 50 + 352, i // 5 * 50 + 80
     eingaben.append(Feld(x, y, '', 0))
-  
+
   for i in range(26):
     x, y = i % 13 * 50 + 152, i // 13 * 50 + 500
     buchstaben[chr(65+i)] = Feld(x, y, chr(65+i), 4)
-  
+
   return eingaben, buchstaben
 
 
@@ -86,15 +86,14 @@ def eingabe(key):
     versuch = ''.join(f.buchst for f in eingaben[cursor_min:cursor_max])
     if versuch not in wörter: return
     stati = vergleich(list(versuch), list(geheim))
-    
+
     for i, status in enumerate(stati):
       eingaben[cursor_min+i].status = status
       buchstaben[versuch[i]].buchst = ''
       buchstaben[versuch[i]].status = 0
-    
+
     cursor_min, cursor_max = cursor, cursor + 5
-    if cursor_max > 30:
-      print(geheim)
+    if cursor_max > 30: print(geheim)
 
   elif cursor < cursor_max:
     eingaben[cursor].buchst = chr(key).upper()
@@ -105,20 +104,19 @@ pg.init()
 screen = pg.display.set_mode((920, 647))
 bild_hg = pg.image.load('Teil_72_Wordle.jpg')
 with open('Teil_72_wörter.txt') as f:
-  wörter = [w.strip() for w in f]
+  wörter = [wort.strip() for wort in f]
 geheim = rnd.choice(wörter)
 eingaben, buchstaben = generiere_felder()
-cursor, cursor_min, cursor_max = 0, 0, 5
+cursor, cursor_max, cursor_min = 0, 5, 0
 zeichne()
 
 clock = pg.time.Clock()
-FPS = 20
+FPS = 40
 
 while True:
   clock.tick(FPS)
   for ereignis in pg.event.get():
-    if ereignis.type == pg.QUIT:
-      quit()
+    if ereignis.type == pg.QUIT: quit()
     if ereignis.type == pg.KEYDOWN:
       eingabe(ereignis.key)
       zeichne()
