@@ -85,7 +85,7 @@ def eingabe(key):
     if cursor != cursor_max: return
     versuch = ''.join(f.buchst for f in eingaben[cursor_min:cursor_max])
     if versuch not in wörter: return
-    stati = vergleich(list(geheim), list(versuch))
+    stati = vergleich(list(versuch), list(geheim))
     
     for i, status in enumerate(stati):
       eingaben[cursor_min+i].status = status
@@ -110,6 +110,7 @@ geheim = rnd.choice(wörter)
 eingaben, buchstaben = generiere_felder()
 cursor, cursor_min, cursor_max = 0, 0, 5
 zeichne()
+print(geheim)
 
 clock = pg.time.Clock()
 FPS = 20
