@@ -33,13 +33,13 @@ class Feld:
 
 
 def generiere_felder():
-  eingaben, buchstaben = [], []
+  eingaben, buchstaben = [], {}
   for i in range(30):
     x, y = i % 5 * 50 + 352, i // 5 * 50 + 80
     eingaben.append(Feld(x, y, '', 0))
   for i in range(26):
     x, y = i % 13 * 50 + 152, i // 13 * 50 + 500
-    buchstaben.append(Feld(x, y, chr(65+i), 4))
+    buchstaben[chr(65+i)] = Feld(x, y, chr(65+i), 4)
   return eingaben, buchstaben
 
 
@@ -62,7 +62,7 @@ def zeichne_felder():
   screen.blit(bild, (0, 0))
   for feld in eingaben:
     screen.blit(feld.bild, feld.rect.topleft)
-  for feld in buchstaben:
+  for feld in buchstaben.values():
     screen.blit(feld.bild, feld.rect.topleft)
   pg.display.flip()
 
@@ -78,11 +78,11 @@ def eingabe(key):
     if cursor != cursor_max: return
     versuch = ''.join(f.buchst for f in eingaben[cursor_min:cursor_max])
     if versuch not in wörter: return
-    ergebnis = vergleich(list(geheim), list(versuch))
-    for i in range(5):
-      eingaben[cursor_min+i].status = ergebnis[i]
-      buchstaben[ord(versuch[i])-65].buchst = ''
-      buchstaben[ord(versuch[i])-65].status = 0
+    stati = vergleich(list(geheim), list(versuch))
+    for i,status in enumerate(stati):
+      eingaben[cursor_min+i].status = status
+      buchstaben[versuch[i]].buchst = ''
+      buchstaben[versuch[i]].status = 0
     cursor_min, cursor_max = cursor, cursor + 5
     if cursor_max > 30:
       print(geheim)
