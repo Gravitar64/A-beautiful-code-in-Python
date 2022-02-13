@@ -110,7 +110,6 @@ geheim = rnd.choice(wörter)
 eingaben, buchstaben = generiere_felder()
 cursor, cursor_min, cursor_max = 0, 0, 5
 zeichne()
-print(geheim)
 
 clock = pg.time.Clock()
 FPS = 20
