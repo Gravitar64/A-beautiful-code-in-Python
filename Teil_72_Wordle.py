@@ -34,13 +34,11 @@ class Feld:
 
 def zeichne():
   screen.blit(bild_hg, (0, 0))
-
   for eingabe in eingaben:
     screen.blit(eingabe.bild, eingabe.rect.topleft)
 
   for buchstabe in buchstaben.values():
     screen.blit(buchstabe.bild, buchstabe.rect.topleft)
-
   pg.display.flip()
 
 
@@ -86,7 +84,7 @@ def eingabe(key):
     versuch = ''.join(f.buchst for f in eingaben[cursor_min:cursor_max])
     if versuch not in wörter: return
     stati = vergleich(list(versuch), list(geheim))
-
+    
     for i, status in enumerate(stati):
       eingaben[cursor_min+i].status = status
       buchstaben[versuch[i]].buchst = ''
@@ -107,7 +105,7 @@ with open('Teil_72_wörter.txt') as f:
   wörter = [wort.strip() for wort in f]
 geheim = rnd.choice(wörter)
 eingaben, buchstaben = generiere_felder()
-cursor, cursor_max, cursor_min = 0, 5, 0
+cursor, cursor_min, cursor_max = 0, 0, 5
 zeichne()
 
 clock = pg.time.Clock()
