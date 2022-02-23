@@ -1,5 +1,6 @@
 import pygame as pg
 import random as rnd
+import time 
 
 
 class Feld:
@@ -97,6 +98,21 @@ def eingabe(key):
     eingaben[cursor].buchst = chr(key).upper()
     cursor += 1
 
+def löse():
+  mögliche_wörter = wörter.copy()
+  for z in range(6):
+    versuch = rnd.choice(mögliche_wörter)
+    stati = vergleich(list(versuch), list(geheim))
+    for i,b in enumerate(versuch):
+      eingabe(ord(b))
+    eingabe(pg.K_RETURN)
+    zeichne()
+    time.sleep(2)
+    mögliche_wörter.remove(versuch)
+    mögliche_wörter = [w for w in mögliche_wörter 
+                       if vergleich(list(versuch), list(w)) == stati]
+    if not mögliche_wörter: return                   
+
 
 pg.init()
 screen = pg.display.set_mode((920, 647))
@@ -107,6 +123,7 @@ geheim = rnd.choice(wörter)
 eingaben, buchstaben = generiere_felder()
 cursor, cursor_min, cursor_max = 0, 0, 5
 zeichne()
+löse()
 
 clock = pg.time.Clock()
 FPS = 40
