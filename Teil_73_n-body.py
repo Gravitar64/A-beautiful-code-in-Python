@@ -1,5 +1,5 @@
 import pygame as pg
-from itertools import permutations
+from itertools import combinations
 
 
 class Body:
@@ -8,12 +8,16 @@ class Body:
     self.geschw = pg.Vector2(geschw)
     self.masse = masse
     self.rad = (masse / 3.141) ** (1/3)
+    self.spur = []
 
-  def wird_angezogen_von(self, other):
+  def gravitation(self, other):
     entf = pg.math.Vector2.distance_to(self.pos, other.pos)
     v_richt = pg.math.Vector2.normalize(other.pos - self.pos)
     if entf > (self.rad + other.rad):
-      self.geschw += G * (self.masse * other.masse) / entf**2 * v_richt / self.masse
+      f = G * (self.masse * other.masse) / entf**2 * v_richt
+      f1, f2 = f / self.masse, -f / other.masse
+      self.geschw += f1      
+      other.geschw += f2
     else:
       gm = self.masse + other.masse
       self.geschw = (self.geschw * self.masse + other.geschw * other.masse) / gm
@@ -23,12 +27,14 @@ class Body:
 
   def aktualisiere_pos(self):
     self.pos += self.geschw / FPS
+    self.spur.append((self.pos.x, self.pos.y))
+    if len(self.spur) > 50: self.spur.pop(0)
 
 
 pg.init()
 screen = pg.display.set_mode((1920, 1080))
 zentrum = (screen.get_width() / 2, screen.get_height() / 2)
-bodies = [Body(zentrum, (0, 0), 200_000)]
+bodies = [Body(zentrum, (0,0), 200_000)]
 G = 5
 
 clock = pg.time.Clock()
@@ -52,15 +58,17 @@ while True:
       bodies.append(Body(pos2, geschw*2, 1000))
 
   screen.fill('#000000')
-  for b1, b2 in permutations(bodies, 2):
+  for b1, b2 in combinations(bodies, 2):
     if b1.masse == 0 or b2.masse == 0: continue
-    b1.wird_angezogen_von(b2)
+    b1.gravitation(b2)
 
   bodies = [b for b in bodies if b.masse > 0]
 
   for body in bodies:
     body.aktualisiere_pos()
     pg.draw.circle(screen, '#F2cb05', body.pos, body.rad)
+    if len(body.spur) > 2:
+      pg.draw.lines(screen,'#303AF2',False,body.spur,2)
 
   if pg.mouse.get_pressed()[0]:
     pos2 = pg.Vector2(pg.mouse.get_pos())
