@@ -1,46 +1,43 @@
 import pygame as pg
 from itertools import combinations
 
-
-class Body:
+class Körper:
   def __init__(self, pos, geschw, masse):
     self.pos = pg.Vector2(pos)
     self.geschw = pg.Vector2(geschw)
     self.masse = masse
     self.rad = (masse / 3.141) ** (1/3)
-    self.spur = []
+    self.spur = [pos]
+
+  def aktualisiere_pos(self):
+    self.pos += self.geschw / FPS
+    self.spur.append(self.pos.xy)
+    if len(self.spur) > 50: self.spur.pop(0)
 
   def gravitation(self, other):
     entf = pg.math.Vector2.distance_to(self.pos, other.pos)
     v_richt = pg.math.Vector2.normalize(other.pos - self.pos)
     if entf > (self.rad + other.rad):
       f = G * (self.masse * other.masse) / entf**2
-      self.geschw += f * v_richt / self.masse
-      other.geschw += f * -v_richt / other.masse
+      self.geschw += f * v_richt / self.masse / FPS
+      other.geschw += f * -v_richt / other.masse / FPS 
     else:
       gm = self.masse + other.masse
-      self.geschw = (self.geschw * self.masse +  other.geschw * other.masse) / gm
+      self.geschw = (self.geschw * self.masse + other.geschw * other.masse) / gm
       self.pos = (self.pos * self.masse + other.pos * other.masse) / gm
       self.masse, other.masse = gm, 0
-      self.rad = (gm / 3.141) ** (1/3)
-
-  def aktualisiere_pos(self):
-    self.pos += self.geschw / FPS
-    self.spur.append((self.pos.x, self.pos.y))
-    if len(self.spur) > 50:
-      self.spur.pop(0)
-
+      self.rad = (gm / 3.141) ** (1/3)      
 
 pg.init()
-screen = pg.display.set_mode((1920, 1080))
+screen = pg.display.set_mode((1920,1080))
 zentrum = (screen.get_width() / 2, screen.get_height() / 2)
 
 clock = pg.time.Clock()
 FPS = 40
-G = 5
-bodies = [Body(zentrum, (0, 0), 200_000)]
+G = 200
+körpers=[Körper(zentrum,(0,0),200_000)]
 
-# Zeichenschleife mit FPS Bildern pro Sekunde
+#Zeichenschleife mit FPS Bildern pro Sekunde
 while True:
   clock.tick(FPS)
   for ereignis in pg.event.get():
@@ -48,30 +45,29 @@ while True:
     if ereignis.type == pg.MOUSEBUTTONDOWN:
       pos1 = pg.Vector2(pg.mouse.get_pos())
       if ereignis.button == 3:
-        m, i = max([(b.masse, i) for i, b in enumerate(bodies)])
-        bodies[i].pos = pos1
-        bodies[i].geschw = 0, 0
-
+        m, i = max([(k.masse, i) for i, k in enumerate(körpers)])
+        körpers[i].pos = pos1
+        körpers[i].geschw = pg.Vector2(0,0)
     if ereignis.type == pg.MOUSEBUTTONUP and ereignis.button == 1:
       pos2 = pg.Vector2(pg.mouse.get_pos())
       geschw = pos1 - pos2
-      bodies.append(Body(pos2, geschw*2, 10_000))
+      körpers.append(Körper(pos2, geschw, 10_000))
 
-  for b1, b2 in combinations(bodies, 2):
-    if b1.masse == 0 or b2.masse == 0: continue
-    b1.gravitation(b2)
-
-  bodies = [b for b in bodies if b.masse > 0]
-
+  for k1, k2 in combinations(körpers, 2):
+    if k1.masse == 0 or k2.masse == 0: continue
+    k1.gravitation(k2)
+  
+  körpers = [k for k in körpers if k.masse > 0]
+  
   screen.fill('#000000')
-  for body in bodies:
-    body.aktualisiere_pos()
-    pg.draw.circle(screen, '#f2cb05', body.pos, body.rad)
-    if len(body.spur) > 2:
-      pg.draw.lines(screen, '#303af2', False, body.spur, 2)
+  for körper in körpers:
+    körper.aktualisiere_pos()
+    pg.draw.circle(screen, '#F2cb05', körper.pos, körper.rad)
+    if len(körper.spur) > 2:
+      pg.draw.lines(screen,'#303AF2',False,körper.spur,2)
 
   if pg.mouse.get_pressed()[0]:
     pos2 = pg.Vector2(pg.mouse.get_pos())
     pg.draw.line(screen, '#419fd9', pos1, pos2, 1)
-
+  
   pg.display.flip()
