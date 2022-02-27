@@ -6,8 +6,9 @@ import pygame as pg
 #   --> sudo apt-get install python3-pygame (Linux Debian/Ubuntu/Mint)
 
 pg.init()
-screen = pg.display.set_mode((1920,1080))
-zentrum = (screen.get_width() / 2, screen.get_height() / 2)
+fenster_b, fenster_h = 1920,1080
+fenster = pg.display.set_mode((fenster_b, fenster_h))
+zentrum = (fenster.b / 2, fenster.h / 2)
 
 clock = pg.time.Clock()
 FPS = 40
@@ -18,6 +19,6 @@ while True:
   for ereignis in pg.event.get():
     if ereignis.type == pg.QUIT: quit()
   
-  screen.fill('#000000')
+  fenster.fill('#000000')
   
   pg.display.flip()
