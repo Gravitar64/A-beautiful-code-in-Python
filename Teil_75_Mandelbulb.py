@@ -29,7 +29,7 @@ def showing(x,y,z):
       
   
 start = pfc()
-N, MAX_ITER, BEREICH, SC = 8, 20, 100, 0.2
+N, MAX_ITER, BEREICH, SC = 8, 20, 64, 0.2
 points = []
 for x in range(BEREICH):
   for y in range(BEREICH):
@@ -47,8 +47,10 @@ for x in range(BEREICH):
 
 print(f'{len(points):,.0f} Punkte ermittelt in {pfc()-start:.2f} Sek.')      
       
-development_mode = False
 app = Ursina()
+window.borderless = False
+window.fps_counter.enabled = True
+window.size = (1920,1080)
 window.color = color.black
 Entity(model=Mesh(vertices=points, mode='point', thickness=0.1),color=color.green)
 EditorCamera()
