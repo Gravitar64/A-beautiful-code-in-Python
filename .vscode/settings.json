@@ -46,6 +46,5 @@
   "python.linting.enabled": false,
 "python.pythonPath": "D:\\Programme\\Python\\python.exe",
 "jupyter.jupyterServerType": "local",
-"todo-tree.tree.showBadges": false,
-"python.languageServer": "None"
+"todo-tree.tree.showBadges": false
 }
