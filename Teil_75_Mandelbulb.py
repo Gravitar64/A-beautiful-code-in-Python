@@ -1,6 +1,6 @@
 import math
 from ursina import *
-from time import perf_counter as pfc
+from itertools import product
 
 
 def punkt_in_mandelbrot(x, y, z) -> bool:
@@ -25,24 +25,16 @@ def punkt_in_mandelbrot(x, y, z) -> bool:
     return True
 
 
-start = pfc()
 N, MAX_ITER, BEREICH = 8, 20, 64
 punkte = []
 for x in range(BEREICH):
   for y in range(BEREICH):
     hülle = False
     for z in range(BEREICH):
-      if not punkt_in_mandelbrot(x, y, z):
-        continue
-      punkte.append((x, y, z))
-      punkte.append((-x, y, z))
-      punkte.append((x, -y, z))
-      punkte.append((-x, -y, z))
-      punkte.append((x, y, -z))
-      punkte.append((-x, y, -z))
-      punkte.append((x, -y, -z))
-      punkte.append((-x, -y, -z))
-print(pfc()-start)
+      if not punkt_in_mandelbrot(x, y, z): continue
+      for s1,s2,s3 in product([-1,1],repeat=3):
+        punkte.append((x*s1, y*s2, z*s3))
+
 app = Ursina()
 window.borderless = False
 window.fps_counter.enabled = True
