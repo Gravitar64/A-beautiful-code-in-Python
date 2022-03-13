@@ -4,7 +4,7 @@ from ursina import *
 from time import process_time as pfc
 
 
-def showing(x,y,z):
+def punkt_in_mandelbrot(x,y,z) -> bool:
   global hülle
   if z == 0: 
     hülle = True
@@ -29,29 +29,29 @@ def showing(x,y,z):
       
   
 start = pfc()
-N, MAX_ITER, BEREICH, SC = 8, 20, 64, 0.2
-points = []
+N, MAX_ITER, BEREICH = 8, 20, 64
+punkte = []
 for x in range(BEREICH):
   for y in range(BEREICH):
     hülle = False
     for z in range(BEREICH):
-      if not showing(x, y, z): continue
-      points.append((x,y,z))
-      points.append((-x,y,z))
-      points.append((x,-y,z))
-      points.append((-x,-y,z))
-      points.append((x,y,-z))
-      points.append((-x,y,-z))
-      points.append((x,-y,-z))
-      points.append((-x,-y,-z))
+      if not punkt_in_mandelbrot(x, y, z): continue
+      punkte.append((x,y,z))
+      punkte.append((-x,y,z))
+      punkte.append((x,-y,z))
+      punkte.append((-x,-y,z))
+      punkte.append((x,y,-z))
+      punkte.append((-x,y,-z))
+      punkte.append((x,-y,-z))
+      punkte.append((-x,-y,-z))
 
-print(f'{len(points):,.0f} Punkte ermittelt in {pfc()-start:.2f} Sek.')      
+print(f'{len(punkte):,.0f} Punkte ermittelt in {pfc()-start:.2f} Sek.')      
       
 app = Ursina()
 window.borderless = False
 window.fps_counter.enabled = True
 window.size = (1920,1080)
 window.color = color.black
-Entity(model=Mesh(vertices=points, mode='point', thickness=0.1),color=color.green)
+Entity(model=Mesh(vertices=punkte, mode='point', thickness=0.1),color=color.green)
 EditorCamera()
 app.run()
