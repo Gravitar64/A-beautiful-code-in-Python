@@ -1,35 +1,24 @@
-import datetime as dt
-import arrow
-from dateutil.relativedelta import relativedelta
-import locale
+import pendulum as pnd
 
-locale.setlocale(locale.LC_ALL, 'German')
-dat_format = '%a %d.%m.%Y %H:%M'
+pnd.set_locale('de')
 
-
-geburtsdatum = dt.datetime(1964,10,21,12,59)
-jetzt = dt.datetime.now()
+geburtsdatum = pnd.datetime(1964,10,21,12,59)
+jetzt = pnd.now()
 alter = jetzt-geburtsdatum
-
-start = arrow.now()
-start.replace(tzinfo='Europe/Berlin')
-end = arrow.get('30.04.2022 13:00','DD.MM.YYYY HH:mm')
-print(f'Start-Datetime: {start}')
-print(f'End-Datetime : {end}')
-print(f'Time-Difference: {end-start}')
 
 jubiläen = []
 for k in (500,1_000,22_222,5_000,10_000):
-  nächste = ((alter.days // k)+1)*k
-  jubiläum = geburtsdatum + dt.timedelta(days=nächste)
+  nächste = ((alter.in_days() // k)+1)*k
+  jubiläum = geburtsdatum.add(days=nächste)
   jubiläen.append((nächste, jubiläum))
 
 
-print(f'\nGeboren am        : {geburtsdatum.strftime(dat_format)}')
-print(f'Heute             : {jetzt.strftime(dat_format)}')
-print(f'Aktuelles Alter   : {relativedelta(jetzt,geburtsdatum).years} Jahre ({alter})')
+print()
+print(f'Geboren am        : {geburtsdatum.to_rss_string()}')
+print(f'Heute             : {jetzt.to_rss_string()}')
+print(f'Aktuelles Alter   : {alter.in_years()} Jahre (in Tagen = {alter.in_days():,.0f})')
 for n,j in jubiläen:
-  alter = relativedelta(j,geburtsdatum).years
-  print(f'   Nächstes Jubiläum : {j.strftime(dat_format)} ({n:,.0f} Tage = {alter}. Jahre)')
+  alter = geburtsdatum.add(days=n) - geburtsdatum
+  print(f'   Nächstes Jubiläum : {j.to_rss_string()} ({n:,.0f} Tage = {alter.in_years()}. Jahre)')
 
 
