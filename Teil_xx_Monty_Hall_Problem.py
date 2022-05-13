@@ -7,12 +7,14 @@ gew_ow = gew_mw = 0
 anz_simulationen = 1_000_000
 
 for _ in range(anz_simulationen):
+  türen_mod = set(range(3))
+  türen_kan = set(range(3))
   preis = rnd.randrange(anz_türen)
   wahl  = rnd.randrange(anz_türen)
   if preis == wahl:
     gew_ow += 1
-  moderator = [t for t in range(anz_türen) if t != wahl and t != preis].pop()
-  wahl      = [t for t in range(anz_türen) if t != wahl and t != moderator].pop()
+  moderator = (türen_mod - {preis, wahl}).pop()
+  wahl      = (türen_kan - {wahl, moderator}).pop()
   if preis == wahl:
     gew_mw += 1
 
