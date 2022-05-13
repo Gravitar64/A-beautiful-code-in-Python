@@ -14,27 +14,28 @@ def punkt_in_fraktal(x, y, z) -> bool:
     if r > 2:
       hülle = False
       return False
-    theta = math.atan2((x*x + y*y) ** 0.5, z)
-    phi = math.atan2(y, x)
-    x += r**N * math.sin(theta*N) * math.cos(phi*N)
-    y += r**N * math.sin(theta*N) * math.sin(phi*N)
-    z += r**N * math.cos(theta*N)
+    thetaN = math.atan2((x*x + y*y) ** 0.5, z) * N
+    phiN = math.atan2(y, x) * N
+    rN = r**N
+    x += rN * math.sin(thetaN) * math.cos(phiN)
+    y += rN * math.sin(thetaN) * math.sin(phiN)
+    z += rN * math.cos(thetaN)
   if not hülle:
     hülle = True
     return True
 
-
-BEREICH, N, MAX_ITER = 64, 8, 6
+start = pfc()
+BEREICH, N, MAX_ITER = 128, 8, 6
 
 punkte = []
-for x in range(BEREICH):
-  for y in range(BEREICH):
+for x in range(-BEREICH,BEREICH):
+  for y in range(-BEREICH,BEREICH):
     hülle = False
-    for z in range(BEREICH):
-      if not punkt_in_fraktal(x, y, z):
-        continue
-      for m1, m2, m3 in iter.product([-1, 1], repeat=3):
-        punkte.append((x*m1, y*m2, z*m3))
+    for z in range(-BEREICH, BEREICH):
+      if not punkt_in_fraktal(x, y, z): continue
+      punkte.append((x, y, z))
+export_ply_format('points.ply')
+print(pfc()-start)
 
 app = urs.Ursina()
 urs.window.borderless = False
