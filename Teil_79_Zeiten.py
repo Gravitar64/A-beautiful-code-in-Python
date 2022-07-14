@@ -1,37 +1,33 @@
 from datetime import datetime, timedelta
 import time
 
-def t2td(d) -> timedelta:
-  if type(d) == datetime:
-    return timedelta(hours=d.hour, minutes=d.minute, seconds=d.second)
+
+def td(t):
+  if type(t) == datetime:
+    return timedelta(hours=t.hour, minutes=t.minute, seconds=t.second)
   else:
-    hh,mm = map(int, d.split(':'))
-    return timedelta(hours=hh, minutes=mm)
+    HH, MM = map(int, t.split(':'))
+    return timedelta(hours=HH, minutes=MM)
 
 
-
-start = t2td(input('Arbeitsbeginn (HH:MM): '))
-max_soll = t2td("10:45")
+start = td(input('Arbeitsbeginn (HH:MM): '))
+soll  = td('07:45')
+max_soll = td('10:45')
+pausen = td('00:00')
 
 while True:
-  jetzt = t2td(datetime.now())
+  jetzt = td(datetime.now())
   ist = jetzt - start
-  soll = t2td("07:45")
+  pausen = td('00:45') if ist > td('9:00') else td('00:30') if ist > td('6:00') else pausen
+  saldo = '+' + str(ist-soll-pausen) if ist >= (soll+pausen) else '-' + str(soll+pausen - ist)
 
-  if ist > t2td("6:00"):
-    soll += t2td("0:30")
-  if ist > t2td("9:00"):
-    soll += t2td("0:15")
-
-  saldo = soll - ist if soll > ist else ist - soll
-
-  print(f'  Arbeitszeit inkl. Pausen      =  {soll}')
-  print(f'- davon bereits geleistet       =  {ist}')
-  print(f'= akt. Saldo                    = {"-" if soll > ist else "+"}{saldo}')
-  print()
-  print(f'  Feierabend                    = {start + soll} (max. {start + max_soll})')
-  time.sleep(1)
-
-
+  print(f'  Arbeitszeit inkl. Pausen       =  {soll + pausen}') 
+  print(f'- davon bereits geleistet        =  {ist}')
+  print(f'= akt. Saldo                     = {saldo}')
+  print(f'= Feierabend (start= {start})   = {start + soll + pausen} (max. {start + max_soll})')
+  print(f'= akt. Uhrzeit                   = {jetzt}')
+  if jetzt > (start + max_soll):
+    print(f'ARBEITSZEITVERSTOSS seit {jetzt - (start + max_soll)}')
+  time.sleep(1)  
 
 
