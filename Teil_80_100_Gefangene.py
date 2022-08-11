@@ -1,28 +1,22 @@
 import random as rnd
 
 def prüfe():
+  rnd.shuffle(schubladen)
   for gefangener in range(100):
-    nächste_schublade = gefangener
+    schublade = gefangener
     for _ in range(50):
-      nächste_schublade = schubladen[nächste_schublade]
-      if nächste_schublade == gefangener:
-        break 
+      schublade = schubladen[schublade]
+      if schublade == gefangener:
+        break
     else:
-      return False
-  return True           
+      return 0
+  return 1      
 
 
-gew_zufall = 0.5**100
-
-gewinne, anz = 0, 100_000
+sim = 100_000
 schubladen = list(range(100))
 
-for _ in range(anz):
-  rnd.shuffle(schubladen)
-  if prüfe(): gewinne += 1
+siege = sum([prüfe() for _ in range(sim)])
 
-gew_strategie = gewinne/anz
-print(f'Gewinnwahrscheinlichkeit Zufall    = {gew_zufall}')
-print(f'Gewinnwahrscheinlichkeit Strategie = {gew_strategie}')
-
-
+print(f'Gewinnwahrscheinlichkeit Zufall    = {0.5**100}')
+print(f'Gewinnwahrscheinlichkeit Strategie = {siege/sim}')
