@@ -2,16 +2,13 @@ from time import perf_counter as pfc
 import copy
 
 
-def prüfe_machbarkeit():
-  return sum([sum(s) for s in spalten]) == sum([sum(z) for z in zeilen])
-
-
-def prüfe_freiheitsgrade(e):
-  return size - (sum(e)+len(e)-1)
+def prüfe_machbarkeit(hinweise):
+  return sum([sum(s) for s in hinweise[0]]) == sum([sum(z) for z in hinweise[1]])
 
 
 def get_permutations(einträge, länge):
-  if not einträge:  return [[False] * länge]
+  if not einträge:
+    return [[False] * länge]
   permutations = []
   for start in range(länge - einträge[0] + 1):
     permutation = []
@@ -35,71 +32,82 @@ def get_permutations(einträge, länge):
       permutations.append(sub_permutation)
   return permutations
 
-def prüfe_gültigkeit(perm,i,typ):
-  if typ == 's':
-    vergleich = [grid[i][n] for n in range(höhe)]
+
+def prüfe_gültigkeit(perm, i, typ):
+  if typ == 1:
+    vergleich = [grid[y][i] for y in range(höhe)]
   else:
-    vergleich = [grid[n][i] for n in range(breite)]
-  if all(e==None for e in vergleich): return perm
+    vergleich = [grid[i][x] for x in range(breite)]
+  if all(e == None for e in vergleich):
+    return perm
   gültig = []
   for p in perm:
-    if not all(vergleich[i] == None or vergleich[i] == e for i,e in enumerate(p)):
+    if not all(vergleich[n] == None or vergleich[n] == e for n, e in enumerate(p)):
       continue
     gültig.append(p)
-  return gültig  
+  return gültig
+
 
 def showGrid(grid):
-  for zeile in range(höhe):
-    for spalte in range(breite):
-      if grid[spalte][zeile] == None:
-        print('?',end='')
-      elif grid[spalte][zeile] == True:
-        print('X',end='')
+  for y in range(höhe):
+    for x in range(breite):
+      if grid[y][x] == None:
+        print('?', end='')
+      elif grid[y][x] == True:
+        print('X', end='')
       else:
-        print('_',end='')
+        print('_', end='')
     print()
-  print()          
-      
-start = pfc()
-
-spalten = [[3, 4], [1, 2, 1, 1], [1, 3, 2], [
-    2, 1, 2], [1, 1], [2, 1], [1, 3], [1, 4], [2], [1]]
-zeilen = [[2], [4, 1, 2], [1, 3, 1], [2, 1], [
-    2, 1], [2, 1], [3, 2], [1, 4], [1, 2, 1], [3]]
-breite, höhe = len(spalten), len(zeilen)
-grid = [[None]*breite for _ in range(höhe)]
-
-if not prüfe_machbarkeit():
-  print('Sorry. Dieses Nonogramm ist feherhaft und kann nicht gelöst werden')
-  exit()
+  print()
 
 
+def probleme_einlesen(datei):
+  probleme = []
 
-änderung = True
-while änderung:
-  änderung = False
-  
-  for i,s in enumerate(spalten):
-    permutations = get_permutations(s,breite)
-    gültig = prüfe_gültigkeit(permutations,i,'s')
-    überdeckung = [all(e[0] == x for x in e) for e in zip(*gültig)]
-    for i2,ü in enumerate(überdeckung):
-      setze = gültig[0][i2]
-      if ü and grid[i][i2] != setze: 
-        grid[i][i2] = setze
-        änderung = True
-   
+  with open(datei) as f:
+    for problem in f.read().split('\n\n'):
+      probleme.append([[[ord(c)-64 for c in e] for e in hv.split()]
+                       for hv in problem.split('\n')])
+  return probleme
 
-  for i,s in enumerate(zeilen):
-    permutations = get_permutations(s,breite)
-    gültig = prüfe_gültigkeit(permutations,i,'z')
-    überdeckung = [all(e[0] == x for x in e) for e in zip(*gültig)]
-    for i2,ü in enumerate(überdeckung):
-      setze = gültig[0][i2]
-      if ü and grid[i2][i] != setze: 
-        grid[i2][i] = setze
-        änderung = True
+
+def solve(hinweise):
+  änderung = True
+  while änderung:
+    änderung = False
+    for vh,h in enumerate(hinweise):
+      größe = höhe if vh == 1 else breite
+      for i, e in enumerate(h):
+        permutations = get_permutations(e, größe)
+        gültig = prüfe_gültigkeit(permutations, i, vh)
+        überdeckung = [all(e[0] == n for n in e) for e in zip(*gültig)]
+        for i2, ü in enumerate(überdeckung):
+          setze = gültig[0][i2]
+          if vh == 0:
+            x,y = i2, i
+          else:
+            x,y = i, i2  
+          if ü and grid[y][x] == None:
+            grid[y][x] = setze
+            änderung = True
+    showGrid(grid)        
+  return grid
     
-  
-print(pfc()-start)
-showGrid(grid)
+
+
+H,V = 0,1
+probleme = probleme_einlesen('Teil_xx_Nonogram_problems.txt')
+
+for hinweise in probleme:
+
+  start = pfc()
+  breite, höhe = len(hinweise[V]), len(hinweise[H])
+  print(f'Breite = {breite}, Höhe = {höhe}')
+  grid = [[None]*breite for _ in range(höhe)]
+
+  if not prüfe_machbarkeit(hinweise):
+    print('Sorry. Dieses Nonogramm ist feherhaft und kann nicht gelöst werden')
+    exit()
+
+  showGrid(solve(hinweise))
+  print(pfc()-start)
