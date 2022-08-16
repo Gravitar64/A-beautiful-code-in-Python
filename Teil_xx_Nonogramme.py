@@ -5,20 +5,18 @@ def prüfe_machbarkeit(hinweise):
   return sum([sum(s) for s in hinweise[0]]) == sum([sum(z) for z in hinweise[1]])
 
 
-def permutation(einträge, length):
+def permutation(einträge, länge):
   
   def gen_segment(e, l):
     if not e: return [[2] * l]
-    return [[2] * x + e[0] + tail
+    return [[2] * x + e[0] + rest
             for x in range(1, l - len(e) + 2)
-            for tail in gen_segment(e[1:], l - x)]
-
+            for rest in gen_segment(e[1:], l - x)]
   
   return [x[1:] for x in gen_segment(
           [[1] * i for i in einträge], 
-          length + 1 - sum(einträge))]
+          länge + 1 - sum(einträge))]
   
-
 
 def prüfe_gültigkeit(perm, i, typ):
   if typ == 1:
@@ -28,7 +26,9 @@ def prüfe_gültigkeit(perm, i, typ):
   if all(e == 0 for e in vergleich): return perm
   gültig = []
   for p in perm:
-    if not all(vergleich[n] == 0 or vergleich[n] == e for n, e in enumerate(p)):
+    if all(vergleich[n] == e for n,e in enumerate(p)): continue
+    if not all(vergleich[n] == 0 or 
+               vergleich[n] == e for n, e in enumerate(p)):
       continue
     gültig.append(p)
   return gültig
@@ -36,13 +36,12 @@ def prüfe_gültigkeit(perm, i, typ):
 
 def showGrid(grid):
   for zeile in grid:
-    print(' '.join(['?* '[c] for c in zeile]))
+    print(' '.join(['?# '[c] for c in zeile]))
   print()
 
 
 def probleme_einlesen(datei):
   probleme = []
-
   with open(datei) as f:
     for problem in f.read().split('\n\n'):
       probleme.append([[[ord(c)-64 for c in e] for e in hv.split()]
@@ -51,8 +50,9 @@ def probleme_einlesen(datei):
 
 
 def solve(hinweise):
-  änderung = True
   verlauf = {}
+  änderung = True
+    
   while änderung:
     änderung = False
     for vh, h in enumerate(hinweise):
