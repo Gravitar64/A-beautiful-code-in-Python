@@ -1,4 +1,5 @@
 from time import perf_counter as pfc
+import itertools as itt
 
 
 def prüfe_machbarkeit(hinweise):
@@ -6,16 +7,20 @@ def prüfe_machbarkeit(hinweise):
 
 
 def permutation(einträge, länge):
+  permutationen = []
+  anz_blöcke = len(einträge)
+  anz_leer = länge-sum(einträge)-anz_blöcke+1
   
-  def gen_segment(e, l):
-    if not e: return ['2' * l]
-    return ['2' * x + e[0] + rest
-            for x in range(1, l - len(e) + 2)
-            for rest in gen_segment(e[1:], l - x)]
+  for v in itt.combinations(range(anz_blöcke+anz_leer), anz_blöcke):
+    v = [v[0]]+[b-a for a,b in zip(v,v[1:])]
+    p = ''
+    for i,pos in enumerate(v):
+      p += '2'*pos+'1'*einträge[i]
+    p+='2'*(anz_leer)
+    permutationen.append(p[:länge])
+  return permutationen
   
-  return [x[1:] for x in gen_segment(
-          ['1' * i for i in einträge], 
-          länge + 1 - sum(einträge))]
+  
   
 
 def prüfe_gültigkeit(perm, i, typ):
@@ -72,12 +77,11 @@ def solve(hinweise):
             änderung = True
   return grid
 
-start = pfc()
 H, V = 0, 1
 probleme = probleme_einlesen('Teil_xx_Nonogram_problems.txt')
 
 for hinweise in probleme:
-
+  start = pfc()
   breite, höhe = len(hinweise[V]), len(hinweise[H])
   print(f'Breite = {breite}, Höhe = {höhe}')
   grid = [['0']*breite for _ in range(höhe)]
@@ -87,4 +91,4 @@ for hinweise in probleme:
     exit()
 
   showGrid(solve(hinweise))
-print(pfc()-start)
+  print(pfc()-start)
