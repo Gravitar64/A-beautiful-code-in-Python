@@ -23,7 +23,6 @@ def prüfe_gültigkeit(perm, i, typ):
   if all(e == '0' for e in vergleich): return perm
   gültig = []
   for p in perm:
-    if all(vergleich[n] == e for n,e in enumerate(p)): continue
     if not all(vergleich[n] == '0' or 
                vergleich[n] == e for n, e in enumerate(p)):
       continue
@@ -48,8 +47,8 @@ def probleme_einlesen(datei):
 
 def solve(hinweise):
   verlauf = {}
+  
   änderung = True
-    
   while änderung:
     änderung = False
     for vh, h in enumerate(hinweise):
@@ -61,16 +60,15 @@ def solve(hinweise):
           permutations = permutation(e,größe)
         gültig = prüfe_gültigkeit(permutations, i, vh)
         verlauf[(vh,i)] = gültig
-        überdeckung = [all(e[0] == n for n in e) for e in zip(*gültig)]
-        for i2, ü in enumerate(überdeckung):
+        treffer = [all(e[0] == n for n in e) for e in zip(*gültig)]
+        for i2, ü in enumerate(treffer):
           if not ü: continue
-          setze = gültig[0][i2]
           if vh == 0:
             x, y = i2, i
           else:
             x, y = i, i2
           if grid[y][x] == '0':
-            grid[y][x] = setze
+            grid[y][x] = gültig[0][i2]
             änderung = True
   return grid
 
