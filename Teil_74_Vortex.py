@@ -1,8 +1,8 @@
 import pygame as pg
 import math
 
-multiplier = 2 
-modulus = 9
+multiplier = 100 
+modulus = 21
 winkelschritt = math.tau / modulus
 breite = höhe = 1080
 zentrum = (breite//2, höhe//2)

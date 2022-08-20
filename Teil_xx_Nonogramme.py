@@ -1,38 +1,33 @@
 from time import perf_counter as pfc
 import itertools as itt
-import math
 
 
 def prüfe_machbarkeit(hinweise):
   return sum([sum(s) for s in hinweise[0]]) == sum([sum(z) for z in hinweise[1]])
 
 
-def permutation(einträge, länge,vergleich, ist_leer):
+def permutation(einträge, länge):
   permutationen = []
   anz_blöcke = len(einträge)
   anz_leer = länge-sum(einträge)-anz_blöcke+1
   for v in itt.combinations(range(anz_blöcke+anz_leer), anz_blöcke):
     v = [v[0]]+[b-a for a,b in zip(v,v[1:])]
-    p = ''
-    abbruch = False
-    for i,pos in enumerate(v):
-      p += '2'*pos+'1'*einträge[i]
-      if not ist_leer:
-        for i2,c in enumerate(p):
-          if vergleich[i2] != '0' and vergleich[i2] != c:
-            abbruch = True
-            break
-      if abbruch: break    
-    else:    
-      p+='2'*(anz_leer)
-      permutationen.append(p[:länge])
+    p= ''.join(['2'*pos+'1'*einträge[i] for i,pos in enumerate(v)])
+    p+='2'*(anz_leer)
+    permutationen.append(p[:länge])
   return permutationen
   
 
-def prüfe_gültigkeit(perm, vergleich):
-  return [p for p in perm 
-          if all(vergleich[n] == '0' or 
-             vergleich[n] == e for n, e in enumerate(p))]
+def prüfe_gültigkeit(perm, i, typ):
+  vergleich = grid[i] if typ == 0 else [grid[y][i] for y in range(höhe)]
+  if all(e == '0' for e in vergleich): return perm
+  gültig = []
+  for p in perm:
+    if not all(vergleich[n] == '0' or vergleich[n] == e  
+               for n, e in enumerate(p)):
+      continue
+    gültig.append(p)
+  return gültig
 
 
 def showGrid(grid):
@@ -49,26 +44,6 @@ def probleme_einlesen(datei):
                        for hv in problem.split('\n')])
   return probleme
 
-def get_anz_perm(h,n):
-  k = len(h)
-  m = sum(h)
-  return math.comb(n-m+1,k)
-
-
-def gen_sortierte_hinweise(hinweise,verlauf):
-  erg = []
-  for vh,hi in enumerate(hinweise): 
-    größe = höhe if vh == 1 else breite
-    for i,h in enumerate(hi):
-      if (vh,i) in verlauf:
-        anz = len(verlauf[(vh,i)])
-      else:
-        anz = get_anz_perm(h,größe)
-      erg.append((anz,vh,i,h))    
-  return sorted(erg)
-  
-
-
 
 def solve(hinweise):
   verlauf = {}
@@ -76,26 +51,22 @@ def solve(hinweise):
   änderung = True
   while änderung:
     änderung = False
-    einträge = gen_sortierte_hinweise(hinweise,verlauf)
-    for _,vh,i,e in einträge:
+    for vh, h in enumerate(hinweise):
       größe = höhe if vh == 1 else breite
-      vergleich = grid[i] if vh == 0 else [grid[y][i] for y in range(höhe)]
-      ist_leer = all(e == '0' for e in vergleich)
-      if (vh,i) in verlauf:
-        if not ist_leer:
-          verlauf[(vh,i)] = prüfe_gültigkeit(verlauf[(vh,i)], vergleich)
-      else:
-        verlauf[(vh,i)] = permutation(e,größe,vergleich,ist_leer)
-      treffer = [all(e[0] == n for n in e) for e in zip(*verlauf[(vh,i)])]
-      for i2, ü in enumerate(treffer):
-        if not ü: continue
-        if vh == 0:
-          x, y = i2, i
-        else:
-          x, y = i, i2
-        if grid[y][x] == '0':
-          grid[y][x] = verlauf[(vh,i)][0][i2]
-          änderung = True
+      for i, e in enumerate(h):
+        permutations = verlauf[(vh,i)] if (vh,i) in verlauf else permutation(e,größe)
+        gültig = prüfe_gültigkeit(permutations, i, vh)
+        verlauf[(vh,i)] = gültig
+        treffer = [all(e[0] == n for n in e) for e in zip(*gültig)]
+        for i2, t in enumerate(treffer):
+          if not t: continue
+          if vh == 0:
+            x, y = i2, i
+          else:
+            x, y = i, i2
+          if grid[y][x] == '0':
+            grid[y][x] = gültig[0][i2]
+            änderung = True
   return grid
 
 H, V = 0, 1
