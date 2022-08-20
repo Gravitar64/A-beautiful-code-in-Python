@@ -2,11 +2,11 @@ from time import perf_counter as pfc
 import itertools as itt
 
 
-def prüfe_machbarkeit(hinweise):
-  return sum([sum(s) for s in hinweise[0]]) == sum([sum(z) for z in hinweise[1]])
+def fehlerhaftes_nonogramm(zeilen,spalten):
+  return sum(map(sum,spalten)) != sum(map(sum,zeilen))
 
 
-def permutation(einträge, länge):
+def gen_permutationen(einträge, länge):
   permutationen = []
   anz_blöcke = len(einträge)
   anz_leer = länge-sum(einträge)-anz_blöcke+1
@@ -19,7 +19,7 @@ def permutation(einträge, länge):
   
 
 def prüfe_gültigkeit(perm, i, typ):
-  vergleich = grid[i] if typ == 0 else [grid[y][i] for y in range(höhe)]
+  vergleich = grid[i] if typ == ZEILEN else [grid[y][i] for y in range(höhe)]
   if all(e == '0' for e in vergleich): return perm
   gültig = []
   for p in perm:
@@ -36,31 +36,32 @@ def showGrid(grid):
   print()
 
 
-def probleme_einlesen(datei):
-  probleme = []
+def datei_einlesen(datei):
+  nonogramme = []
   with open(datei) as f:
-    for problem in f.read().split('\n\n'):
-      probleme.append([[[ord(c)-64 for c in e] for e in hv.split()]
-                       for hv in problem.split('\n')])
-  return probleme
+    for nonogramm in f.read().split('\n\n'):
+      nonogramme.append([[[ord(c)-64 for c in e] for e in hv.split()]
+                       for hv in nonogramm.split('\n')])
+  return nonogramme
 
 
-def solve(hinweise):
+def löse(nonogramm):
   verlauf = {}
   
   änderung = True
   while änderung:
     änderung = False
-    for vh, h in enumerate(hinweise):
-      größe = höhe if vh == 1 else breite
-      for i, e in enumerate(h):
-        permutations = verlauf[(vh,i)] if (vh,i) in verlauf else permutation(e,größe)
-        gültig = prüfe_gültigkeit(permutations, i, vh)
-        verlauf[(vh,i)] = gültig
+    for sicht, hinweise in enumerate(nonogramm):
+      größe = höhe if sicht == SPALTEN else breite
+      for i, e in enumerate(hinweise):
+        permutationen = verlauf[(sicht,i)] if (sicht,i) in verlauf \
+                        else gen_permutationen(e,größe)
+        gültig = prüfe_gültigkeit(permutationen, i, sicht)
+        verlauf[(sicht,i)] = gültig
         treffer = [all(e[0] == n for n in e) for e in zip(*gültig)]
         for i2, t in enumerate(treffer):
           if not t: continue
-          if vh == 0:
+          if sicht == ZEILEN:
             x, y = i2, i
           else:
             x, y = i, i2
@@ -69,18 +70,18 @@ def solve(hinweise):
             änderung = True
   return grid
 
-H, V = 0, 1
-probleme = probleme_einlesen('Teil_xx_Nonogram_problems.txt')
+ZEILEN, SPALTEN = 0, 1
+nonogramme = datei_einlesen('Teil_81_Nonogram_problems.txt')
 
-for hinweise in probleme:
+for nonogramm in nonogramme:
   start = pfc()
-  breite, höhe = len(hinweise[V]), len(hinweise[H])
+  breite, höhe = len(nonogramm[SPALTEN]), len(nonogramm[ZEILEN])
   print(f'Breite = {breite}, Höhe = {höhe}')
   grid = [['0']*breite for _ in range(höhe)]
 
-  if not prüfe_machbarkeit(hinweise):
+  if fehlerhaftes_nonogramm(*nonogramm):
     print('Sorry. Dieses Nonogramm ist feherhaft und kann nicht gelöst werden')
     exit()
 
-  showGrid(solve(hinweise))
+  showGrid(löse(nonogramm))
   print(pfc()-start)
