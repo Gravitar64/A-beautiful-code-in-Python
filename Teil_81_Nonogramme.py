@@ -10,8 +10,8 @@ def datei_einlesen(datei):
                for nonogramm in f.read().split('\n\n')]
 
 
-def nonogramm_fehlerhaft(zeilen, spalten):
-  return sum(map(sum, zeilen)) != sum(map(sum, spalten))
+def nonogramm_fehlerhaft(n):
+  return sum(map(sum, n[ZEILEN])) != sum(map(sum, n[SPALTEN]))
 
 
 def gen_permutationen(zf, l):
@@ -26,9 +26,8 @@ def gen_permutationen(zf, l):
 
 
 def prüfe_gültig(perm, i, sicht):
-  vergleich = grid[i] if sicht == ZEILEN else [grid[z][i] for z in range(höhe)]
-  if all(e == '?' for e in vergleich):
-    return perm
+  vergleich = raster[i] if sicht == ZEILEN else [raster[z][i] for z in range(höhe)]
+  if all(e == '?' for e in vergleich): return perm
   gültige = []
   for p in perm:
     if not all(vergleich[i] == '?' or vergleich[i] == e for i, e in enumerate(p)):
@@ -58,14 +57,13 @@ def löse(nonogramm):
             z, s = i, i2
           else:
             z, s = i2, i
-          if grid[z][s] == '?':
-            grid[z][s] = gültige[0][i2]
+          if raster[z][s] == '?':
+            raster[z][s] = gültige[0][i2]
             änderung = True
-  return grid
 
 
-def zeige_grid(grid):
-  for zeile in grid:
+def zeige_raster():
+  for zeile in raster:
     print(' '.join(zeile))
   print()
 
@@ -76,12 +74,12 @@ ZEILEN, SPALTEN = 0, 1
 
 for nonogramm in nonogramme:
   start = pfc()
-  if nonogramm_fehlerhaft(*nonogramm):
+  if nonogramm_fehlerhaft(nonogramm):
     print('Sorry, das Nonogramm ist fehlerhaft und kann nicht gelöst werden')
-    exit()
+    continue
 
   breite, höhe = len(nonogramm[SPALTEN]), len(nonogramm[ZEILEN])
-  grid = [['?']*breite for _ in range(höhe)]
-  grid = löse(nonogramm)
+  raster = [['?']*breite for _ in range(höhe)]
+  löse(nonogramm)
+  zeige_raster()
   print(pfc()-start)
-  zeige_grid(grid)
