@@ -1,5 +1,4 @@
 import itertools as itt
-from time import perf_counter as pfc
 
 
 def datei_einlesen(datei):
@@ -14,24 +13,29 @@ def nonogramm_fehlerhaft(n):
   return sum(map(sum, n[ZEILEN])) != sum(map(sum, n[SPALTEN]))
 
 
+def zeige_raster():
+  for zeile in raster:
+    print(' '.join(zeile))
+  print()
+
+
 def gen_permutationen(zf, l):
   permutationen = []
   anz_blöcke = len(zf)
   anz_leer = l-sum(zf)-anz_blöcke+1
   for v in itt.combinations(range(anz_blöcke+anz_leer), anz_blöcke):
     v = [v[0]] + [b-a for a, b in zip(v, v[1:])]
-    permutationen.append(''.join([' '*leer+'#'*zf[i]
+    permutationen.append(''.join([' '*leer + '#'*zf[i]
                                   for i, leer in enumerate(v)]).ljust(l, ' '))
   return permutationen
 
 
-def prüfe_gültig(perm, i, sicht):
+def prüfe_gültig(perm, sicht, i):
   vergleich = raster[i] if sicht == ZEILEN else [raster[z][i] for z in range(höhe)]
   if all(e == '?' for e in vergleich): return perm
   gültige = []
   for p in perm:
-    if not all(vergleich[i] == '?' or vergleich[i] == e for i, e in enumerate(p)):
-      continue
+    if not all(vergleich[i] == '?' or vergleich[i] == e for i, e in enumerate(p)): continue
     gültige.append(p)
   return gültige
 
@@ -48,11 +52,11 @@ def löse(nonogramm):
           permutationen = speicher[(sicht, i)]
         else:
           permutationen = gen_permutationen(zahlenfolge, größe)
-        gültige = prüfe_gültig(permutationen, i, sicht)
+        gültige = prüfe_gültig(permutationen, sicht, i)
         speicher[(sicht, i)] = gültige
-        treffer = [set(s) for s in zip(*gültige)]
-        for i2, t in enumerate(treffer):
-          if len(t) != 1: continue
+        eindeutige = [set(s) for s in zip(*gültige)]
+        for i2, e in enumerate(eindeutige):
+          if len(e) != 1: continue
           if sicht == ZEILEN:
             z, s = i, i2
           else:
@@ -62,24 +66,14 @@ def löse(nonogramm):
             änderung = True
 
 
-def zeige_raster():
-  for zeile in raster:
-    print(' '.join(zeile))
-  print()
-
-
 nonogramme = datei_einlesen('Teil_81_Nonogram_problems.txt')
 ZEILEN, SPALTEN = 0, 1
 
-
 for nonogramm in nonogramme:
-  start = pfc()
   if nonogramm_fehlerhaft(nonogramm):
-    print('Sorry, das Nonogramm ist fehlerhaft und kann nicht gelöst werden')
+    print('Sorry, das Nonogramm ist feherhaft und kann nicht gelöst werden')
     continue
-
   breite, höhe = len(nonogramm[SPALTEN]), len(nonogramm[ZEILEN])
   raster = [['?']*breite for _ in range(höhe)]
   löse(nonogramm)
   zeige_raster()
-  print(pfc()-start)
