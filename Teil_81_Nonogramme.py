@@ -48,10 +48,7 @@ def löse(nonogramm):
     for sicht, zahlenfolgen in enumerate(nonogramm):
       größe = breite if sicht == ZEILEN else höhe
       for zs, zahlenfolge in enumerate(zahlenfolgen):
-        if (sicht, zs) in speicher:
-          permutationen = speicher[(sicht, zs)]
-        else:
-          permutationen = gen_permutationen(zahlenfolge, größe)
+        permutationen = speicher.get((sicht,zs), gen_permutationen(zahlenfolge, größe))
         gültige = prüfe_gültig(permutationen, sicht, zs)
         speicher[(sicht, zs)] = gültige
         eindeutige = [(i,s[0]) for i,s in enumerate(zip(*gültige)) if len(set(s)) == 1]
