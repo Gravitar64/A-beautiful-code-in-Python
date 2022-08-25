@@ -5,13 +5,35 @@ from time import perf_counter as pfc
 def datei_einlesen(datei):
   with open(datei) as f:
     return [[[[ord(buchst)-64 for buchst in zf]
-               for zf in zeile.split()]
-               for zeile in nonogramm.split('\n')]
-               for nonogramm in f.read().split('\n\n')]
+              for zf in zeile.split()]
+             for zeile in nonogramm.split('\n')]
+            for nonogramm in f.read().split('\n\n')]
 
 
-def nonogramm_fehlerhaft(n):
-  return sum(map(sum, n[ZEILEN])) != sum(map(sum, n[SPALTEN]))
+def nonogramm_fehlerhaft(nonogramm):
+  return sum(map(sum, nonogramm[ZEILEN])) != sum(map(sum, nonogramm[SPALTEN]))
+
+
+def gen_perm(zf, l):
+  perm = []
+  for v in itt.combinations(range(l-sum(zf)+1), len(zf)):
+    v = [v[0]] + [b-a for a, b in zip(v, v[1:])]
+    perm.append(''.join([' '*leer + '#'*zf[i]
+                         for i, leer in enumerate(v)]).ljust(l, ' '))
+  return perm
+
+
+def prüfe_gültige(perm, sicht, zs):
+  vergleich = spielfeld[zs] if sicht == ZEILEN else [
+      spielfeld[z][zs] for z in range(höhe)]
+  if all(e == '?' for e in vergleich):
+    return perm
+  gültige = []
+  for p in perm:
+    if not all(a == '?' or a == b for a, b in zip(vergleich, p)):
+      continue
+    gültige.append(p)
+  return gültige
 
 
 def zeige_spielfeld():
@@ -20,27 +42,7 @@ def zeige_spielfeld():
   print()
 
 
-def gen_permutationen(zf, l):
-  permutationen = []
-  max_leer = l - sum(zf) + 1
-  for v in itt.combinations(range(max_leer), len(zf)):
-    v = [v[0]] + [b-a for a, b in zip(v, v[1:])]
-    permutationen.append(''.join([' '*leer + '#'*zf[i]
-                                  for i, leer in enumerate(v)]).ljust(l, ' '))
-  return permutationen
-
-
-def prüfe_gültig(perm, sicht, i):
-  vergleich = spielfeld[i] if sicht == ZEILEN else [spielfeld[z][i] for z in range(höhe)]
-  if all(e == '?' for e in vergleich): return perm
-  gültige = []
-  for p in perm:
-    if not all(vergleich[i] == '?' or vergleich[i] == e for i, e in enumerate(p)): continue
-    gültige.append(p)
-  return gültige
-
-
-def löse(nonogramm):
+def löse_nonogramm(nonogramm):
   speicher = {}
   änderung = True
   while änderung:
@@ -48,12 +50,12 @@ def löse(nonogramm):
     for sicht, zahlenfolgen in enumerate(nonogramm):
       größe = breite if sicht == ZEILEN else höhe
       for zs, zahlenfolge in enumerate(zahlenfolgen):
-        permutationen = speicher.get((sicht,zs), gen_permutationen(zahlenfolge, größe))
-        gültige = prüfe_gültig(permutationen, sicht, zs)
-        speicher[(sicht, zs)] = gültige
-        eindeutige = [(i,s[0]) for i,s in enumerate(zip(*gültige)) if len(set(s)) == 1]
+        perm = speicher[(sicht,zs)] if (sicht,zs) in speicher else gen_perm(zahlenfolge, größe)
+        gültige = prüfe_gültige(perm, sicht, zs)
+        speicher[(sicht,zs)] = gültige
+        eindeutige = [(i, s[0]) for i, s in enumerate(zip(*gültige)) if len(set(s)) == 1]
         for sz, e in eindeutige:
-          z,s = (zs,sz) if sicht == ZEILEN else (sz,zs)
+          z, s = (zs, sz) if sicht == ZEILEN else (sz, zs)
           if spielfeld[z][s] != e:
             spielfeld[z][s] = e
             änderung = True
@@ -62,13 +64,14 @@ def löse(nonogramm):
 nonogramme = datei_einlesen('Teil_81_Nonogram_problems.txt')
 ZEILEN, SPALTEN = 0, 1
 
+
 for nonogramm in nonogramme:
   start = pfc()
   if nonogramm_fehlerhaft(nonogramm):
-    print('Sorry, das Nonogramm ist feherhaft und kann nicht gelöst werden')
+    print('Sorry, das Nonogramm ist fehlerhaft und kann nicht gelöst werden')
     continue
   breite, höhe = len(nonogramm[SPALTEN]), len(nonogramm[ZEILEN])
   spielfeld = [['?']*breite for _ in range(höhe)]
-  löse(nonogramm)
+  löse_nonogramm(nonogramm)
   zeige_spielfeld()
   print(pfc()-start)
