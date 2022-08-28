@@ -20,23 +20,22 @@ def zeige_spielfeld():
   print()
 
 
-def gen_perm(zf, l):
+def gen_permutationen(zf, g):
   perm = []
-  for p in itt.combinations(range(l-sum(zf)+1), len(zf)):
-    p = [p[0]] + [b-a for a,b in zip(p, p[1:])]
-    perm.append(''.join([' '*leer + '#'*zf[i] for i,leer in enumerate(p)]).ljust(l,' '))
+  for p in itt.combinations(range(g-sum(zf)+1), len(zf)):
+    p = [p[0]] + [b-a for a,b in zip(p,p[1:])]
+    perm.append(''.join([' '*leer + '#'*zf[i] for i,leer in enumerate(p)]).ljust(g, ' '))
   return perm
 
 
-def prüfe_gültige(perm, sicht, zs):
+def gen_gültige(perm, sicht, zs):
   vergleich = spielfeld[zs] if sicht == ZEILEN else [spielfeld[z][zs] for z in range(höhe)]
-  if all(e == '?' for e in vergleich): return perm
+  if all(e=='?' for e in vergleich): return perm
   gültige = []
   for p in perm:
     if not all(a=='?' or a == b for a,b in zip(vergleich, p)): continue
     gültige.append(p)
-  return gültige    
-
+  return gültige   
 
 def löse_nonogramm(nonogramm):
   speicher = {}
@@ -46,17 +45,17 @@ def löse_nonogramm(nonogramm):
     for sicht, zahlenfolgen in enumerate(nonogramm):
       größe = breite if sicht == ZEILEN else höhe
       for zs, zahlenfolge in enumerate(zahlenfolgen):
-        perm = speicher[(sicht,zs)] if (sicht,zs) in speicher else gen_perm(zahlenfolge, größe)
-        gültige = prüfe_gültige(perm, sicht, zs)
+        perm = speicher[(sicht,zs)] if (sicht,zs) in speicher else gen_permutationen(zahlenfolge, größe)
+        gültige = gen_gültige(perm, sicht, zs)
         speicher[(sicht,zs)] = gültige
-        eindeutige = [(i, s[0]) for i, s in enumerate(zip(*gültige)) if len(set(s)) == 1]
-        for sz, e in eindeutige:
+        eindeutige = [(i, sp[0]) for i,sp in enumerate(zip(*gültige)) if len(set(sp)) == 1]
+        for sz, feld in eindeutige:
           z,s = (zs, sz) if sicht == ZEILEN else (sz, zs)
-          if spielfeld[z][s] != e:
-            spielfeld[z][s] = e
+          if spielfeld[z][s] != feld:
+            spielfeld[z][s] = feld
             änderung = True
 
-
+  
 
 nonogramme = datei_einlesen('Teil_81_Nonogram_problems.txt')
 ZEILEN, SPALTEN = 0, 1
