@@ -9,51 +9,56 @@ def i2sz(i):
 
 
 def create_new_forest(ZELLEN):
-  return [BAUM if rnd.random() <= START_BÄUME else LEER for _ in range(ZELLEN*ZELLEN)]
+  return {i2sz(i):[BAUM,1]  for i in range(ZELLEN*ZELLEN) if rnd.random() <= START_BÄUME}
 
 
 def display_forest(forest):
-  for i,b in enumerate(forest):
-    if b == LEER: continue
-    s,z = i2sz(i)
-    color = '#00ff00' if b == BAUM else '#ff0000'
-    pg.draw.rect(fenster,color,(s*PIXEL,z*PIXEL,PIXEL,PIXEL))    
+  for (s,z),(b,alter) in forest.items():
+    farbe.hsva = (122,100,max(100-alter,10))  if b == BAUM else (0,61,100)
+    pg.draw.rect(fenster,farbe,(s*PIXEL,z*PIXEL,PIXEL,PIXEL))    
       
 
-def feuer_nachbarn(i,f):
-  f[i] = LEER
-  s,z = i2sz(i)
+def feuer_nachbarn(s,z,f):
+  del f[(s,z)]
   for ds,dz in itt.product(range(-1,2), range(-1,2)):
-    s2, z2 = s+ds, z+dz
-    i2 = z2*ZELLEN + s2
-    if s2 < 0 or s2 >= ZELLEN or z2 <0 or z2 >= ZELLEN or f[i2] != BAUM: continue
-    f[i2] = BRENNT
+    if not (s+ds, z+dz) in f: continue
+    if f[(s+ds, z+dz)][0] != BAUM: continue
+    f[(s+ds, z+dz)] = [BRENNT,1]
     
 
 def sim(forest):
   forest2 = forest.copy()
-  for i, b in enumerate(forest):
-    if b == LEER and rnd.random() <= WACHSTUM:
-      forest2[i] = BAUM
-    elif b == BAUM and rnd.random() <= BRAND:
-      forest2[i] = BRENNT
-    elif b == BRENNT:
-      feuer_nachbarn(i, forest2)
+  stichprobe = int(len(KOORD) * WACHSTUM)
+  for _ in range(stichprobe):
+    pos = rnd.choice(KOORD)
+    if (pos) in forest: continue
+    forest2[pos] = [BAUM,1]
+  
+  for pos, b in forest.items():
+    if b[0] == BAUM: 
+      if rnd.random() <= BRAND:
+        forest2[pos] = [BRENNT,1]
+      else:
+        forest2[pos][1] += 1  
+    elif b[0] == BRENNT:
+      feuer_nachbarn(*pos, forest2)
   return forest2
 
 
 LEER, BAUM, BRENNT  = 0,1,2 
 START_BÄUME = 0.5
 WACHSTUM = 0.01          
-BRAND = 0.001           
+BRAND = 0.001         
 
 
 pg.init()
 ZELLEN, PIXEL = 80, 10
+KOORD = [(s,z) for s,z in itt.product(range(ZELLEN), range(ZELLEN))]
 fenster_b, fenster_h = ZELLEN*PIXEL, ZELLEN*PIXEL
 fenster = pg.display.set_mode((fenster_b, fenster_h))
 clock = pg.time.Clock()
-FPS = 15
+farbe = pg.Color(0)
+FPS = 2
 
 forest = create_new_forest(ZELLEN)
 
@@ -71,6 +76,5 @@ while True:
   forest = sim(forest)
   gesamt += pfc() - start
   print(gesamt/frames)
-  
   display_forest(forest)
   pg.display.flip()
