@@ -3,14 +3,16 @@ import moviepy.editor as mvpe
 
 def lade_datei(datei):
   name, ext = datei.split('.')
-  return mvpe.VideoFileClip(datei), name+'_stille.'+ext
+  return mvpe.VideoFileClip(datei), name+'_kurz.'+ext
 
 
 ab, stille = 0.05, 0.03
-video, ausgabedatei = lade_datei('Teil_83_Beispiel.mp4')
-clips = [video.subclip(i*ab, (i+1)*ab) for i in range(int(video.end/ab))
-         if video.subclip(i*ab, (i+1)*ab).audio.max_volume() >= stille]
-video2 = mvpe.concatenate_videoclips(clips)
-video2.write_videofile(ausgabedatei, fps=30, preset='ultrafast', codec='libx264',
-                      temp_audiofile='temp-audio.m4a', remove_temp=True, audio_codec='aac', threads=4)
-print(f'Länge vorher/nachher in Sek.: {video.end:.2f} / {video2.end:.2f}')         
+
+v1, ausgabedatei = lade_datei('Teil_83_Beispiel.mp4')
+clips = [v1.subclip(i*ab, (i+1)*ab) for i in range(int(v1.end/ab))
+         if v1.subclip(i*ab, (i+1)*ab).audio.max_volume() >= stille]
+v2 = mvpe.concatenate_videoclips(clips)
+v2.write_videofile(ausgabedatei, fps=30, preset='ultrafast', codec='libx264',
+                   temp_audiofile='temp-audio.m4a', remove_temp=True, audio_codec='aac', threads=4)
+
+print(f'Länge vorher/nachher : {v1.end:.2f} Sek. / {v2.end:.2f} Sek.')
