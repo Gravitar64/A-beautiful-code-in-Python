@@ -1,5 +1,5 @@
 import moviepy.editor as mvpe
-import numpy as np
+import itertools as it
 
 
 def lade_datei(datei):
@@ -7,22 +7,18 @@ def lade_datei(datei):
   return mvpe.VideoFileClip(datei), name+'_stille.'+ext
 
 
-def finde_sprache(audio, abschnitt, min_lautst):
-  schnittliste, sprache = [], False
-
-  for zeit in np.arange(0, audio.end, abschnitt):
-    lautst = audio.subclip(zeit, zeit+abschnitt).max_volume()
-    if lautst >= min_lautst and not sprache:
-      start = zeit
-      sprache = True
-    elif lautst < min_lautst and sprache:
-      schnittliste.append([start, zeit])
-      sprache = False
-
-  if sprache:
-      schnittliste.append([start, zeit])
-
+def finde_sprache(audio, ab, stille):
+  a = [audio.subclip(i*ab, (i+1)*ab).max_volume() >= stille
+       for i in range(int(audio.end/ab))]
+  b = [(k,len(list(g))*ab) for k,g in it.groupby(a)]
+  
+  schnittliste, start = [], 0
+  for sprache, länge in b:
+    if sprache: 
+      schnittliste.append((start,start+länge))
+    start += länge   
   return schnittliste        
+
 
 video, ausgabedatei = lade_datei('Teil_83_Beispiel.mp4')
 schnittliste = finde_sprache(video.audio, 0.05, 0.03)
