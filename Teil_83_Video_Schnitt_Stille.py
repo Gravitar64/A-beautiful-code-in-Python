@@ -13,5 +13,4 @@ clips = [video.subclip(i*ab, (i+1)*ab) for i in range(int(video.end/ab))
 video2 = mvpe.concatenate_videoclips(clips)
 video2.write_videofile(ausgabedatei, fps=30, preset='ultrafast', codec='libx264',
                       temp_audiofile='temp-audio.m4a', remove_temp=True, audio_codec='aac', threads=4)
-video.close()              
 print(f'Länge vorher/nachher in Sek.: {video.end:.2f} / {video2.end:.2f}')         
