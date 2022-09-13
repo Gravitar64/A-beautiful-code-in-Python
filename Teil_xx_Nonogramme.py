@@ -2,85 +2,75 @@ from time import perf_counter as pfc
 import itertools as itt
 
 
-def prüfe_machbarkeit(hinweise):
-  return sum([sum(s) for s in hinweise[0]]) == sum([sum(z) for z in hinweise[1]])
+def datei_einlesen(datei):
+  with open(datei) as f:
+    return [[[[ord(buchst)-64 for buchst in zf]
+               for zf in zeile.split()]
+               for zeile in nonogramm.split('\n')]
+               for nonogramm in f.read().split('\n\n')]
 
 
-def permutation(einträge, länge):
-  permutationen = []
-  anz_blöcke = len(einträge)
-  anz_leer = länge-sum(einträge)-anz_blöcke+1
-  for v in itt.combinations(range(anz_blöcke+anz_leer), anz_blöcke):
-    v = [v[0]]+[b-a for a,b in zip(v,v[1:])]
-    p= ''.join(['2'*pos+'1'*einträge[i] for i,pos in enumerate(v)])
-    p+='2'*(anz_leer)
-    permutationen.append(p[:länge])
-  return permutationen
-  
-
-def prüfe_gültigkeit(perm, i, typ):
-  vergleich = grid[i] if typ == 0 else [grid[y][i] for y in range(höhe)]
-  if all(e == '0' for e in vergleich): return perm
-  gültig = []
-  for p in perm:
-    if not all(vergleich[n] == '0' or vergleich[n] == e  
-               for n, e in enumerate(p)):
-      continue
-    gültig.append(p)
-  return gültig
+def nonogramm_fehlerhaft(nonogramm):
+  return sum(map(sum, nonogramm[ZEILEN])) != sum(map(sum, nonogramm[SPALTEN]))
 
 
-def showGrid(grid):
-  for zeile in grid:
-    print(' '.join(['?# '[int(c)] for c in zeile]))
+def zeige_spielfeld():
+  for zeile in spielfeld:
+    print(' '.join(zeile))
   print()
 
 
-def probleme_einlesen(datei):
-  probleme = []
-  with open(datei) as f:
-    for problem in f.read().split('\n\n'):
-      probleme.append([[[ord(c)-64 for c in e] for e in hv.split()]
-                       for hv in problem.split('\n')])
-  return probleme
+def gen_permutationen(zf, g):
+  perm = []
+  for p in itt.combinations(range(g-sum(zf)+1), len(zf)):
+    p = [p[0]] + [b-a for a,b in zip(p,p[1:])]
+    perm.append(''.join([' '*leer + '#'*zf[i] for i,leer in enumerate(p)]).ljust(g, ' '))
+  return perm
 
 
-def solve(hinweise):
-  verlauf = {}
-  
+def gen_gültige(perm, sicht, zs):
+  vergleich = spielfeld[zs] if sicht == ZEILEN else [spielfeld[z][zs] for z in range(höhe)]
+  if all(e=='?' for e in vergleich): return perm
+  gültige = []
+  for p in perm:
+    for i in range(len(p)):
+      if vergleich[i] == '?': continue
+      if vergleich[i] != p[i]: break
+    else:  
+      gültige.append(p)
+  return gültige   
+
+def löse_nonogramm(nonogramm):
+  speicher = {}
   änderung = True
   while änderung:
     änderung = False
-    for vh, h in enumerate(hinweise):
-      größe = höhe if vh == 1 else breite
-      for i, e in enumerate(h):
-        permutations = verlauf[(vh,i)] if (vh,i) in verlauf else permutation(e,größe)
-        gültig = prüfe_gültigkeit(permutations, i, vh)
-        verlauf[(vh,i)] = gültig
-        treffer = [all(e[0] == n for n in e) for e in zip(*gültig)]
-        for i2, t in enumerate(treffer):
-          if not t: continue
-          if vh == 0:
-            x, y = i2, i
-          else:
-            x, y = i, i2
-          if grid[y][x] == '0':
-            grid[y][x] = gültig[0][i2]
+    for sicht, zahlenfolgen in enumerate(nonogramm):
+      größe = breite if sicht == ZEILEN else höhe
+      for zs, zahlenfolge in enumerate(zahlenfolgen):
+        perm = speicher[(sicht,zs)] if (sicht,zs) in speicher else gen_permutationen(zahlenfolge, größe)
+        gültige = gen_gültige(perm, sicht, zs)
+        speicher[(sicht,zs)] = gültige
+        eindeutige = [(i, sp[0]) for i,sp in enumerate(zip(*gültige)) if len(set(sp)) == 1]
+        for sz, feld in eindeutige:
+          z,s = (zs, sz) if sicht == ZEILEN else (sz, zs)
+          if spielfeld[z][s] != feld:
+            spielfeld[z][s] = feld
             änderung = True
-  return grid
 
-H, V = 0, 1
-probleme = probleme_einlesen('Teil_xx_Nonogram_problems.txt')
+  
 
-for hinweise in probleme:
+nonogramme = datei_einlesen('Teil_81_Nonogram_problems.txt')
+ZEILEN, SPALTEN = 0, 1
+
+for nonogramm in nonogramme:
   start = pfc()
-  breite, höhe = len(hinweise[V]), len(hinweise[H])
-  print(f'Breite = {breite}, Höhe = {höhe}')
-  grid = [['0']*breite for _ in range(höhe)]
-
-  if not prüfe_machbarkeit(hinweise):
-    print('Sorry. Dieses Nonogramm ist feherhaft und kann nicht gelöst werden')
-    exit()
-
-  showGrid(solve(hinweise))
+  if nonogramm_fehlerhaft(nonogramm):
+    print('Sorry, das Nonogramm ist fehlerhaft und kann nicht gelöst werden')
+    continue
+  breite, höhe = len(nonogramm[SPALTEN]), len(nonogramm[ZEILEN])
+  spielfeld = [['?'] * breite for _ in range(höhe)]
+  löse_nonogramm(nonogramm)
+  zeige_spielfeld()
   print(pfc()-start)
+

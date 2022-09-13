@@ -9,8 +9,7 @@ def lade_video(datei):
 
 def gen_video(video, ab, stille):
   audio = video.audio
-  a = [audio.subclip(i*ab, (i+1)*ab).max_volume() >=
-       stille for i in range(int(audio.end/ab))]
+  a = [audio.subclip(i*ab, (i+1)*ab).max_volume() >= stille for i in range(int(audio.end/ab))]
   b, l = zip(*[(k, len(list(v))*ab) for k, v in it.groupby(a)])
   schnitte = [(sum(l[:i]), sum(l[:i])+l[i]) for i in range(len(l)) if b[i]]
   return mvpe.concatenate_videoclips([video.subclip(s, e) for s, e in schnitte])

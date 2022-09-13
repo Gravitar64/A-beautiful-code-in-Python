@@ -13,7 +13,7 @@ def zeichne_wald(bäume, brand):
 
 
 pg.init()
-GR, PIXEL, FPS = 100, 5, 25
+GR, PIXEL, FPS = 80, 10, 25
 ANF_BESTAND, WACHSTUM, BRAND = 0.2, 0.01, 0.0005
 fenster = pg.display.set_mode((GR*PIXEL, GR*PIXEL))
 clock = pg.time.Clock()

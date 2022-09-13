@@ -37,6 +37,7 @@ def gen_gültige(perm, sicht, zs):
     gültige.append(p)
   return gültige   
 
+
 def löse_nonogramm(nonogramm):
   speicher = {}
   änderung = True
@@ -55,7 +56,6 @@ def löse_nonogramm(nonogramm):
             spielfeld[z][s] = feld
             änderung = True
 
-  
 
 nonogramme = datei_einlesen('Teil_81_Nonogram_problems.txt')
 ZEILEN, SPALTEN = 0, 1
@@ -70,4 +70,3 @@ for nonogramm in nonogramme:
   löse_nonogramm(nonogramm)
   zeige_spielfeld()
   print(pfc()-start)
-
