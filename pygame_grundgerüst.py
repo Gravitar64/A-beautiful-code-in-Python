@@ -6,8 +6,8 @@ import pygame as pg
 #   --> sudo apt-get install python3-pygame (Linux Debian/Ubuntu/Mint)
 
 pg.init()
-fenster_b, fenster_h = 1920,1080
-fenster = pg.display.set_mode((fenster_b, fenster_h))
+fenster_g = fenster_b, fenster_h = 1920,1080
+fenster = pg.display.set_mode(fenster_g)
 zentrum = (fenster_b / 2, fenster_h / 2)
 
 clock = pg.time.Clock()
