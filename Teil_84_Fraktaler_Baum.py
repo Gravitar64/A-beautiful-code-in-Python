@@ -3,8 +3,7 @@ import math
 
 
 def zeichne_baum(x, y, 𝜙, verzweigungen):
-  if not verzweigungen:
-    return
+  if not verzweigungen: return
   x2 = x + math.cos(𝜙) * r * verzweigungen
   y2 = y + math.sin(𝜙) * r * verzweigungen
   farbe.hsva = (120, sh*verzweigungen, sh*verzweigungen)
@@ -28,5 +27,4 @@ pg.display.flip()
 while True:
   clock.tick(5)
   for ereignis in pg.event.get():
-    if ereignis.type == pg.QUIT:
-      quit()
+    if ereignis.type == pg.QUIT: quit()
