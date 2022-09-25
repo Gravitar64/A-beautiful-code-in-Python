@@ -1,4 +1,5 @@
 import pygame as pg
+from pygame import Vector2 as Vec
 #pygame ab Version 2.0 wird benötigt
 #Installation im Terminal mit 
 #   --> pip install pygame (windows) 
@@ -6,7 +7,7 @@ import pygame as pg
 #   --> sudo apt-get install python3-pygame (Linux Debian/Ubuntu/Mint)
 
 pg.init()
-FENSTER_G = pg.math.Vector2(1920, 1080)
+FENSTER_G = Vec(1920, 1080)
 fenster = pg.display.set_mode(FENSTER_G)
 zentrum = FENSTER_G / 2
 
@@ -21,5 +22,4 @@ while True:
     if ereignis.type == pg.QUIT: quit()
   
   fenster.fill('#000000')
-  
   pg.display.flip()
