@@ -26,7 +26,7 @@
   "[python]": {
     "editor.defaultFormatter": "ms-python.python"
   },
-  "window.zoomLevel": 2,
+  "window.zoomLevel": 1,
   "workbench.colorCustomizations": {},
   "screencastMode.verticalOffset": 5,
   "terminal.integrated.shell.windows": "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
@@ -43,10 +43,9 @@
   
   "python.linting.pylintEnabled": false,
   "python.linting.flake8Enabled": true,
-  "python.linting.enabled": false,
+  "python.linting.enabled": true,
 "python.pythonPath": "D:\\Programme\\Python\\python.exe",
 "jupyter.jupyterServerType": "local",
 "todo-tree.tree.showBadges": false,
-"python.languageServer": "Default",
-"python.formatting.provider": "black"
+"python.languageServer": "Default"
 }
