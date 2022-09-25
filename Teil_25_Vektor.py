@@ -2,7 +2,7 @@ import math
 
 
 class Vec(tuple):
-    """Eigene Vektor-Klasse um 2 bis nDimensionale Koordinaten zu hinterlegen und zu addieren, subtrahieren, etc."""
+    """Vektor-Klasse für 2 bis n-dimensionale Koordinaten."""
 
     def __new__(cls, *args):
         return tuple.__new__(cls, args)
@@ -37,8 +37,8 @@ class Vec(tuple):
         return Vec(qx, qy)
 
 
-def pol2cart(radius, 𝜙):
-    """Gibt zu einem Radius und eine Winkel die x,y-Koordinaten as Vektor zurück.
+def pol2cart(radius, 𝜙) -> Vec:
+    """Gibt zu einem Radius und einem Winkel die x,y-Koordinaten als Vektor zurück.
     Der Winkel ist in Grad anzugeben"""
     𝜙 = math.radians(𝜙)
     return Vec(math.cos(𝜙), math.sin(𝜙)) * radius
