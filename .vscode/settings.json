@@ -47,5 +47,6 @@
 "python.pythonPath": "D:\\Programme\\Python\\python.exe",
 "jupyter.jupyterServerType": "local",
 "todo-tree.tree.showBadges": false,
-"python.languageServer": "Default"
+"python.languageServer": "Default",
+"python.formatting.provider": "black"
 }
