@@ -1,7 +1,7 @@
 import math
 
 class Vec(tuple):
-  """Eigene Vektor-Klasse um 2D-nDimensionale Koordinaten zu hinterlegen und zu addieren, subtrahieren, etc."""
+  """Eigene Vektor-Klasse um 2 bis nDimensionale Koordinaten zu hinterlegen und zu addieren, subtrahieren, etc."""
   def __new__(cls, *args):
     return tuple.__new__(cls, args)
 
@@ -18,20 +18,24 @@ class Vec(tuple):
     return Vec(*tuple(a / divisor for a in self))  
 
   def abstand(self, other):
-    """Liefert den Manhatten-Abstand (https://de.wikipedia.org/wiki/Manhattan-Metrik) zwischen 2 Koordinaten"""
+    """Liefert den Manhatten-Abstand (https://de.wikipedia.org/wiki/Manhattan-Metrik) zwischen 2 Vektoren"""
     return sum(abs(a-b) for a, b in zip(self, other))
 
-  def rotate2D(self, rotationspunkt, winkel_rad):
+  def rotate2D(self, rotationspunkt, 𝜙):
     """
     Rotiert einen Punkt im Uhrzeigersinn um einen gegebenen Winkel um einen gegebenen Rotationspunkt (= Pivot)
-    Der Winkel ist in radiant anzugeben
+    Der Winkel ist in Grad anzugeben
     """
+    𝜙 = math.radians(𝜙)
     rx, ry = rotationspunkt
     px, py = self
 
-    qx = rx + math.cos(winkel_rad) * (px - rx) - math.sin(winkel_rad) * (py - ry)
-    qy = ry + math.sin(winkel_rad) * (px - rx) + math.cos(winkel_rad) * (py - ry)
+    qx = rx + math.cos(𝜙) * (px - rx) - math.sin(𝜙) * (py - ry)
+    qy = ry + math.sin(𝜙) * (px - rx) + math.cos(𝜙) * (py - ry)
     return Vec(qx, qy)  
 
-def pol2cart(radius, winkel_rad):
-  return Vec(radius * math.cos(winkel_rad), radius * math.sin(winkel_rad))
+def pol2cart(radius, 𝜙):
+  """Gibt zu einem Radius und eine Winkel die x,y-Koordinaten as Vektor zurück.
+  Der Winkel ist in Grad anzugeben"""
+  𝜙 = math.radians(𝜙)
+  return Vec(radius * math.cos(𝜙), radius * math.sin(𝜙))
