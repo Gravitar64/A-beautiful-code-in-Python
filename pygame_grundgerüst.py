@@ -1,5 +1,4 @@
 import pygame as pg
-from pygame import Vector2 as Vec
 
 # pygame ab Version 2.0 wird benötigt
 # Installation im Terminal mit
@@ -8,9 +7,8 @@ from pygame import Vector2 as Vec
 #   --> sudo apt-get install python3-pygame (Linux Debian/Ubuntu/Mint)
 
 pg.init()
-FENSTER_G = Vec(1920, 1080)
-fenster = pg.display.set_mode(FENSTER_G)
-zentrum = FENSTER_G / 2
+größe = breite, höhe = 1920,1080
+fenster = pg.display.set_mode(größe)
 
 
 clock = pg.time.Clock()
@@ -24,5 +22,6 @@ while True:
            ereignis.type == pg.KEYDOWN and ereignis.key == pg.K_ESCAPE:
           quit()
 
-    fenster.fill("#000000")
+    
+    fenster.fill('black')
     pg.display.flip()
