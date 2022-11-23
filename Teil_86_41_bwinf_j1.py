@@ -8,11 +8,11 @@ def gen_maßgebliche_vokalgruppe(wort):
     if buchstabe in VOKALE:
       vokalgruppe += buchstabe
     elif vokalgruppe:
-      vokalgruppen.append([vokalgruppe, wort[i:]])
+      vokalgruppen.append(vokalgruppe + wort[i:])
       vokalgruppe = ''
   if vokalgruppe:
-    vokalgruppen.append([vokalgruppe, ''])
-  if not vokalgruppen: return None, None  
+    vokalgruppen.append(vokalgruppe)
+  if not vokalgruppen: return None  
   return vokalgruppen[-2] if len(vokalgruppen) > 1 else vokalgruppen[0] 
 
 
@@ -26,17 +26,16 @@ for n in range(4):
   wörter = [wort.strip().lower() for wort in datei.text.split('\n')]
   
   for wort in wörter:
-    mvg, rest = gen_maßgebliche_vokalgruppe(wort)
+    mvg = gen_maßgebliche_vokalgruppe(wort)
     if not mvg: continue
-    mvg2wörter[mvg].append([wort,rest])
+    mvg2wörter[mvg].append(wort)
 
   treffer = 0
-  for mvg, einträge in mvg2wörter.items():
+  for mvg,einträge in mvg2wörter.items():
     if len(einträge) == 1: continue
-    for (w1,r1),(w2,r2) in itertools.combinations(einträge,2):
-      if r1 != r2: continue
-      if len(w1) / 2 > (len(r1)+len(mvg)): continue
-      if len(w2) / 2 > (len(r2)+len(mvg)): continue
+    for w1,w2 in itertools.combinations(einträge,2):
+      if len(w1) / 2 > len(mvg): continue
+      if len(w2) / 2 > len(mvg): continue
       if w1 in w2 or w2 in w1: continue
       print(w1,w2)
       treffer += 1
