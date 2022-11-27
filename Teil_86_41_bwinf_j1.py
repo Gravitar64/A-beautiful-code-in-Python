@@ -3,16 +3,14 @@ import collections
 import itertools
 
 def gen_endung(wort):
-  vokalgruppe, endungen = '', []
+  endungen, vokal = [], False
   for i,buchstabe in enumerate(wort):
-    if buchstabe in VOKALE:
-      vokalgruppe += buchstabe
-    elif vokalgruppe:
-      endungen.append(vokalgruppe + wort[i:])
-      vokalgruppe = ''
-  if vokalgruppe:
-    endungen.append(vokalgruppe)
-  l = len(endungen) 
+    if buchstabe in VOKALE and not vokal:
+      endungen.append(wort[i:])
+      vokal = True
+    elif buchstabe not in VOKALE:
+      vokal = False
+  l = len(endungen)
   return endungen[-2] if l > 1 else endungen[0] if l == 1 else None 
 
 
@@ -39,9 +37,4 @@ for n in range(4):
       print(w1,w2)
       treffer += 1
   print(f'Anz. Wortpaare = {treffer}')
-  print()    
-
-
-   
-
-  
+  print()
