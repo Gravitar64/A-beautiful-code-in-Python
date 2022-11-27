@@ -1,6 +1,5 @@
-import requests
-import collections
-import itertools
+import requests, collections, itertools
+
 
 def gen_endung(wort):
   endungen, vokal = [], False
@@ -18,14 +17,13 @@ URL = 'https://bwinf.de/fileadmin/bundeswettbewerb/41/reimerei'
 VOKALE = set('aeiouöüä')
 
 for n in range(4):
-  end2wörter = collections.defaultdict(list)
   datei = requests.get(f'{URL}{n}.txt')
   print(f'Datei Nr. {n} wurde geladen, Return-Code {datei}')
   wörter = [wort.strip().lower() for wort in datei.text.split('\n')]
   
+  end2wörter = collections.defaultdict(list)
   for wort in wörter:
-    endung = gen_endung(wort)
-    if not endung: continue
+    if not (endung := gen_endung(wort)): continue
     end2wörter[endung].append(wort)
 
   treffer = 0
