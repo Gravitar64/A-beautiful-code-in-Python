@@ -59,7 +59,7 @@ FIGUREN = ladeFiguren()
 # funktioniert der nachfolgende Aufruf oder es ist noch ein zusätzlicher KEY 
 # vor fen notwendig:
 #
-# also fen = chess.get_random_daily_puzzle().json['puzzle]['fen']
+# also fen = chess.get_random_daily_puzzle().json['puzzle']['fen']
 
 fen = chess.get_random_daily_puzzle().json['fen']
 position, zugrecht = fen2position(fen)
