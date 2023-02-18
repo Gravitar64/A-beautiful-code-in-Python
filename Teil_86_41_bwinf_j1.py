@@ -1,6 +1,11 @@
 import requests, collections, itertools
 
 
+def url_einlesen(url):
+  datei = requests.get(url)
+  return [wort.strip().lower() for wort in datei.text.split('\n')]
+
+
 def gen_endung(wort):
   endungen, vokal = [], False
   for i,buchstabe in enumerate(wort):
@@ -8,31 +13,32 @@ def gen_endung(wort):
       endungen.append(wort[i:])
       vokal = True
     elif buchstabe not in VOKALE:
-      vokal = False
-  l = len(endungen)
-  return endungen[-2] if l > 1 else endungen[0] if l == 1 else None 
+      vokal = False  
+  if not endungen: return None
+  endung = endungen[0] if len(endungen) == 1 else endungen[-2]
+  return endung if len(endung) >= len(wort)/2 else None
 
 
-URL = 'https://bwinf.de/fileadmin/bundeswettbewerb/41/reimerei'
+URL = 'https://bwinf.de/fileadmin/bundeswettbewerb/41/'
 VOKALE = set('aeiouöüä')
 
 for n in range(4):
-  datei = requests.get(f'{URL}{n}.txt')
-  print(f'Datei Nr. {n} wurde geladen, Return-Code {datei}')
-  wörter = [wort.strip().lower() for wort in datei.text.split('\n')]
+  wörter = url_einlesen(f'{URL}reimerei{n}.txt')
   
   end2wörter = collections.defaultdict(list)
   for wort in wörter:
-    if not (endung := gen_endung(wort)): continue
+    endung = gen_endung(wort)
+    if not endung: continue
     end2wörter[endung].append(wort)
 
-  treffer = 0
-  for endung,wörter in end2wörter.items():
-    for w1,w2 in itertools.combinations(wörter,2):
-      if len(endung) < len(w1) / 2: continue
-      if len(endung) < len(w2) / 2: continue
+  paare = 0
+  for endung, wörter in end2wörter.items():
+    for w1, w2 in itertools.combinations(wörter,2):
       if w1 in w2 or w2 in w1: continue
-      print(w1,w2)
-      treffer += 1
-  print(f'Anz. Wortpaare = {treffer}')
-  print()
+      print(f'{w1}/{w2}    ', end='')
+      paare += 1
+      
+  print(f'Anz. Wortpaare = {paare}\n')
+
+    
+
