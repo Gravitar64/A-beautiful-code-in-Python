@@ -39,6 +39,3 @@ for n in range(4):
       paare += 1
       
   print(f'Anz. Wortpaare = {paare}\n')
-
-    
-
