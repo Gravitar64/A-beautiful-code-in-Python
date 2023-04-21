@@ -1,14 +1,12 @@
 import time
 
-
-def dp(zielsumme):
-  möglichkeiten = [1]+[0]*zielsumme
-  for münze in [200, 100, 50, 20, 10, 5, 2, 1]:
-    for i in range(münze, zielsumme+1):
+def münzsumme(summe):
+  möglichkeiten = [1]+[0]*summe
+  for münze in [1,2,5,10,20,50,100,200]:
+    for i in range(münze,summe+1):
       möglichkeiten[i] += möglichkeiten[i-münze]
-  return möglichkeiten[-1]
+  return möglichkeiten[-1]     
 
-
-start = time.perf_counter()
-print(f'{dp(200)} Möglichkeiten')
+start= time.perf_counter()
+print(f'{münzsumme(200)} Möglichkeiten')
 print(time.perf_counter()-start)
