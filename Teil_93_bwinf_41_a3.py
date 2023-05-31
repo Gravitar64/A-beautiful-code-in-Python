@@ -1,82 +1,139 @@
 import itertools
+import re
 import requests
+import time
+
+
+def zeilen():
+  ret = []
+  for p1 in itertools.permutations(range(3)):
+    for p2 in itertools.permutations(range(3, 6)):
+      for p3 in itertools.permutations(range(6, 9)):
+        ret.append(p1+p2+p3)
+  return ret
+
+
+def blöcke():
+  ret = []
+  for p1 in itertools.permutations(range(3), 3):
+    ret.append(p1)
+  return ret
+
+
+def perm_zeilen(s, p):
+  s1 = s.copy()
+  for a,b in enumerate(p):
+    if a == b: continue
+    for i in range(9):
+      s1[i+b*9] = s[i+a*9]
+  return s1
+
+
+def perm_spalten(s, p):
+  s1 = s.copy()
+  for a,b in enumerate(p):
+    if a == b:  continue
+    for i in range(9):
+      s1[i*9+b] = s[i*9+a]
+  return s1
+
+
+def per_blockspalte(s, p):
+  s1 = s.copy()
+  for a, b in enumerate(p):
+    if a == b:
+      continue
+    for i in range(27):
+      s1[i // 3 * 9 + i % 3 + (a * 3)] = s[i // 3 * 9 + i % 3 + (b * 3)]
+  return s1
+
+
+def per_blockzeile(s, p):
+  s1 = s.copy()
+  for a, b in enumerate(p):
+    if a == b:
+      continue
+    for i in range(27):
+      s1[i % 9 + i//9*9 + a*3*9] = s[i % 9 + i//9*9 + b*3*9]
+  return s1
+
+
+def rotiere(s):
+  ret = s.copy()
+  for i,j in itertools.product(range(9),repeat=2):
+    ret[i*9+j] = s[(9-j-1)*9+i]
+  return ret
 
 
 def keine_permutation(s1, s2):
-  def verteilung_zahlen(s): return set(list(s).count(i) for i in range(1, 10))
-  return verteilung_zahlen(s1.values()) != verteilung_zahlen(s2.values())
+  def verteilung_zahlen(s): return set(s.count(str(i)) for i in range(1, 10))
+  return verteilung_zahlen(s1) != verteilung_zahlen(s2)
 
 
+def permutation_möglich(s):
+  for p1 in blöcke():
+    s1 = per_blockspalte(s, p1)
+    for p2 in blöcke():
+      s2 = per_blockzeile(s1, p2)
+      for p3 in zeilen():
+        s3 = perm_spalten(s2, p3)
+        for p4 in zeilen():
+          s4 = perm_zeilen(s3, p4)
+          for rot in [False, True]:
+            s5 = rotiere(s4) if rot else s4
+            if s5 == e or (mapping := umbenennen(s5, e)):
+              return p1, p2, p3, p4, rot, mapping
+              
+              
+              
+
+
+def umbenennen(s1, s2):
+  mapping = {}
+  for a, b in zip(s1, s2):
+    if a == b == '0':  continue
+    if a in mapping and mapping[a] != b:return False
+    mapping[a] = b
+  return mapping
+
+
+def print_perms(perms):
+  for perm, art in zip(perms, 'Bl_sp Bl_ze Sp Ze Rot Umb'.split()):
+    if art == 'Rot':
+      print(f'Rotation = {perm}')
+    elif art == 'Umb':
+      if not perm: continue
+      print(f'Umbenennen: ', end='')
+      for i in range(1,10):
+        if perm[str(i)] == str(i):  continue
+        print(f'{i}>{perm[str(i)]}, ', end='')
+      print()
+    else:
+      print(f'{art}: ', end='')
+      for a, b in enumerate(perm):
+        if a == b: continue
+        print(f'{int(a)+1}>{int(b)+1}, ', end='')
+      print()
+
+      
 def print_sudoku(sod):
-  for z, s in itertools.product(range(9), repeat=2):
-    if s == 0: print()
-    print(sod.get((z,s), '0'), end='')
-  print()
-
-
-def rotiere(sod):
-  return {(s,8-z): sod[z,s] for z,s in sod}
-  
-
-def blockspalte(sod, a, b):
-  return [((z,a), (z,b)) for z,s in sod if s in range(a*3,a*3+3)]
-
-
-def blockzeile(a, b):
-  return [(i % 9 + i//9*9 + a*3*9, i % 9 + i//9*9 + b*3*9)
-          for i in range(27)]
-
-
-def zeile(sod, z1, z2):
-  return [((z1,s), (z2,s)) for z,s in sod if z == z1]
-
-
-def spalte(sod, s1, s2):
-  return [((z,s1), (z,s2)) for z,s in sod if s == s1]
-
-
-def permutate(sod, perm):
-  buffer = sod.copy()
-  for a, b in perm:
-    buffer[a], buffer[b] = buffer[b], buffer[a]
-  return buffer
-
-def datei_einlesen(datei):
-  dateiinhalt = requests.get(datei).text[1:]
-  sudokus = dateiinhalt.split('\r\n\r\n')
-  ret = []
-  for sudoku in sudokus:
-    s_dict = {}
-    for z,zeile in enumerate(sudoku.split('\r\n')):
-      for s,n in enumerate(zeile.split()):
-        if n == '0': continue
-        s_dict[(z,s)] = int(n)
-    ret.append(s_dict)    
-  return ret
+  for i in range(81):
+    if not i % 9: print()
+    print(f'{sod[i]} ', end='')
+  print()      
 
 
 URL = 'https://bwinf.de/fileadmin/bundeswettbewerb/41/sudoku'
 for i in range(5):
   datei = f'{URL}{i}.txt'
   print(datei)
-  s1, s2 = datei_einlesen(datei)
-  if keine_permutation(s1, s2):
+  start = time.perf_counter()
+  inhalt = re.findall('\d+', requests.get(datei).text)
+  s, e = inhalt[:81], inhalt[81:]
+  if keine_permutation(s, e):
     print('Keine Permutation möglich')
+    print(time.perf_counter()-start)
     continue
-  buff = rotiere(s1)
-  print_sudoku(s1)
-  print_sudoku(buff)
-  # p = []
-  # for a, b in itertools.product(range(3), repeat=2):
-  #   p += blockspalte(a, b)
-  #   for c, d in itertools.product(range(3), repeat=2):
-  #     p += blockzeile(c, d)
-  #     for e, f in itertools.product(range(9), repeat=2):
-  #       p += spalte(e, f)
-  #       for g, h in itertools.product(range(9), repeat=2):
-  #         p += zeile(g, h)
-  #         buffer = permutate(s1, p)
-  #         for h in range(2):
-  #           if h == 1: buffer = rotiere(buffer)
-  #           if buffer == s2: print('gefunden')
-            
+  if (perms := permutation_möglich(s)):
+    print_perms(perms)
+    print(time.perf_counter()-start)
