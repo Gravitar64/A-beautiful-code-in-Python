@@ -1,126 +1,88 @@
-import itertools
+import itertools as itt
 import re
 import requests
 import time
 
-
-def zeilen():
-  ret = []
-  for p1 in itertools.permutations(range(3)):
-    for p2 in itertools.permutations(range(3, 6)):
-      for p3 in itertools.permutations(range(6, 9)):
-        ret.append(p1+p2+p3)
-  return ret
+def i2koord(i):
+  zeile = i // 9
+  spalte = i % 9
+  blockzeile = zeile // 3
+  blockspalte = spalte // 3
+  return zeile, spalte, blockzeile, blockspalte
 
 
-def blöcke():
-  ret = []
-  for p1 in itertools.permutations(range(3), 3):
-    ret.append(p1)
-  return ret
+def datei_einlesen(datei):
+  inhalt = re.findall('\d+', requests.get(datei).text)
+  s = {i2koord(int(i)):int(n) for i,n in enumerate(inhalt[:81]) if n != '0'}
+  e = {i2koord(int(i)):int(n) for i,n in enumerate(inhalt[81:]) if n != '0'}
+  return s,e
+  
+  
+def permutation_möglich(s1,s2):
+  zahlenverteilung = lambda s: {list(s.values()).count(i) for i in range(1,10)}
+  return zahlenverteilung(s1) == zahlenverteilung(s2)
+  
 
+def prüfe_permutationen(s,e):
+  for p1 in perm_blöcke:
+    s1 = mut_blockspalten(s, p1)
+    for p2 in perm_blöcke:
+      s2 = mut_blockzeilen(s1, p2)
+      for p3 in perm_zeilen:
+        s3 = mut_spalten(s2, p3)  
+        for p4 in perm_zeilen:
+          s4 = mut_zeilen(s3, p4)
+          if s4 == e:
+            return p1,p2,p3,p4
+            
 
-def perm_zeilen(s, p):
-  s1 = s.copy()
+  
+def mut_blockspalten(s,p):
+  ret = s.copy()
   for a,b in enumerate(p):
     if a == b: continue
-    for i in range(9):
-      s1[i+b*9] = s[i+a*9]
-  return s1
-
-
-def perm_spalten(s, p):
-  s1 = s.copy()
-  for a,b in enumerate(p):
-    if a == b:  continue
-    for i in range(9):
-      s1[i*9+b] = s[i*9+a]
-  return s1
-
-
-def per_blockspalte(s, p):
-  s1 = s.copy()
-  for a, b in enumerate(p):
-    if a == b:
-      continue
-    for i in range(27):
-      s1[i // 3 * 9 + i % 3 + (a * 3)] = s[i // 3 * 9 + i % 3 + (b * 3)]
-  return s1
-
-
-def per_blockzeile(s, p):
-  s1 = s.copy()
-  for a, b in enumerate(p):
-    if a == b:
-      continue
-    for i in range(27):
-      s1[i % 9 + i//9*9 + a*3*9] = s[i % 9 + i//9*9 + b*3*9]
-  return s1
-
-
-def rotiere(s):
-  ret = s.copy()
-  for i,j in itertools.product(range(9),repeat=2):
-    ret[i*9+j] = s[(9-j-1)*9+i]
+    for ze,sp,bze,bsp in s:
+      if bsp != a: continue
+      ret[ze,b*3+sp%3,bze,b] = s[ze,sp,bze,bsp]
   return ret
 
 
-def keine_permutation(s1, s2):
-  def verteilung_zahlen(s): return set(s.count(str(i)) for i in range(1, 10))
-  return verteilung_zahlen(s1) != verteilung_zahlen(s2)
+def mut_blockzeilen(s,p):
+  ret = s.copy()
+  for a,b in enumerate(p):
+    if a == b: continue
+    for ze,sp,bze,bsp in s:
+      if bze != a: continue
+      ret[b*3+ze%3,sp,b,bsp] = s[ze,sp,bze,bsp]
+  return ret
+  
+
+def mut_zeilen(s,p):
+  ret = s.copy()
+  for a,b in enumerate(p):
+    if a == b: continue
+    for ze,sp,bze,bsp in s:
+      if ze != a: continue
+      ret[b,sp,b//3,bsp] = s[ze,sp,bze,bsp]
+  return ret
 
 
-def permutation_möglich(s):
-  for p1 in blöcke():
-    s1 = per_blockspalte(s, p1)
-    for p2 in blöcke():
-      s2 = per_blockzeile(s1, p2)
-      for p3 in zeilen():
-        s3 = perm_spalten(s2, p3)
-        for p4 in zeilen():
-          s4 = perm_zeilen(s3, p4)
-          for rot in [False, True]:
-            s5 = rotiere(s4) if rot else s4
-            if s5 == e or (mapping := umbenennen(s5, e)):
-              return p1, p2, p3, p4, rot, mapping
-              
-              
-              
-
-
-def umbenennen(s1, s2):
-  mapping = {}
-  for a, b in zip(s1, s2):
-    if a == b == '0':  continue
-    if a in mapping and mapping[a] != b:return False
-    mapping[a] = b
-  return mapping
-
-
-def print_perms(perms):
-  for perm, art in zip(perms, 'Bl_sp Bl_ze Sp Ze Rot Umb'.split()):
-    if art == 'Rot':
-      print(f'Rotation = {perm}')
-    elif art == 'Umb':
-      if not perm: continue
-      print(f'Umbenennen: ', end='')
-      for i in range(1,10):
-        if perm[str(i)] == str(i):  continue
-        print(f'{i}>{perm[str(i)]}, ', end='')
-      print()
-    else:
-      print(f'{art}: ', end='')
-      for a, b in enumerate(perm):
-        if a == b: continue
-        print(f'{int(a)+1}>{int(b)+1}, ', end='')
-      print()
-
-      
-def print_sudoku(sod):
-  for i in range(81):
-    if not i % 9: print()
-    print(f'{sod[i]} ', end='')
-  print()      
+def mut_spalten(s,p):
+  ret = s.copy()
+  for a,b in enumerate(p):
+    if a == b: continue
+    for ze,sp,bze,bsp in s:
+      if sp != a: continue
+      ret[ze,b,bze,b//3] = s[ze,sp,bze,bsp]
+  return ret
+  
+  
+                  
+  
+perm_blöcke = list(itt.permutations(range(3)))
+perm_zeilen = [p1+p2+p3 for p1 in perm_blöcke for p2 in itt.permutations(range(3,6)) for p3 in itt.permutations(range(6,9))]
+  
+    
 
 
 URL = 'https://bwinf.de/fileadmin/bundeswettbewerb/41/sudoku'
@@ -128,12 +90,12 @@ for i in range(5):
   datei = f'{URL}{i}.txt'
   print(datei)
   start = time.perf_counter()
-  inhalt = re.findall('\d+', requests.get(datei).text)
-  s, e = inhalt[:81], inhalt[81:]
-  if keine_permutation(s, e):
+  s,e = datei_einlesen(datei)
+  if not permutation_möglich(s, e):
     print('Keine Permutation möglich')
-    print(time.perf_counter()-start)
     continue
-  if (perms := permutation_möglich(s)):
-    print_perms(perms)
-    print(time.perf_counter()-start)
+  print(prüfe_permutationen(s, e))
+  print(time.perf_counter() - start)
+  
+  
+  
