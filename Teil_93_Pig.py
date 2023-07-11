@@ -18,13 +18,15 @@ def rangliste(punkte):
   print()    
 
 
+MI_SP, MA_SP, MA_PKT = 2,6,50
+
 while True:
-  anz_spieler = input('Wieviele Spieler (2-6)? ')
+  anz_spieler = input(f'Wieviele Spieler ({MI_SP}-{MA_SP})')
   if not anz_spieler.isdigit(): continue
-  if 1 < (spieler := int(anz_spieler)) < 7: break
+  if MI_SP <= (spieler := int(anz_spieler)) <= MA_SP: break
 
 punkte = [0]*spieler
-while max(punkte) < 50:
+while max(punkte) < MA_PKT:
   for i, p in enumerate(punkte):
     punkte[i] = würfeln(i+1, p)
     rangliste(punkte)
