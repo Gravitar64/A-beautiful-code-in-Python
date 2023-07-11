@@ -18,12 +18,12 @@ def rangliste(punkte):
   print()    
 
 
-MI_SP, MA_SP, MA_PKT = 2,6,50
+MA_SP, MA_PKT = 9,50
 
 while True:
-  anz_spieler = input(f'Wieviele Spieler ({MI_SP}-{MA_SP})')
+  anz_spieler = input(f'Wieviele Spieler (2-{MA_SP}) ')
   if not anz_spieler.isdigit(): continue
-  if MI_SP <= (spieler := int(anz_spieler)) <= MA_SP: break
+  if 2 <= (spieler := int(anz_spieler)) <= MA_SP: break
 
 punkte = [0]*spieler
 while max(punkte) < MA_PKT:
