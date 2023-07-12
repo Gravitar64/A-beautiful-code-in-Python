@@ -1,13 +1,13 @@
 import random
 
 
-def würfeln(s, p):
+def würfeln(sp,pkt,zug=0):
   while True:
     wurf = random.randint(1, 6)
-    p = p+wurf if wurf > 1 else 0
-    print(f'Spieler {s}: {wurf} gewürfelt, Punkte = {p:<2} (Max = {max(punkte)})')
-    if p and input('Weiterwürfeln? (j/n) ').lower() == 'j': continue
-    return p
+    zug = zug+wurf if wurf > 1 else 0
+    print(f'Spieler {sp}: {wurf} gewürfelt, Punkte Zug = {zug:<2}, Punkte Gesamt = {pkt+zug} (Max = {max(punkte)})')
+    if zug and input('Weiterwürfeln im Zug? (j/n) ').lower() == 'j': continue
+    return zug
 
 
 def rangliste(punkte):
@@ -26,5 +26,5 @@ while True:
 punkte = [0]*spieler
 while max(punkte) < MA_PKT:
   for i, p in enumerate(punkte):
-    punkte[i] = würfeln(i+1, p)
+    punkte[i] += würfeln(i+1, p)
     rangliste(punkte)
