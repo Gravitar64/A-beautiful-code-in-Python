@@ -12,8 +12,8 @@ start = time.perf_counter()
 anz = fehler = 10
 
 for _ in range(anz):
-  a, b, op = r(), r(), rnd.choice('+ - *'.split())
-  e = eval(f'{a} {op} {b}') + (d := delta())
+  a, b, op, d = r(), r(), rnd.choice('+ - *'.split()), delta()
+  e = eval(f'{a} {op} {b}') + d
   print(f'{a} {op} {b} = {e} ')
   antwort = readchar.readchar()
   if antwort == 'r' and d or antwort != 'r' and not d: continue
