@@ -3,27 +3,27 @@ import time
 import readchar
 
 
-def fifty():
-  return random.choice([True, False])
+def delta():
+  if random.choice([True, False]):
+    return random.randint(-5,5)
+  return 0
 
 
-def r(s,e):
- return random.randint(s,e)
+def r():
+ return random.randint(1,10)
 
 
 readchar.readchar()
-fehler = 10
 start = time.perf_counter()
+anz = fehler = 10
 
-for _ in range(10):
-  a,b,op, delta = r(1,10), r(1,10), random.choice('+ - *'.split()), r(1,5)
-  e = eval(f'{a} {op} {b}') 
-  if falsch := fifty(): e += delta if fifty() else -delta
+for _ in range(anz):
+  a,b,op = r(), r(), random.choice('+ - *'.split())
+  e = eval(f'{a} {op} {b}') + (d := delta()) 
   print(f'{a} {op} {b} = {e} ')
   antwort = readchar.readchar()
-  if antwort == 'r' and falsch or antwort != 'r' and not falsch: continue 
+  if antwort == 'r' and d or antwort != 'r' and not d: continue 
   fehler -= 1
    
-
-print(f'{fehler} Fehler')
-print(time.perf_counter()-start+20*fehler)
+zeit = time.perf_counter()-start
+print(f'{zeit:.2f} Sek. + Fehler = {fehler} x 10 Sek. = {zeit+fehler*10:.2f}')
