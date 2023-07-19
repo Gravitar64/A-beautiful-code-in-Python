@@ -3,8 +3,8 @@ import time
 import readchar
 
 
-delta: lambda: rnd.randint(-5, 5) if rnd.choice([1, 0]) else 0
-r: lambda: rnd.randint(1, 10)
+delta = lambda: rnd.randint(-5, 5) if rnd.choice([1, 0]) else 0
+r = lambda: rnd.randint(1, 10)
 
 
 readchar.readchar()
