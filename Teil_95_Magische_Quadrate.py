@@ -1,45 +1,44 @@
 import itertools,time
 
 
-def check(attempt):
-  if sum(attempt[i*N+i] for i in range(N)) != summe: return False
-  if sum(attempt[i*N+N-1-i] for i in range(N)) != summe:  return False
+def check(quadrat):
+  if sum(quadrat[i*N+i] for i in range(N)) != summe: return False
+  if sum(quadrat[i*N-i-1] for i in range(N)) != summe: return False
   return True
 
 
-def zeilen(pos,quadrat,zahlen):
-  base=summe-sum(quadrat[pos*N:pos*N+pos])
-  for p in itertools.permutations(zahlen,N-1-pos):
-    rest=base-sum(p)
-    zahlen2=zahlen-set(p)
-    if rest not in zahlen2: continue
-    for i in range(pos,N-1):
-      quadrat[pos*N+i]=p[i-pos]
-    quadrat[pos*N+N-1]=rest
-    spalten(pos,quadrat,zahlen2-{rest})
+def lösungsmenge():
+  ls = []
+  for l in itertools.combinations(range(1,N**2+1),N):
+    if sum(l) != summe: continue
+    ls.append(set(l))
+  return ls  
+    
 
-
-def spalten(pos,quadrat,zahlen):
-  if not zahlen:
-    if check(quadrat):
-      lösungen.append(quadrat)
-      #print(f'{anzahl:>4}. {quadrat} {time.time()-start:.1f}')
+def zeilen(nr, ls, quadrat):
+  if nr == N-1:
+    füllen(ls,quadrat)
     return
-  base=summe-sum([quadrat[N*i+pos] for i in range(pos+1)])
-  for p in itertools.permutations(zahlen,N-2-pos):
-    rest=base-sum(p)
-    zahlen2=zahlen-set(p)
-    if rest not in zahlen2: continue
-    for i in range(pos+1,N-1):
-      quadrat[pos+i*N]=p[i-pos-1]
-    quadrat[pos+N*(N-1)]=rest
-    zeilen(pos+1,quadrat,zahlen2-{rest})
+  
+  for z in ls:
+    l = [x for x in ls if not x&z]
+    for p in itertools.permutations(z):
+      quadrat[N*nr:N*nr+N] = p
+      zeilen(nr+1, l, quadrat)
 
 
-start=time.perf_counter()
-N=4
-lösungen = []
+def füllen(ls,quadrat):
+  letzte_zeile = [summe - sum(quadrat[z*N+s] for z in range(N-1)) for s in range(N)]
+  if set(letzte_zeile) not in ls: return
+  quadrat[N*(N-1):N*N] = letzte_zeile
+  if check(quadrat): 
+    lösungen.append(quadrat)
+    print(f'{len(lösungen)} {quadrat} {time.perf_counter()-start:.2f}')
+
+start = time.perf_counter()
+N = 4
 summe = (N**3+N)//2
-
-zeilen(0,[0]*N*N,set(range(1,N*N+1)))
-print(f'{len(lösungen):,} mögliche Lösungen für ein {N}x{N} magisches Quadrat mit der Summe von {summe} ({time.perf_counter()-start:.3f} Sek.)')
+ls = lösungsmenge()
+lösungen = []
+zeilen(0,ls,[0]*N*N)
+print(f'{len(lösungen):,} Lösungen für {N}x{N} magische Quadrate mit der Summe {summe} ({time.perf_counter()-start:.2f})')
