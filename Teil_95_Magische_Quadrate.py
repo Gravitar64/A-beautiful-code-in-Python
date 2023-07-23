@@ -1,48 +1,45 @@
-import itertools
-import time
+import itertools,time
 
 
-def check(board):
-  for z in range(1, n):
-    if sum(board[z*n:z*n+n]) != summe: return False
-  if sum(board[i*n+i] for i in range(n)) != summe: return False
-  if sum(board[i*n+n-i-1] for i in range(n)) != summe: return False
+def check(attempt):
+  if sum(attempt[i*N+i] for i in range(N)) != summe: return False
+  if sum(attempt[i*N+N-1-i] for i in range(N)) != summe:  return False
   return True
 
 
-def rows(nr, zahlen, board):
-  for row in itertools.permutations(zahlen, n-1):
-    rest = summe-sum(row)
-    zahlen2 = zahlen-set(row)
-    if rest < 1 or rest not in zahlen2: continue
-    board[nr*n:nr*n+n] = list(row)+[rest]
-    cols(nr, zahlen2-{rest}, board)
+def zeilen(pos,quadrat,zahlen):
+  base=summe-sum(quadrat[pos*N:pos*N+pos])
+  for p in itertools.permutations(zahlen,N-1-pos):
+    rest=base-sum(p)
+    zahlen2=zahlen-set(p)
+    if rest not in zahlen2: continue
+    for i in range(pos,N-1):
+      quadrat[pos*N+i]=p[i-pos]
+    quadrat[pos*N+N-1]=rest
+    spalten(pos,quadrat,zahlen2-{rest})
 
 
-def cols(nr, zahlen, board):
+def spalten(pos,quadrat,zahlen):
   if not zahlen:
-    if check(board):
-      print(f'{board} {time.perf_counter()-start:.2f}')
-      lösungen.append(board)
+    if check(quadrat):
+      lösungen.append(quadrat)
+      #print(f'{anzahl:>4}. {quadrat} {time.time()-start:.1f}')
     return
-  for col in itertools.permutations(zahlen, n-2):
-    rest = summe-sum(col)-board[nr]
-    zahlen2 = zahlen-set(col)
-    if rest < 1 or rest not in zahlen2: continue
-    for i, z in enumerate(list(col)+[rest], start=1):
-      board[i*n+nr] = z
-    cols(nr+1, zahlen2-{rest}, board)
+  base=summe-sum([quadrat[N*i+pos] for i in range(pos+1)])
+  for p in itertools.permutations(zahlen,N-2-pos):
+    rest=base-sum(p)
+    zahlen2=zahlen-set(p)
+    if rest not in zahlen2: continue
+    for i in range(pos+1,N-1):
+      quadrat[pos+i*N]=p[i-pos-1]
+    quadrat[pos+N*(N-1)]=rest
+    zeilen(pos+1,quadrat,zahlen2-{rest})
 
 
-n = 4
-start = time.perf_counter()
-zahlen = set(range(1, n**2+1))
-board = [0]*n*n
-summe = (n**3+n)//2
+start=time.perf_counter()
+N=4
 lösungen = []
+summe = (N**3+N)//2
 
-print(f'Magisches Quadrat mit Kantenlänge = {n} und {summe} als Summe')
-
-rows(0, zahlen, board)
-print(f'Anzahl Lösungen = {len(lösungen):,}')
-print(time.perf_counter()-start)
+zeilen(0,[0]*N*N,set(range(1,N*N+1)))
+print(f'{len(lösungen):,} mögliche Lösungen für ein {N}x{N} magisches Quadrat mit der Summe von {summe} ({time.perf_counter()-start:.3f} Sek.)')
