@@ -1,6 +1,14 @@
 import itertools,time
 
 
+def print_quadrat(quadrat):
+  print(f'Lösung: {len(lösungen)} nach {time.perf_counter()-start:.2f} Sek.')
+  for i,z in enumerate(quadrat):
+    if i > 0 and not i%N: print()
+    print(f'{z:>2} ',end='')
+  print('\n')  
+
+
 def check(quadrat):
   if sum(quadrat[i*N+i] for i in range(N)) != summe: return False
   if sum(quadrat[i*N+N-i-1] for i in range(N)) != summe: return False
@@ -21,7 +29,7 @@ def spalten(nr, zahlen, quadrat):
   if not zahlen:
     if check(quadrat):
       lösungen.append(quadrat)
-      #print(f'{len(lösungen)} {quadrat} {time.perf_counter()-start:.2f}')
+      print_quadrat(quadrat)
     return
   
   bisherige_summe = sum(quadrat[i*N+nr] for i in range(nr+1))
