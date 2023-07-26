@@ -2,7 +2,7 @@ import itertools,time
 
 
 def print_quadrat(quadrat):
-  print(f'Lösung: {len(lösungen)} nach {time.perf_counter()-start:.2f} Sek.')
+  print(f'Lösung: {anzahl} nach {time.perf_counter()-start:.2f} Sek.')
   for i,z in enumerate(quadrat):
     if i > 0 and not i%N: print()
     print(f'{z:>2} ',end='')
@@ -39,8 +39,10 @@ def zeilen(nr, zahlen, quadrat):
 def spalten(nr, zahlen, quadrat):
   if not zahlen:
     if check(quadrat):
+      global anzahl
+      anzahl += 1
       lösungen.append(quadrat.copy())
-      print_quadrat(quadrat)
+      #print_quadrat(quadrat)
     return
   
   bisherige_summe = sum(quadrat[i*N+nr] for i in range(nr+1))
@@ -57,12 +59,16 @@ start = time.perf_counter()
 N = 4
 perfect = True
 summe = (N**3+N)//2
+anzahl = 0
 lösungen = []
 zeilen(0,set(range(1,N**2+1)),[0]*N**2)
-print(f'{len(lösungen):,} Lösungen für {N}x{N} magische Quadrate mit der Summe {summe} ({time.perf_counter()-start:.2f})')
+print(f'{anzahl} Lösungen für {N}x{N} magische Quadrate mit der Summe {summe} ({time.perf_counter()-start:.2f})')
 
 if N==4 and perfect:
+  anzahl = 0
+  start = time.perf_counter()
   print('Dürer magische Quadrate mit 15 14 in der untersten Zeile')
   for quadrat in lösungen:
     if quadrat[13] != 15 or quadrat[14] != 14: continue
+    anzahl += 1
     print_quadrat(quadrat) 
