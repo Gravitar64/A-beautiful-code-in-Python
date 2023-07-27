@@ -1,4 +1,4 @@
-import itertools,time
+import time
 
 
 def print_quadrat(quadrat):
@@ -26,42 +26,48 @@ def check(quadrat):
   return True
 
 
-def zeilen(nr, zahlen, quadrat):
-  bisherige_summe = sum(quadrat[nr*N:nr*N+nr])
-  for z in itertools.permutations(zahlen,N-1-nr):
-    rest = summe - bisherige_summe - sum(z)
-    zahlen2 = zahlen - set(z)
-    if rest not in zahlen2: continue
-    quadrat[nr*N+nr:nr*N+N] = list(z)+[rest]
-    spalten(nr,zahlen2-{rest},quadrat)
+def zeilen(nr,pos,zahlen,board):
+  for z in zahlen:
+    if pos < N-1:
+      board[nr*N+pos] = z
+      zeilen(nr, pos+1, zahlen-{z}, board)
+    else:
+      rest = summe - sum(board[nr*N:nr*N+pos])
+      if rest not in zahlen: return
+      board[nr*N+pos] = rest
+      spalten(nr,nr+1,zahlen-{rest},board)
+      return
 
 
-def spalten(nr, zahlen, quadrat):
+def spalten(nr, pos, zahlen, board):
   if not zahlen:
-    if check(quadrat):
+    if check(board):
       global anzahl
       anzahl += 1
-      lösungen.append(quadrat.copy())
-      #print_quadrat(quadrat)
-    return
+      #print_quadrat(board)
+      lösungen.append(board.copy())
+    return  
   
-  bisherige_summe = sum(quadrat[i*N+nr] for i in range(nr+1))
-  for z in itertools.permutations(zahlen,N-2-nr):
-    rest = summe - bisherige_summe - sum(z)
-    zahlen2 = zahlen - set(z)
-    if rest not in zahlen2: continue
-    for i,zahl in enumerate(list(z)+[rest],start=nr+1):
-      quadrat[i*N+nr]=zahl
-    zeilen(nr+1,zahlen2-{rest},quadrat)    
   
+  for z in zahlen:
+    if pos < N-1:
+      board[pos*N+nr] = z
+      spalten(nr, pos+1, zahlen-{z}, board)
+    else:
+      rest = summe - sum(board[i*N+nr] for i in range(pos))
+      if rest not in zahlen: return
+      board[pos*N+nr] = rest
+      zeilen(nr+1,nr+1,zahlen-{rest}, board)
+      return  
+
 
 start = time.perf_counter()
 N = 4
-perfect = True
+perfect = False
 summe = (N**3+N)//2
 anzahl = 0
 lösungen = []
-zeilen(0,set(range(1,N**2+1)),[0]*N**2)
+zeilen(0,0,set(range(1,N**2+1)),[99]*N**2)
 print(f'{anzahl} Lösungen für {N}x{N} magische Quadrate mit der Summe {summe} ({time.perf_counter()-start:.2f})')
 
 if N==4 and perfect:
