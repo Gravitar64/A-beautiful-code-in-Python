@@ -2,48 +2,45 @@ import time
 import itertools
 
 
-def zähler():
-  zähler.zähler += 1
-  return zähler.zähler
-
-
 def print_quadrat():
-  print(f'Lösung: {zähler()} nach {time.perf_counter()-start:.2f} Sek.')
-  for i, z in enumerate(quadrat):
-    if i > 0 and not i % N: print()
+  for i, z in enumerate(quadrat, start=1):
     print(f'{z:>2} ', end='')
-  print('\n')
+    if not i % N: print()
+  print()
 
 
-def zeilen(nr, zahlen):
-  base = summe - sum(quadrat[nr*N:nr*N+nr])
-  for p in itertools.permutations(zahlen, N-nr-1):
-    rest = base - sum(p)
-    zahlen2 = zahlen - set(p)
+def zeilen(pos, zahlen):
+  basis = summe - sum(quadrat[pos*N:pos*N+pos])
+  for zeile in itertools.permutations(zahlen, N-1-pos):
+    rest = basis - sum(zeile)
+    zahlen2 = zahlen - set(zeile)
     if rest not in zahlen2: continue
-    quadrat[nr*N+nr:nr*N+N] = list(p)+[rest]
-    if N-2 == nr and sum(quadrat[i*N+N-i-1] for i in range(N)) != summe: return
-    spalten(nr, zahlen2-{rest})
+    quadrat[pos*N+pos:pos*N+N] = list(zeile)+[rest]
+    if N-2 == pos and sum(quadrat[i*N+N-1-i] for i in range(N)) != summe: return
+    spalten(pos, zahlen2-{rest})
 
 
-def spalten(nr, zahlen):
+def spalten(pos, zahlen):
   if not zahlen:
-    if sum(quadrat[i*N+i] for i in range(N)) == summe: print_quadrat()
+    if sum(quadrat[i*N+i] for i in range(N)) == summe: pass
     return
 
-  base = summe - sum(quadrat[i*N+nr] for i in range(nr+1))
-  for p in itertools.permutations(zahlen, N-nr-2):
-    rest = base - sum(p)
-    zahlen2 = zahlen - set(p)
+  basis = summe - sum(quadrat[i*N+pos] for i in range(pos+1))
+  for spalte in itertools.permutations(zahlen, N-2-pos):
+    rest = basis - sum(spalte)
+    zahlen2 = zahlen - set(spalte)
     if rest not in zahlen2: continue
-    for i, n in enumerate(list(p)+[rest], start=nr+1):
-      quadrat[i*N+nr] = n
-    zeilen(nr+1, zahlen2-{rest})
+    for i, z in enumerate(list(spalte)+[rest], start=pos+1):
+      quadrat[i*N+pos] = z
+    zeilen(pos+1, zahlen2-{rest})
 
 
 start = time.perf_counter()
 N = 4
-zähler.zähler = 0
 summe = (N**3+N)//2
-quadrat = [0]*N**2
-zeilen(0, set(range(1, N**2+1)))
+quadrat = [0] * N**2
+zahlen = set(range(1, N**2+1))
+zeilen(0, zahlen)
+
+
+print(time.perf_counter()-start)
