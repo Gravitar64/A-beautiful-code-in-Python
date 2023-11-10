@@ -44,6 +44,7 @@ def spalten(nr, zahlen):
     zeilen(nr+1,zahlen2-{rest})
 
 
+
 start = time.perf_counter()
 N = 4
 zähler.zähler = 0  
