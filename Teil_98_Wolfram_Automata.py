@@ -1,20 +1,12 @@
-import pygame as pg
-import time
+import pygame as pg, time
 
-
-def get_next_rule():
-  rule = -1
-  while True:
-    rule = (rule + 1) % 256 
-    yield rule, f'{rule:08b}'[::-1]
-    
 
 def next_generation(gen,rules):
   gen2 = set()
   l = breite//skalierung
   for x in range(l):
-    bits = [(x-1)%l in gen, x in gen, (x+1)%l in gen]
-    i = int(''.join(str(int(n)) for n in bits),2)
+    bits = ['1' if i%l in gen else '0' for i in (x+1,x,x-1)]
+    i = int(''.join(bits),2)
     if rules[i]=='1': gen2.add(x)
   return gen2
 
@@ -22,16 +14,12 @@ def next_generation(gen,rules):
 pg.init()
 größe = breite, höhe = 1920,1080
 fenster = pg.display.set_mode(größe)
+fenster.fill('white')
 
-
-skalierung = 10
+skalierung = 15
 gen = {breite//skalierung//2}
-gnr = get_next_rule()
-rule, bits = next(gnr)
-y=0
+y=rule=0
 
-counter = gesamtzeit = 0
-# Zeichenschleife mit FPS Bildern pro Sekunde
 while True:
   for ereignis in pg.event.get():
     if ereignis.type == pg.QUIT or \
@@ -41,19 +29,12 @@ while True:
   for x in gen:
     pg.draw.rect(fenster, 'black', (x * skalierung, y*skalierung, skalierung, skalierung))
 
+  gen = next_generation(gen,f'{rule:08b}'[::-1])
   y+=1
-  t = time.perf_counter()
-  gen = next_generation(gen,bits)
-  gesamtzeit += time.perf_counter()-t
-  counter += 1
-  durchschnitt = gesamtzeit/counter
-  
+    
   if y > höhe//skalierung:
     pg.display.set_caption(f'Elementary Cellular Automaton (rule {rule})')
     pg.display.flip()
-    rule, bits = next(gnr)
-    y=0
-    gen = {breite//skalierung//2}
+    rule, y, gen = rule+1, 0, {breite//skalierung//2}
     fenster.fill('white')
-    print(durchschnitt)
     time.sleep(1)
