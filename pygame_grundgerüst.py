@@ -7,7 +7,7 @@ import pygame as pg
 #   --> sudo apt-get install python3-pygame (Linux Debian/Ubuntu/Mint)
 
 pg.init()
-größe = breite, höhe = 1920,1080
+größe = breite, höhe = 1920, 1080
 fenster = pg.display.set_mode(größe)
 
 
@@ -16,12 +16,10 @@ FPS = 40
 
 # Zeichenschleife mit FPS Bildern pro Sekunde
 while True:
-    clock.tick(FPS)
-    for ereignis in pg.event.get():
-        if ereignis.type == pg.QUIT or \
-           ereignis.type == pg.KEYDOWN and ereignis.key == pg.K_ESCAPE:
-          quit()
-
-    
-    fenster.fill('black')
-    pg.display.flip()
+  clock.tick(FPS)
+  fenster.fill('black')
+  
+  for ereignis in pg.event.get():
+    if ereignis.type == pg.QUIT or ereignis.type == pg.KEYDOWN and ereignis.key == pg.K_ESCAPE: quit()
+  
+  pg.display.flip()
