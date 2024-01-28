@@ -2,40 +2,40 @@ import pygame as pg, time
 
 
 def nächste_generation(generation, regel):
-  gen2 = set()
+  next_generation = set()
   regel = f'{regel:08b}'[::-1]
-  for spalte in range(max_spalten):
-    bits = ['1' if pos % max_spalten in generation else '0' for pos in [spalte-1, spalte, spalte+1]]
-    index = int(''.join(bits),2)
+  for spalte in range(spalten):
+    bits = ['1' if pos % spalten in generation else '0' for pos in [spalte - 1, spalte, spalte + 1]]
+    index = int(''.join(bits), base=2)
     if regel[index] == '0': continue
-    gen2.add(spalte)
-  return gen2
+    next_generation.add(spalte)
+  return next_generation
 
 
 pg.init()
-größe = breite, höhe = 1920,1080
+größe = breite, höhe = 1920, 1080
 fenster = pg.display.set_mode(größe)
 fenster.fill('white')
 
 skalierung = 8
-max_spalten, max_zeilen = breite//skalierung, höhe//skalierung
-generation = {max_spalten//2}
-regel = zeile = 0
+spalten, zeilen = breite // skalierung, höhe // skalierung
+generation = {spalten // 2}
+zeile = regel = 0
+
 
 while True:
   for ereignis in pg.event.get():
-    if ereignis.type == pg.QUIT or \
-        ereignis.type == pg.KEYDOWN and ereignis.key == pg.K_ESCAPE:
-      quit()
+    if ereignis.type == pg.QUIT or ereignis.type == pg.KEYDOWN and ereignis.key == pg.K_ESCAPE: quit()
+
   for spalte in generation:
-    pg.draw.rect(fenster,'black',(spalte*skalierung, zeile*skalierung, skalierung, skalierung))
+    pg.draw.rect(fenster, 'black', (spalte * skalierung, zeile * skalierung, skalierung, skalierung))
 
   generation = nächste_generation(generation, regel)
   zeile += 1
 
-  if zeile > max_zeilen:
-    pg.display.set_caption(f'Regel: {regel}')
+  if zeile > zeilen:
     pg.display.flip()
-    time.sleep(1)
+    pg.display.set_caption(f'Elementary Cellular Automata (Regel: {regel})')
     fenster.fill('white')
-    zeile, generation, regel = 0, {max_spalten//2}, regel+1
+    zeile, generation, regel = 0, {spalten // 2}, regel + 1
+    time.sleep(1)
