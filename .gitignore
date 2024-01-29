@@ -1,5 +1,6 @@
 *credentials*.py
-*.pyc
+__pycache__/
+.vscode/
 ranking.log
 Teil_14_Google_Ranking.py
 Teil_16_Vier_gewinnt.py
