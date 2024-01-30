@@ -17,7 +17,7 @@ größe = breite, höhe = 1920, 1080
 fenster = pg.display.set_mode(größe)
 fenster.fill('white')
 
-skalierung = 8
+skalierung = 20
 spalten, zeilen = breite // skalierung, höhe // skalierung
 generation = {spalten // 2}
 zeile = regel = 0
@@ -34,8 +34,8 @@ while True:
   zeile += 1
 
   if zeile > zeilen:
+    pg.display.set_caption(f'Regel = {regel}')
     pg.display.flip()
-    pg.display.set_caption(f'Elementary Cellular Automata (Regel: {regel})')
     fenster.fill('white')
-    zeile, generation, regel = 0, {spalten // 2}, regel + 1
+    zeile, generation, regel = 0, {spalten // 2}, (regel + 1) % 256
     time.sleep(1)
