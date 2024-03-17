@@ -3,8 +3,8 @@ import cmath, math, itertools, random
 
 
 def male_kreise(kreise):
-  img = pg.font.SysFont('arial.ttf', 48).render(f'Anzahl Kreise = {len(kreise):,}', True, 'green')
-  fenster.blit(img, (5, 5))
+  txt = pg.font.SysFont('nasalization-rg-regular', 48).render(f'Anzahl Kreise = {len(kreise):,}', True, 'green')
+  fenster.blit(txt, (5, 5))
   for krümmung, pos in kreise:
     pg.draw.circle(fenster, 'green', (pos.real, pos.imag), abs(1 / krümmung), 2)
 
@@ -23,7 +23,7 @@ def descartes(trio):
   return (k1, p1 * (1 / k1)), (k2, p2 * (1 / k2))
 
 
-def distance(a, b):
+def entfernung(a, b):
   diff = a - b
   return abs(diff.real) + abs(diff.imag)
 
@@ -33,9 +33,8 @@ def init_kreise():
   r2 = random.randrange(int(r1 * 0.02), int(r1 * 0.98))
   r3 = r1 - r2
   kreise = {(-1 / r1, zentrum),
-            (1 / r2, zentrum + complex(r1, 0) - complex(r2, 0)),
-            (1 / r3, zentrum - complex(r1, 0) + complex(r3, 0))}
-
+            (1 / r2, complex(breite/2-r1+r2,r1)),
+            (1 / r3, complex(breite/2+r1-r3,r1))}
   return kreise, {tuple(k for k in kreise)}
 
 
@@ -62,7 +61,7 @@ while True:
     for neuer_kreis in descartes(trio):
       k4, p4 = neuer_kreis
       if k4 > 0.5: continue
-      if not all(distance(pos, p4) > 1 for _, pos in kreise): continue
+      if not all(entfernung(pos, p4) > 1 for _, pos in kreise): continue
       kreise.add(neuer_kreis)
       for a, b in itertools.combinations(trio, 2):
         new_queue.add((a, b, neuer_kreis))
