@@ -3,20 +3,20 @@ import cmath, math, itertools, random
 
 
 def male_kreise(kreise):
+  img = pg.font.SysFont('arial.ttf',48).render(f'Anzahl Kreise = {len(kreise):,}',True, 'green')
+  fenster.blit(img,(5,5))
   for krümmung, pos in kreise:
     pg.draw.circle(fenster, 'green', (pos.real, pos.imag), abs(1 / krümmung), 2)
 
 
-def descartes(triplets):
-  krümmungen = [krümmung for krümmung, _ in triplets]
+def descartes(trio):
+  krümmungen = [krümmung for krümmung, _ in trio]
   s = sum(krümmungen)
-  p = sum(a * b for a, b in itertools.combinations(krümmungen, 2))
-  if p < 0: return [None]
-  p = 2 * math.sqrt(p)
-  positions = [pos * krümmung for krümmung, pos in triplets]
+  p = 2 * math.sqrt(abs(sum(a * b for a, b in itertools.combinations(krümmungen, 2))))
+  positions = [pos * krümmung for krümmung, pos in trio]
   pos_sum = sum(positions)
   root = 2 * cmath.sqrt(sum(a * b for a, b in itertools.combinations(positions, 2)))
-  return ((s - p, (pos_sum - root) * (1 / (s - p))), (s + p, (pos_sum + root) * (1 / (s + p))))
+  return (s - p, (pos_sum - root) * (1 / (s - p))), (s + p, (pos_sum + root) * (1 / (s + p)))
 
 
 def distance(a, b):
@@ -25,16 +25,15 @@ def distance(a, b):
 
 
 def init_kreise():
-  r1 = random.randrange(breite / 20, breite / 5)
-  r2 = breite / 4 - r1
+  r1 = höhe / 2 
+  r2 = random.randrange(r1*0.1, r1*0.9)
+  r3 = r1 - r2
 
-  kreise = {(-1 / (breite / 4), zentrum),
-            (1 / r1, zentrum - complex(breite / 4, 0) + complex(r1, 0)),
-            (1 / r2, zentrum + complex(breite / 4, 0) - complex(r2, 0))}
+  kreise = {(-1 / r1, zentrum),
+            (1 / r2, zentrum - complex(r1,0) + complex(r2,0)),
+            (1 / r3, zentrum + complex(r1,0) - complex(r3,0))}
 
   queue = {tuple(k for k in kreise)}
-  fenster.fill('black')
-  male_kreise(kreise)
   return kreise, queue
 
 
@@ -43,10 +42,12 @@ größe = breite, höhe = 1920, 1080
 zentrum = complex(breite / 2, höhe / 2)
 fenster = pg.display.set_mode(größe)
 clock = pg.time.Clock()
-FPS = 1
+FPS = 10
 
 kreise, queue = init_kreise()
 while True:
+  fenster.fill('black')
+  male_kreise(kreise)
   pg.display.flip()
   clock.tick(FPS)
 
@@ -56,13 +57,13 @@ while True:
 
   new_queue = set()
   while queue:
-    triplets = queue.pop()
-    for neuer_kreis in descartes(triplets):
-      if neuer_kreis == None or neuer_kreis[0] > 0.5: break
-      if not all(distance(pos, neuer_kreis[1]) > 1 for _, pos in kreise): continue
+    trio = queue.pop()
+    for neuer_kreis in descartes(trio):
+      k4,p4 = neuer_kreis
+      if k4 > 0.5: continue
+      if not all(distance(pos, p4) > 1 for _, pos in kreise): continue
       kreise.add(neuer_kreis)
-      male_kreise([neuer_kreis])
-      for a, b in itertools.combinations(triplets, 2):
+      for a, b in itertools.combinations(trio, 2):
         new_queue.add((a, b, neuer_kreis))
   queue = new_queue
   if not queue:
