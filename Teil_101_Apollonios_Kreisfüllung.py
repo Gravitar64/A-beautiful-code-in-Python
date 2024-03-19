@@ -14,17 +14,15 @@ def init_kreise():
 
 
 def gen_nächste_2_kreise(trio):
-  # Descartes Kreis Theorem für die Krümmung der neuen 2 Kreise
-  k1, k2, k3 = [k for k, _ in trio]
+  k1, k2, k3 = [kreis[0] for kreis in trio]
   wurzel = 2 * math.sqrt(abs(k1 * k2 + k2 * k3 + k3 * k1))
   k4, k5 = k1 + k2 + k3 + wurzel, k1 + k2 + k3 - wurzel
 
-  # Komplexe Descarte Kreis Theorem für die Positionen der neuen 2 Kreise
-  c1, c2, c3 = [c for _, c in trio]
+  c1, c2, c3 = [kreis[1] for kreis in trio]
   wurzel = 2 * cmath.sqrt(k1 * k2 * c1 * c2 + k2 * k3 * c2 * c3 + k3 * k1 * c1 * c3)
-  c4, c5 = k1 * c1 + k2 * c2 + k3 * c3 + wurzel, k1 * c1 + k2 * c2 + k3 * c3 - wurzel
+  c4, c5 = (c1 * k1 + c2 * k2 + c3 * k3 + wurzel) / k4, (c1 * k1 + c2 * k2 + c3 * k3 - wurzel) / k5
 
-  return (k4, c4 / k4), (k5, c5 / k5)
+  return (k4, c4), (k5, c5)
 
 
 def male_kreise(kreise):
@@ -43,25 +41,26 @@ fenster = pg.display.set_mode(größe)
 clock = pg.time.Clock()
 FPS = 1
 
-kreise, queue = init_kreise()
+kreise, trios = init_kreise()
 while True:
   clock.tick(FPS)
   fenster.fill('black')
-  male_kreise(kreise)
-  pg.display.flip()
 
   for ereignis in pg.event.get():
     if ereignis.type == pg.QUIT or ereignis.type == pg.KEYDOWN and ereignis.key == pg.K_ESCAPE: quit()
 
-  queue2 = []
-  while queue:
-    trio = queue.pop()
+  male_kreise(kreise)
+  pg.display.flip()
+
+  neue_trios = []
+  while trios:
+    trio = trios.pop()
     for neuer_kreis in gen_nächste_2_kreise(trio):
-      if neuer_kreis[0] > 0.5: continue
+      if 1 / neuer_kreis[0] < 2: continue
       if not all(entfernung(neuer_kreis[1], pos) > 1 for _, pos in kreise): continue
       kreise.append(neuer_kreis)
       for a, b in itertools.combinations(trio, 2):
-        queue2.append((a, b, neuer_kreis))
-  queue = queue2
-  if not queue:
-    kreise, queue = init_kreise()
+        neue_trios.append((neuer_kreis, a, b))
+  trios = neue_trios
+  if not trios:
+    kreise, trios = init_kreise()
