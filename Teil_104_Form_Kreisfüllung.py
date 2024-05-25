@@ -1,27 +1,25 @@
-import pygame as pg, random as rnd, itertools as itt
+import pygame as pg, random as rnd
 
 pg.init()
-größe = breite, höhe = pg.Vector2(1920, 1080)
+größe = breite, höhe = 1920, 1080
 fenster = pg.display.set_mode(größe)
-
-bild = pg.image.load('Teil_105_gravitar.png')
-schriftzug = [(x, y) for x, y in itt.product(range(1920), range(1080))
-              if bild.get_at((x, y))[0]]
-rnd.shuffle(schriftzug)
+bild = pg.image.load('Teil_105_Gravitar.png')
+maske = [(x, y) for x in range(breite) for y in range(höhe) if bild.get_at((x, y))[0]]
+rnd.shuffle(maske)
 
 kreise = []
-while schriftzug:
+while maske:
   for ereignis in pg.event.get():
     if ereignis.type == pg.QUIT or ereignis.type == pg.KEYDOWN and ereignis.key == pg.K_ESCAPE: quit()
 
-  pos1 = pg.Vector2(schriftzug.pop())
-  radius1 = rnd.randrange(5, 20)
+  pos = pg.Vector2(maske.pop())
+  rad = rnd.randrange(5, 20)
 
-  for pos2, radius2 in kreise:
-    if pos1.distance_to(pos2) - radius1 - radius2 < 0: break
+  for pos2, rad2 in kreise:
+    if pos.distance_to(pos2) - rad - rad2 < 0: break
   else:
-    kreise.append((pos1, radius1))
-    pg.draw.circle(fenster, 'green', pos1, radius1, 3)
+    kreise.append((pos, rad))
+    pg.draw.circle(fenster, 'green', pos, rad, 3)
     pg.display.flip()
 
-pg.image.save(fenster, 'Teil_105_bubbles.png')
+pg.image.save(fenster, 'Teil_105_kreise.png')
