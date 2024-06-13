@@ -1,56 +1,50 @@
-import pygame as pg, random as rnd
+import pygame as pg, random as rnd 
 
 
-def segment_intersection(a, b, c, d):
-  bottom = (d.y - c.y) * (b.x - a.x) - (d.x - c.x) * (b.y - a.y)
-  if not bottom: return
-  t_top = (d.x - c.x) * (a.y - c.y) - (d.y - c.y) * (a.x - c.x)
-  u_top = (c.y - a.y) * (a.x - b.x) - (c.x - a.x) * (a.y - b.y)
-  t = t_top / bottom
-  u = u_top / bottom
-  return a.lerp(b,t) if 0 <= u <= 1 and 0 <= t <= 1 else None
-
+#https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection#Given_two_points_on_each_line_segment
+def segment_intersection(a,b,c,d):
+  t_zähler = (a.x - c.x) * (c.y - d.y) - (a.y - c.y) * (c.x - d.x)
+  u_zähler = (a.x - b.x) * (a.y - c.y) - (a.y - b.y) * (a.x - c.x)
+  nenner   = (a.x - b.x) * (c.y - d.y) - (a.y - b.y) * (c.x - d.x)
+  if not nenner: return
+  
+  t = t_zähler / nenner
+  u = -u_zähler / nenner
+  if 0<= t <= 1 and 0<= u <= 1: return a.lerp(b,t)
+  
 
 def ray_casting(wände):
-  a = V2(pg.mouse.get_pos())
+  c = V2(pg.mouse.get_pos())
   for ray in rays:
-    b = a + ray
-    entfernung, best_pos = 99999, None
-    for c, d in wände:
-      if not (intersect := segment_intersection(a, b, c, d)): continue
-      if  (e := a.distance_to(intersect)) < entfernung:
-        entfernung = e
-        best_pos = intersect
-    if not best_pos: continue
-    pg.draw.line(fenster, 'gray40', a, best_pos, 1)
-
-
-V2 = pg.Vector2
+    d = c + ray
+    geringste_entfernung, best_pos = 99999, None
+    for a,b in wände:
+      intersection = segment_intersection(a,b,c,d)
+      if intersection:
+        entfernung = c.distance_to(intersection)
+        if entfernung < geringste_entfernung:
+          geringste_entfernung = entfernung
+          best_pos = intersection
+    if not best_pos: continue      
+    pg.draw.line(fenster,'gray20',c,best_pos,1)
 
 pg.init()
-größe = breite, höhe = V2(1920, 1080)
+größe = breite, höhe = 1920, 1080
 fenster = pg.display.set_mode(größe)
 
-wände = [tuple(V2(rnd.randrange(breite), rnd.randrange(höhe)) for _ in range(2))  
-         for _ in range(10)]
-ecken = [(0, 0), (breite, 0), (breite, höhe), (0, höhe), (0, 0)]
-wände.extend([(V2(a), V2(b)) for a, b in zip(ecken,ecken[1:])])
-
-rays = [V2(max(größe),0).rotate(a) for a in range(360)]
+V2 = pg.Vector2
+wände = [tuple(V2(rnd.randrange(breite), rnd.randrange(höhe)) for _ in range(2)) for _ in range(10)]
+rays = [V2(max(größe),0).rotate(w) for w in range(360)]
 
 while True:
   fenster.fill('black')
-  
+    
   for ereignis in pg.event.get():
-    if ereignis.type == pg.QUIT: quit()
-    if ereignis.type == pg.KEYDOWN:
-      match ereignis.key:
-        case pg.K_ESCAPE: quit()
-
-  ray_casting(wände)
-
-  for a, b in wände:
-    pg.draw.line(fenster, 'white', a, b, 3)
+    if ereignis.type == pg.QUIT or ereignis.type == pg.KEYDOWN and ereignis.key == pg.K_ESCAPE: quit()
   
+  for a,b in wände:
+    pg.draw.line(fenster, 'white', a, b, 3)
+
+  ray_casting(wände)  
+         
   pg.display.flip()
- 
