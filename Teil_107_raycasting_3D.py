@@ -25,8 +25,8 @@ def ray_casting(wände):
     #https://github.com/Gpopcorn/raycasting/blob/main/raycasting.py
     dist, intersect = min(entfernungen)
     dist *= math.cos(math.radians(i-sicht/2))
-    color = [max(0,255-dist/1.5)]*3
     wand_höhe = (10/dist * 2500)
+    color = [max(0,255-dist/1.5)]*3
     
     pg.draw.line(left, 'green', c, intersect, 1)
     pg.draw.rect(right, color, (raster*i,höhe/2-wand_höhe/2,raster,wand_höhe))
@@ -53,7 +53,8 @@ maus_empflindlichkeit = 0.5
 while True:
   clock.tick(FPS)
   left.fill('black')
-  right.fill('black')
+  pg.draw.rect(right,'deepskyblue',(0,0,breite/2,höhe/2))
+  pg.draw.rect(right,'gray',(0,höhe/2,breite/2,höhe/2))
   
   for ereignis in pg.event.get():
     if ereignis.type == pg.QUIT: quit()
@@ -67,15 +68,16 @@ while True:
     if ereignis.type == pg.MOUSEWHEEL:
       sicht += ereignis.y
 
-  
   rel_pos = V2(pg.mouse.get_rel())*maus_empflindlichkeit
   spieler_richt = spieler_richt.rotate(rel_pos.x)
         
   ray_casting(wände)
+  
   for a, b in wände:
     pg.draw.line(left, 'white', a, b, 3)
   
   fenster.blit(left,(0,0))
   fenster.blit(right,(breite/2,0))
+  
   pg.draw.line(fenster,'blue',(breite/2,0), (breite/2,höhe),5)
   pg.display.flip()
