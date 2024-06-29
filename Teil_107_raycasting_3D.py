@@ -10,74 +10,59 @@ def get_intersect(a, b, c, d):
 
 
 def ray_casting(wände):
-  c = spieler_pos
-  pg.draw.circle(left,'green',c,10)
-  raster = breite/2/sicht
-  
-  for i in range(sicht):
-    _, winkel_player = spieler_richt.as_polar()
-    ray = V2(3000,0).rotate(winkel_player-sicht/2+i)
-    d = spieler_pos + ray
+  c = V2(pg.mouse.get_pos())
+  breite_rechteck = breite/2/sichtbereich
+  for i in range(sichtbereich):
+    ray = V2(3000,0).rotate(spieler_richtung-sichtbereich/2+i)
+    d = c + ray
     entfernungen = [(c.distance_to(k), k) for a, b in wände if (k := get_intersect(a, b, c, d))]
     if not entfernungen: continue
     
-    #diese Berechnung vermeidet den Fish-Eye-Effekt, danke an Gpopcorn
-    #https://github.com/Gpopcorn/raycasting/blob/main/raycasting.py
-    dist, intersect = min(entfernungen)
-    dist *= math.cos(math.radians(i-sicht/2))
+    dist, kreuzungspunkt = min(entfernungen)
+    dist *= math.cos(math.radians(i-sichtbereich/2))
     wand_höhe = (10/dist * 2500)
-    color = [max(0,255-dist/1.5)]*3
+    farbe = [max(10,255-dist/1.5)]*3
+    pg.draw.line(fenster_links, 'green', c, kreuzungspunkt, 1)
+    pg.draw.rect(fenster_rechts, farbe, (breite_rechteck*i,höhe/2-wand_höhe/2,breite_rechteck,wand_höhe))
     
-    pg.draw.line(left, 'green', c, intersect, 1)
-    pg.draw.rect(right, color, (raster*i,höhe/2-wand_höhe/2,raster,wand_höhe))
 
 
 V2 = pg.Vector2
 pg.init()
-größe = breite, höhe = V2(1920, 1080)
-zentrum = größe/2
-
+größe = breite, höhe = 1920, 1080
 fenster = pg.display.set_mode(größe)
-left = pg.surface.Surface((breite/2,höhe))
-right = pg.surface.Surface((breite/2,höhe))
+pg.key.set_repeat(10)
+
+fenster_links, fenster_rechts = pg.surface.Surface((breite/2, höhe)), pg.surface.Surface((breite/2, höhe))
 
 clock = pg.time.Clock()
-pg.key.set_repeat(10)
 FPS = 40
 
-sicht = 60 #Sichtbereich in Grad
-spieler_pos, spieler_richt = zentrum/2,V2(1,0)
-wände = [tuple(V2(rnd.randrange(breite/2), rnd.randrange(höhe)) for _ in range(2)) for _ in range(10)]
-maus_empflindlichkeit = 0.5
+wände = [tuple(V2(rnd.randrange(breite//2), rnd.randrange(höhe)) for _ in range(2)) for _ in range(10)]
+sichtbereich = 60
+spieler_richtung = 0
 
 while True:
   clock.tick(FPS)
-  left.fill('black')
-  pg.draw.rect(right,'deepskyblue',(0,0,breite/2,höhe/2))
-  pg.draw.rect(right,'gray',(0,höhe/2,breite/2,höhe/2))
-  
+  fenster_links.fill('black')
+  pg.draw.rect(fenster_rechts,'blue',(0,0,breite/2,höhe/2))
+  pg.draw.rect(fenster_rechts,'brown',(0,höhe/2,breite/2,höhe/2))
+
   for ereignis in pg.event.get():
-    if ereignis.type == pg.QUIT: quit()
+    if ereignis.type == pg.QUIT or ereignis.type == pg.KEYDOWN and ereignis.key == pg.K_ESCAPE: quit()
     if ereignis.type == pg.KEYDOWN:
       match ereignis.key:
-        case pg.K_ESCAPE: quit()
-        case pg.K_w: spieler_pos += spieler_richt
-        case pg.K_d: spieler_pos += spieler_richt.rotate(90)
-        case pg.K_a: spieler_pos += spieler_richt.rotate(-90)
-        case pg.K_s: spieler_pos += spieler_richt.rotate(180)
-    if ereignis.type == pg.MOUSEWHEEL:
-      sicht += ereignis.y
+        case pg.K_a: spieler_richtung -= 1
+        case pg.K_d: spieler_richtung += 1 
 
-  rel_pos = V2(pg.mouse.get_rel())*maus_empflindlichkeit
-  spieler_richt = spieler_richt.rotate(rel_pos.x)
-        
   ray_casting(wände)
-  
+
   for a, b in wände:
-    pg.draw.line(left, 'white', a, b, 3)
+    pg.draw.line(fenster_links, 'white', a, b, 3)
+
   
-  fenster.blit(left,(0,0))
-  fenster.blit(right,(breite/2,0))
-  
-  pg.draw.line(fenster,'blue',(breite/2,0), (breite/2,höhe),5)
+  fenster.blit(fenster_links,(0,0))  
+  fenster.blit(fenster_rechts,(breite/2,0))  
+  pg.draw.line(fenster,'blue',(breite/2,0),(breite/2,höhe),5)
+
   pg.display.flip()

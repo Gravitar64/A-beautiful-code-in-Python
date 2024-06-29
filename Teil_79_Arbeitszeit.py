@@ -1,7 +1,6 @@
 from datetime import datetime, timedelta
 import time
 import curses
-import playsound
 
 
 def td(z):
@@ -36,9 +35,6 @@ while True:
   std.addstr(5, 0, f'= akt. Saldo                        = {saldo}')
   
 
-  
-  if jetzt == (start + arbeitszeit):
-    playsound.playsound('Teil_79_yabba_dabba_doo.mp3')
   
   time.sleep(1)
   std.refresh()

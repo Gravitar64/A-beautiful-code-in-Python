@@ -5,7 +5,8 @@ größe = breite, höhe = 1920, 1080
 fenster = pg.display.set_mode(größe)
 
 bild = pg.image.load('Teil_104_Gravitar.png')
-maske = [(x, y) for x in range(breite) for y in range(höhe) if bild.get_at((x, y))[0]]
+maske = [(x, y) for x in range(bild.get_width()) for y in range(bild.get_height())
+         if bild.get_at((x, y))[0]]
 rnd.shuffle(maske)
 
 gezeichnete_kreise = []
@@ -23,6 +24,4 @@ while maske:
     gezeichnete_kreise.append((pos, rad))
     pg.display.flip()
 
-pg.image.save(fenster,'Teil_104_kreise.png')   
-
-
+pg.image.save(fenster, 'Teil_104_kreise.png')

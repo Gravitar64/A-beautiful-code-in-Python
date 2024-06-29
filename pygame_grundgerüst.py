@@ -18,8 +18,8 @@ FPS = 40
 while True:
   clock.tick(FPS)
   fenster.fill('black')
-  
+
   for ereignis in pg.event.get():
     if ereignis.type == pg.QUIT or ereignis.type == pg.KEYDOWN and ereignis.key == pg.K_ESCAPE: quit()
-  
+
   pg.display.flip()

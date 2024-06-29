@@ -39,7 +39,7 @@ pg.init()
 größe = breite, höhe = 1920, 1080
 fenster = pg.display.set_mode(größe)
 clock = pg.time.Clock()
-FPS = 1
+FPS = 5
 
 kreise, trios = init_kreise()
 while True:

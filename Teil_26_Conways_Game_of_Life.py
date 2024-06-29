@@ -23,14 +23,19 @@ spielfeld = {(rnd.randrange(200), rnd.randrange(200)) for i in range(6000)}
 pg.init()
 sc_b = sc_h = 1000
 screen = pg.display.set_mode([sc_b, sc_h])
+zb, zh, offsX, offsY = größeErmitteln(spielfeld, sc_b, sc_h)
+fps=40
+clock = pg.time.Clock()
 
 
 while True:
+  clock.tick(fps)
+  for ereignis in pg.event.get():
+    if ereignis.type == pg.QUIT or ereignis.type == pg.KEYDOWN and ereignis.key == pg.K_ESCAPE: quit()
   screen.fill((0,0,0))
   spielfeld = nächsteGeneration(spielfeld)
-  zb, zh, offsX, offsY = größeErmitteln(spielfeld, sc_b, sc_h)
   for x,y in spielfeld:
-    pg.draw.rect(screen,(0,0,255), ((x+offsX)*zb,(y+offsY)*zh, zb, zh))
+    pg.draw.rect(screen,'white', ((x+offsX)*zb,(y+offsY)*zh, zb, zh))
   pg.display.flip()
 
 pg.quit()
