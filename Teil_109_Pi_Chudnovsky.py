@@ -15,5 +15,6 @@ def chudnovsky(genauigkeit):
 
 start = time.perf_counter()
 genauigkeit = 100
+
 print(f'Pi mit {genauigkeit:,} Stellen Genauigkeit: \n{chudnovsky(genauigkeit)}')
 print(f'Ermittelt in {time.perf_counter() - start:.4f} Sek.')
