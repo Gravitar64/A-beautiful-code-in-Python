@@ -2,7 +2,7 @@ import turtle as tu
 
 lines = 100_000
 
-with open("Teil_04_1_million_digits_of_pi.txt", "r") as f:
+with open("Teil_004_1_million_digits_of_pi.txt", "r") as f:
   pi = f.read()
 
 tu.mode('logo')
@@ -21,5 +21,5 @@ for n in range(lines):
   if n % 10_000 == 0:
     tu.update()
 
-tu.getcanvas().postscript(file='PI_Picture.ps')
+tu.getcanvas().postscript(file='Teil_004_PI_Picture.ps')
 tu.done()
