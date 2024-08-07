@@ -36,6 +36,6 @@ rot_dict = {'u': ['y', 1, 90],    'e': ['y', 0, -90],    'd': ['y', -1, -90],
 
 würfel = []
 for pos in product((-1,0,1), repeat=3):
-  würfel.append(Entity(model='Teil_46_model.obj', texture = 'Teil_46_texture.png', position=pos, scale=0.5))
+  würfel.append(Entity(model='Teil_046_model.obj', texture = 'Teil_046_texture.png', position=pos, scale=0.5))
 
 app.run()
