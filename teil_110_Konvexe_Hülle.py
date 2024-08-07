@@ -10,9 +10,9 @@ def gift_wrapping(punkte):
     for p in punkte:
       if (endpunkt - startpunkt).cross(p - startpunkt) < 0: endpunkt = p
     if endpunkt == hülle[0]: return hülle
+    hülle.append(endpunkt)
+    punkte.remove(endpunkt)
     startpunkt = endpunkt
-    hülle.append(startpunkt)
-    punkte.remove(startpunkt)
 
 
 pg.init()
@@ -22,9 +22,9 @@ clock = pg.time.Clock()
 FPS = 5
 
 start = time.perf_counter()
-punkte = [pg.Vector2(rnd.randrange(breite), rnd.randrange(höhe)) for _ in range(16)]
+punkte = [pg.Vector2(rnd.randrange(breite), rnd.randrange(höhe)) for _ in range(25)]
 hülle = gift_wrapping(punkte)
-print(time.perf_counter() - start)
+print(f'Ermittelt in {(time.perf_counter() - start)*1000:,.3f} ms')
 
 while True:
   clock.tick(FPS)
