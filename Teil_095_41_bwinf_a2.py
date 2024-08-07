@@ -10,13 +10,13 @@ class Kristallisationskeim():
     self.orientierung = rnd.randrange(360)
     self.geschwindigkeit = [rnd.randrange(1, 4) for _ in range(4)]
     self.richtungen = self.ermittel_richtungen(self.orientierung)
-    self.farbe = [self.orientierung/360*255]*3
+    self.farbe = [self.orientierung / 360 * 255] * 3
     self.pixel = {(self.x, self.y)}
 
   def ermittel_richtungen(self, grad):
     richtungen = []
     for richtung in [0, 90, 180, 270]:
-      phi = math.radians(grad+richtung)
+      phi = math.radians(grad + richtung)
       richtungen.append((math.cos(phi), math.sin(phi)))
     return richtungen
 
@@ -24,8 +24,8 @@ class Kristallisationskeim():
     neu = set()
     for x, y in self.pixel:
       for geschw, (dx, dy) in zip(self.geschwindigkeit, self.richtungen):
-        for multi in range(1, geschw+1):
-          x2, y2 = int(x+dx*multi), int(y+dy*multi)
+        for multi in range(1, geschw + 1):
+          x2, y2 = int(x + dx * multi), int(y + dy * multi)
           if 0 <= x2 < breite and 0 <= y2 < höhe and pxarray[x2, y2] == 0:
             fenster.set_at((x2, y2), self.farbe)
             neu.add((x2, y2))

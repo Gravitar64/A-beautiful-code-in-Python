@@ -4,22 +4,22 @@ from collections import defaultdict
 
 # Textdatei einlesen und Dictionary füllen
 tageswert = defaultdict(list)
-with open('temperatur_draußen Temp_2.txt') as f:
-    for zeile in f:
-        datumStr, _, t = zeile.split()
-        datum = dt.datetime.strptime(datumStr, '%d.%m.%Y')
-        t = float(t)
-        tageswert[datum].append(t)
+with open('Teil_008_temperatur_draußen Temp_2.txt') as f:
+  for zeile in f:
+    datumStr, _, t = zeile.split()
+    datum = dt.datetime.strptime(datumStr, '%d.%m.%Y')
+    t = float(t)
+    tageswert[datum].append(t)
 
 # Tageswerte ermitteln und Messfehler rausfiltern
 tagMax, tagMin, tagDatum = [], [], []
 for datum, liste in tageswert.items():
-    höchst = max(liste)
-    tiefst = min(liste)
-    if abs(höchst) < 40 and abs(tiefst) < 40:
-        tagMax.append(höchst)
-        tagMin.append(tiefst)
-        tagDatum.append(datum)
+  höchst = max(liste)
+  tiefst = min(liste)
+  if abs(höchst) < 40 and abs(tiefst) < 40:
+    tagMax.append(höchst)
+    tagMin.append(tiefst)
+    tagDatum.append(datum)
 
 # plotten der bereinigten Werte
 fig, ax = plt.subplots()

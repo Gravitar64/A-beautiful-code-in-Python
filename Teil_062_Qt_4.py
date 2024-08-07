@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QApplication, QMainWindow
 from PySide6 import QtSql
-from Teil_62_Qt.frm_main import Ui_frm_main
-from Teil_62_Qt.frm_kundenauswahl import Ui_frm_kundenauswahl
+from Teil_062_Qt.frm_main import Ui_frm_main
+from Teil_062_Qt.frm_kundenauswahl import Ui_frm_kundenauswahl
 
 
 class Frm_kundenauswahl(QMainWindow, Ui_frm_kundenauswahl):
@@ -33,17 +33,16 @@ class Frm_main(QMainWindow, Ui_frm_main):
     query.exec(abfrage)
     model.select()
     self.tbl_offene_leistungen.setModel(model)
-    gesamt_brutto = sum([model.data(model.index(zeile,8)) for zeile in range(model.rowCount())])
+    gesamt_brutto = sum([model.data(model.index(zeile, 8)) for zeile in range(model.rowCount())])
     t = f'Offene Leistungen ({gesamt_brutto:0.2f} €)'
     self.lb_offene_leistungen.setText(t)
 
 
-
-db = QtSql.QSqlDatabase.addDatabase("QSQLITE")
-db.setDatabaseName("Teil_62_Qt/Rechnungen.sqlite")
-
 app = QApplication()
+db = QtSql.QSqlDatabase.addDatabase("QSQLITE")
+db.setDatabaseName("Teil_062_Qt/Rechnungen.sqlite")
+
 frm_main = Frm_main()
 frm_main.show()
 frm_kundenauswahl = Frm_kundenauswahl()
-app.exec()   
+app.exec()

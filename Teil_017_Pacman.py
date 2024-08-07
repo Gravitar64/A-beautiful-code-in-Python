@@ -1,4 +1,4 @@
-import Teil_17_pygame_functions as pgf
+import Teil_017_pygame_functions as pgf
 import random as rnd
 import threading
 
@@ -106,8 +106,8 @@ class Figur:
 class Pacman(Figur):
   def __init__(self, name, pos):
     Figur.__init__(self, name, pos)
-    self.sprites = {'jagd': [pgf.makeSprite('Teil_17_Pacman_Tileset.png',12),3,True],
-                    'tot' : [pgf.makeSprite('Teil_17_pacman_die.png',12),12,False]}
+    self.sprites = {'jagd': [pgf.makeSprite('Teil_017_Pacman_Tileset.png',12),3,True],
+                    'tot' : [pgf.makeSprite('Teil_017_pacman_die.png',12),12,False]}
     self.sprite = self.sprites[self.modus][0]
     self.tastaturspeicher = 0  
 
@@ -134,9 +134,9 @@ class Geist(Figur):
   def __init__(self, name, pos, bilddatei):
     Figur.__init__(self, name, pos)
     self.sprites = {'jagd': [pgf.makeSprite(bilddatei,8),2,True],
-                    'flucht' : [pgf.makeSprite('Teil_17_Ghost_flucht.png',2),2,False],
-                    'blink' : [pgf.makeSprite('Teil_17_Ghost_blink.png',4),4,False],
-                    'tot' : [pgf.makeSprite('Teil_17_Ghost_die.png',4),1,True]}
+                    'flucht' : [pgf.makeSprite('Teil_017_Ghost_flucht.png',2),2,False],
+                    'blink' : [pgf.makeSprite('Teil_017_Ghost_blink.png',4),4,False],
+                    'tot' : [pgf.makeSprite('Teil_017_Ghost_die.png',4),1,True]}
     self.sprite = self.sprites[self.modus][0]
 
   def bewegungslogik(self):
@@ -158,7 +158,7 @@ def punkteSetzen():
   punkte = {}
   for i, zahl in enumerate(spielraster):
     if zahl not in (1,2): continue
-    punkte[i] = Punkt(i2xy(i),'Teil_17_Punkt.png') if zahl == 1 else Punkt(i2xy(i),'Teil_17_Punkt_gross.png')
+    punkte[i] = Punkt(i2xy(i),'Teil_017_Punkt.png') if zahl == 1 else Punkt(i2xy(i),'Teil_017_Punkt_gross.png')
     pgf.showSprite(punkte[i].sprite)  
   return punkte
 
@@ -176,15 +176,15 @@ breite, höhe = 672, 744
 raster = 24
 spalten, zeilen = breite // raster, höhe // raster
 pgf.screenSize(breite, höhe)
-pgf.setBackgroundImage('Teil_17_Spielfeld.png')
+pgf.setBackgroundImage('Teil_017_Spielfeld.png')
 pgf.setAutoUpdate(False)
 
 punkte = punkteSetzen()
 pacman = Pacman('pacman', (336,564))
-blinky = Geist('blinky', (360,276), 'Teil_17_Blinky_tileset.png')
-pinky = Geist('pinky', (300,348), 'Teil_17_pinky_tileset.png')
-inky = Geist('inky', (348,348), 'Teil_17_inky_tileset.png')
-clyde = Geist('clyde', (396,348), 'Teil_17_clyde_tileset.png')
+blinky = Geist('blinky', (360,276), 'Teil_017_Blinky_tileset.png')
+pinky = Geist('pinky', (300,348), 'Teil_017_pinky_tileset.png')
+inky = Geist('inky', (348,348), 'Teil_017_inky_tileset.png')
+clyde = Geist('clyde', (396,348), 'Teil_017_clyde_tileset.png')
 figuren = [pacman, blinky, pinky, inky, clyde]
 
 nächsteAnimation = pgf.clock() + 100

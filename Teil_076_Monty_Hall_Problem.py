@@ -2,7 +2,7 @@ import random as rnd
 
 gew_ow = gew_mw = gew_zufMod = 0
 sim = 1_000_000
-türen = {0,1,2}
+türen = {0, 1, 2}
 
 for _ in range(sim):
   auto, wahl, moderator = rnd.randrange(3), rnd.randrange(3), rnd.randrange(3)
@@ -19,7 +19,7 @@ for _ in range(sim):
     if wechsel == auto:
       gew_zufMod += 1
 
-    
+
 print(f'Gewinnwahrscheinlichkeit ohne Wechsel = {gew_ow/sim*100:.2f} %')
 print(f'Gewinnwahrscheinlichkeit mit Wechsel (Moderator zeigt Ziege)    = {gew_mw/sim*100:.2f} %')
 print(f'Gewinnwahrscheinlichkeit mit Wechsel (Moderator wählt zufällig) = {gew_zufMod/sim*100:.2f} %')

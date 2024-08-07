@@ -17,7 +17,7 @@ def pol2cart(winkel, von, radius=100):
 
 
 def addVec(pos, delta):
-  return tuple(round(a+b, 1) for a, b in zip(pos, delta))
+  return tuple(round(a + b, 1) for a, b in zip(pos, delta))
 
 
 def genKoordinaten(figuren):
@@ -39,8 +39,8 @@ def genKoordinaten(figuren):
 def verschiebe(nachher):
   for (x, y), *args in vorher:
     for (x1, y1), *args in nachher:
-      delta = x-x1, y-y1
-      yield{frozenset(((addVec(von, delta), addVec(zu, delta)))) for von, zu in nachher}
+      delta = x - x1, y - y1
+      yield {frozenset(((addVec(von, delta), addVec(zu, delta)))) for von, zu in nachher}
 
 
 def findeLösung():
@@ -52,7 +52,7 @@ def findeLösung():
 
 
 for n in range(6):
-  dateiname = f'Teil_68_streichhoelzer{n}.txt'
+  dateiname = f'Teil_068_streichhoelzer{n}.txt'
   figuren = dateiLesen(dateiname)
   vorher, nachher = genKoordinaten(figuren)
   gleich = vorher & nachher

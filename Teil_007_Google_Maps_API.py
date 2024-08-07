@@ -3,7 +3,7 @@ import googlemaps
 import csv
 
 zeilen = []
-with open('Teil_07_origins_destinations.csv') as f:
+with open('Teil_007_origins_destinations.csv') as f:
   readCSV = csv.reader(f)
   for zeile in readCSV:
     zeilen.append(zeile)
@@ -24,6 +24,6 @@ for n, row in enumerate(distances['rows']):
     zeile.append(ziel['duration']['value'])
   output.append(zeile)
 
-with open('Entfernungsmatrix3.csv', 'w', newline='') as f:
+with open('Teil_007_Entfernungsmatrix3.csv', 'w', newline='') as f:
   writer = csv.writer(f)
   writer.writerows(output)

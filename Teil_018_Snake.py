@@ -7,7 +7,7 @@ snake = [(BREITE//2, HÖHE//2)]
 richt_x, richt_y = 1, 0
 bonus_x, bonus_y = 300, 300
 richtungen = {pg.K_DOWN:(0,1), pg.K_UP: (0,-1), pg.K_LEFT: (-1,0), pg.K_RIGHT: (1,0)}
-with open('Teil_18_Highscore.txt','r') as f:
+with open('Teil_018_Highscore.txt','r') as f:
   high = int(f.readline())
 
 pg.init()
@@ -16,7 +16,7 @@ screen = pg.display.set_mode([BREITE, HÖHE])
 pg.mouse.set_visible(False)
 sounds = []
 for i in range(4):
-  sounds.append(pg.mixer.Sound(f"Teil_18_move_{i}.wav"))
+  sounds.append(pg.mixer.Sound(f"Teil_018_move_{i}.wav"))
 
 
  
@@ -75,7 +75,7 @@ pg.quit()
 
 if score > high:
   print(f'New High Score {score} (old {high})')
-  with open('teil_18_highscore.txt','w') as f:
+  with open('teil_018_highscore.txt','w') as f:
     f.write(str(score))
 else:
   print(f'{score:,}')    

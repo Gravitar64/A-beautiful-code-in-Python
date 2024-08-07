@@ -1,6 +1,6 @@
 import requests
 from twilio.rest import Client
-import Teil_52_Twilio_credentials as cred
+import Teil_052_Twilio_credentials as cred
 
 URL = "https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_Landkreisdaten/FeatureServer/0/query?where=GEN%20%3D%20'NORDFRIESLAND'%20OR%20GEN%20%3D%20'FLENSBURG'%20OR%20GEN%20%3D%20'REGION%20HANNOVER'%20OR%20GEN%20%3D%20'CELLE'&outFields=cases7_per_100k_txt,GEN,last_update&returnGeometry=false&orderByFields=GEN ASC&outSR=&f=json"
 

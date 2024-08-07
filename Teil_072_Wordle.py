@@ -1,6 +1,6 @@
 import pygame as pg
 import random as rnd
-import time 
+import time
 
 
 class Feld:
@@ -68,7 +68,7 @@ def generiere_felder():
 
   for i in range(26):
     x, y = i % 13 * 50 + 152, i // 13 * 50 + 500
-    buchstaben[chr(65+i)] = Feld(x, y, chr(65+i), 4)
+    buchstaben[chr(65 + i)] = Feld(x, y, chr(65 + i), 4)
 
   return eingaben, buchstaben
 
@@ -85,9 +85,9 @@ def eingabe(key):
     versuch = ''.join(f.buchst for f in eingaben[cursor_min:cursor_max])
     if versuch not in wörter: return
     stati = vergleich(list(versuch), list(geheim))
-    
+
     for i, status in enumerate(stati):
-      eingaben[cursor_min+i].status = status
+      eingaben[cursor_min + i].status = status
       buchstaben[versuch[i]].buchst = ''
       buchstaben[versuch[i]].status = 0
 
@@ -101,8 +101,8 @@ def eingabe(key):
 
 pg.init()
 screen = pg.display.set_mode((920, 647))
-bild_hg = pg.image.load('Teil_72_Wordle.jpg')
-with open('Teil_72_wörter.txt') as f:
+bild_hg = pg.image.load('Teil_072_Wordle.jpg')
+with open('Teil_072_wörter.txt') as f:
   wörter = [wort.strip() for wort in f]
 geheim = rnd.choice(wörter)
 eingaben, buchstaben = generiere_felder()

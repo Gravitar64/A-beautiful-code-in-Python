@@ -11,15 +11,17 @@ _MOVES = {'r': [7, *_M_HV],
           'pc': [1, (-1, 1), (1, 1)],
           'Pc': [1, (-1, -1), (1, -1)]}
 
-_GRUNDLINIE = [1,6]          
+_GRUNDLINIE = [1, 6]
 
-BRETT = {(s,z): s % 2 == z % 2 for s in range(8) for z in range(8)}          
+BRETT = {(s, z): s % 2 == z % 2 for s in range(8) for z in range(8)}
+
 
 def zugGenerator(weiss, position):
   züge = []
   pseudo = _pseudoZugGenerator(weiss, position)
-  #return züge
+  # return züge
   return pseudo
+
 
 def _pseudoZugGenerator(weiss, position):
   pseudo = []
@@ -41,27 +43,26 @@ def _pseudoZugGenerator(weiss, position):
           break
         else:
           pseudo.append((fig, von, zu, False))
-  return pseudo 
+  return pseudo
+
 
 def _zügeBauern(weiss, fig, von, position, pseudo):
   # Stiller Zug
   for ds, dz in _MOVES[fig][1:]:
-    for m in range(1,_MOVES[fig][0] + 1):
+    for m in range(1, _MOVES[fig][0] + 1):
       zu = von[0], von[1] + dz * m
       if zu not in BRETT or zu in position: break
       if m == 2 and von[1] != _GRUNDLINIE[weiss]: break
       if zu[1] in (0, 7):
         pseudo.append((fig, von, zu, False, True))
       else:
-        pseudo.append((fig, von, zu, False, False))         
+        pseudo.append((fig, von, zu, False, False))
   # Schlagzug
-  for ds, dz in _MOVES[fig+'c'][1:]:
+  for ds, dz in _MOVES[fig + 'c'][1:]:
     zu = von[0] + ds, von[1] + dz
     if zu not in position: continue
     if position[zu].isupper() == weiss: continue
     if zu[1] in (0, 7):
       pseudo.append((fig, von, zu, position[zu], True))
     else:
-      pseudo.append((fig, von, zu, position[zu], False)) 
-
-        
+      pseudo.append((fig, von, zu, position[zu], False))

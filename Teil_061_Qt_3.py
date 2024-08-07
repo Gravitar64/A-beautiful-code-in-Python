@@ -1,6 +1,7 @@
 from PySide6.QtWidgets import QApplication, QMainWindow
 from PySide6 import QtSql
-from Teil_61_Qt.frm_main import Ui_frm_main
+from Teil_061_Qt.frm_main import Ui_frm_main
+
 
 class Frm_main(QMainWindow, Ui_frm_main):
   def __init__(self):
@@ -13,10 +14,12 @@ class Frm_main(QMainWindow, Ui_frm_main):
     mod_offene_Leistungen.select()
     self.tbl_offene_leitsungen.setModel(mod_offene_Leistungen)
 
-db = QtSql.QSqlDatabase.addDatabase("QSQLITE")
-db.setDatabaseName("Teil_61_Qt/Rechnungen.sqlite")
 
 app = QApplication()
+
+db = QtSql.QSqlDatabase.addDatabase("QSQLITE")
+db.setDatabaseName("Teil_061_Qt/Rechnungen.sqlite")
+
 frm_main = Frm_main()
 frm_main.show()
-app.exec()   
+app.exec()

@@ -19,12 +19,12 @@ def gültig(y, x):
   return y > -1 and y < raster and x > -1 and x < raster
 
 
-bild_normal = ladeBild('Teil_10_ms_cell_normal.gif')
-bild_markiert = ladeBild('Teil_10_ms_cell_marked.gif')
-bild_mine = ladeBild('Teil_10_ms_cell_mine.gif')
+bild_normal = ladeBild('Teil_010_ms_cell_normal.gif')
+bild_markiert = ladeBild('Teil_010_ms_cell_marked.gif')
+bild_mine = ladeBild('Teil_010_ms_cell_mine.gif')
 bild_aufgedeckt = []
 for n in range(9):
-  bild_aufgedeckt.append(ladeBild(f'Teil_10_ms_cell_{n}.gif'))
+  bild_aufgedeckt.append(ladeBild(f'Teil_010_ms_cell_{n}.gif'))
 
 
 matrix = []

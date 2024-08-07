@@ -10,8 +10,9 @@ def td(z):
   else:
     return timedelta(hours=z.hour, minutes=z.minute, seconds=z.second)
 
+
 def form(td):
-  return f'{str(td):0>8}'    
+  return f'{str(td):0>8}'
 
 
 start = td(input('Arbeitsbeginn (HH:MM): '))
@@ -33,8 +34,6 @@ while True:
   std.addstr(2, 0, f'= Feierabend                        =  {form(start + arbeitszeit)} (max. {start + max_soll})')
   std.addstr(4, 0, f'- aktuelle Uhrzeit                  =  {form(jetzt)}')
   std.addstr(5, 0, f'= akt. Saldo                        = {saldo}')
-  
 
-  
   time.sleep(1)
   std.refresh()

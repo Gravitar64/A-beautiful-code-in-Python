@@ -1,5 +1,5 @@
 import tweepy
-from Teil_06_Twitter_Credentials import *
+from Teil_006_Twitter_Credentials import *
 from wordcloud import WordCloud, STOPWORDS
 import matplotlib.pyplot as plt
 

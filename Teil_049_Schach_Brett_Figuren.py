@@ -3,11 +3,11 @@ import chessdotcom as chess
 
 
 def sz2xy(sz):
-  return sz[0]*FELD, sz[1]*FELD
+  return sz[0] * FELD, sz[1] * FELD
 
 
 def xy2sz(xy):
-  return xy[0]//FELD, xy[1]//FELD
+  return xy[0] // FELD, xy[1] // FELD
 
 
 def zeichneBrett(BRETT):
@@ -26,7 +26,7 @@ def fen2position(fen):
     elif char.isnumeric():
       s += int(char)
     else:
-      s, z = 0, z+1
+      s, z = 0, z + 1
   return position, zugrecht
 
 
@@ -35,7 +35,7 @@ def ladeFiguren():
   fig2datei = dict(r='br', n='bn', b='bb', q='bq', k='bk', p='bp',
                    R='wr', N='wn', B='wb', Q='wq', K='wk', P='wp')
   for fig, datei in fig2datei.items():
-    bild = pg.image.load(f'Teil_49_Figuren/{datei}.png')
+    bild = pg.image.load(f'Teil_049_Figuren/{datei}.png')
     bilder[fig] = pg.transform.smoothscale(bild, (FELD, FELD))
   return bilder
 
@@ -52,16 +52,22 @@ FPS = 40
 screen = pg.display.set_mode((BREITE, HÖHE))
 BRETT = {(s, z): s % 2 == z % 2 for s in range(8) for z in range(8)}
 FIGUREN = ladeFiguren()
-#fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 
-# je nach eigesetzter Python-Version (bei mir 3.9.2) und der chess.com-Version 
-# (bei mir 21.0.1)
-# funktioniert der nachfolgende Aufruf oder es ist noch ein zusätzlicher KEY 
+# fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+
+# je nach eigesetzter Python-Version (bei mir 3.11.6) und der chess.com-Version
+# (bei mir 2.1.0) funktioniert der nachfolgende Aufruf oder es ist noch ein zusätzlicher KEY
 # vor fen notwendig:
 #
 # also fen = chess.get_random_daily_puzzle().json['puzzle']['fen']
+# oder fen = chess.get_random_daily_puzzle().json['fen']
 
-fen = chess.get_random_daily_puzzle().json['fen']
+chess.Client.request_config["headers"]["User-Agent"] = (
+  "My Python Application. "
+  "Contact me at gravitar@web.de"
+)
+
+fen = chess.get_random_daily_puzzle().json['puzzle']['fen']  # Python 3.11.6 und chess.com 2.1.0
 position, zugrecht = fen2position(fen)
 print(zugrecht)
 

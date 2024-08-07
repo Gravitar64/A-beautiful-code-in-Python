@@ -2,7 +2,7 @@ import requests
 import re
 
 
-URL_TEXT    = "https://bwinf.de/fileadmin/bundeswettbewerb/41/Alice_im_Wunderland.txt"
+URL_TEXT = "https://bwinf.de/fileadmin/bundeswettbewerb/41/Alice_im_Wunderland.txt"
 URL_AUFGABE = "https://bwinf.de/fileadmin/bundeswettbewerb/41/stoerung"
 
 ALICE = requests.get(URL_TEXT).text.lower()

@@ -1,25 +1,28 @@
 import pygame as pg
 import chessdotcom as chess
-import Teil_55_Schach_Zuggenerator as zuggen
+import Teil_055_Schach_Zuggenerator as zuggen
 
 
 def sz2xy(sz):
-  return sz[0]*FELD, sz[1]*FELD
+  return sz[0] * FELD, sz[1] * FELD
+
 
 def xy2sz(xy):
-  return xy[0]//FELD, xy[1]//FELD
+  return xy[0] // FELD, xy[1] // FELD
+
 
 def zeichneBrett(BRETT):
   for sz, feld in BRETT.items():
     farbe = '#DFBF93' if feld else '#C5844E'
     pg.draw.rect(screen, farbe, (*sz2xy(sz), FELD, FELD))
 
+
 def fen2position(fen):
-  position, s, z, rochaderecht = {}, 0, 0, ['','']
+  position, s, z, rochaderecht = {}, 0, 0, ['', '']
   figurenstellung, zugrecht, rochaderechte, enpassant, zug50, zugnr = fen.split()
   for char in figurenstellung:
     if char.isalpha():
-      position[(s,z)] = char
+      position[(s, z)] = char
       s += 1
     elif char.isnumeric():
       s += int(char)
@@ -27,47 +30,46 @@ def fen2position(fen):
       s, z = 0, z + 1
   for char in rochaderechte:
     if char == '-': break
-    rochaderecht[char.isupper()] += char    
-      
+    rochaderecht[char.isupper()] += char
+
   return position, zugrecht, rochaderecht
+
 
 def ladeFiguren():
   bilder = {}
   fig2datei = dict(r='br', n='bn', b='bb', q='bq', k='bk', p='bp',
                    R='wr', N='wn', B='wb', Q='wq', K='wk', P='wp')
   for fig, datei in fig2datei.items():
-    bild = pg.image.load(f'Teil_49_Figuren/{datei}.png')
+    bild = pg.image.load(f'Teil_049_Figuren/{datei}.png')
     bilder[fig] = pg.transform.smoothscale(bild, (FELD, FELD))
-  return bilder  
+  return bilder
+
 
 def zeichneFiguren(p):
   for sz, fig in p.items():
     screen.blit(FIGUREN[fig], sz2xy(sz))
 
+
 def zeichneZielfelder(zielfelder):
   for ziel in zielfelder:
     x, y = sz2xy(ziel)
-    pg.draw.circle(screen, pg.Color('bisque4'), (x+50, y+50), 10)
-
-
-
+    pg.draw.circle(screen, pg.Color('bisque4'), (x + 50, y + 50), 10)
 
 
 pg.init()
-BREITE, HÖHE = 800,800
+BREITE, HÖHE = 800, 800
 FELD = BREITE // 8
 FPS = 40
 screen = pg.display.set_mode((BREITE, HÖHE))
 FIGUREN = ladeFiguren()
 fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
-#fen = chess.get_random_daily_puzzle().json['fen']
-position,zugrecht,rochaderecht = fen2position(fen)
+# fen = chess.get_random_daily_puzzle().json['fen']
+position, zugrecht, rochaderecht = fen2position(fen)
 weiss = zugrecht == 'w'
 print(f'{"Weiss" if weiss else "Schwarz"} ist am Zug')
 züge, königspos = zuggen.zugGenerator(weiss, position, rochaderecht)
 spieler = [False, True]
 
-  
 
 weitermachen = True
 clock = pg.time.Clock()
@@ -93,11 +95,10 @@ while weitermachen:
         zuggen.zug_ausführen(zug, position, königspos)
         zugwechsel = True
       else:
-        position[von] = fig  
+        position[von] = fig
       drag = None
-      
-           
-  screen.fill((0,0,0))
+
+  screen.fill((0, 0, 0))
   zeichneBrett(zuggen.BRETT)
   zeichneFiguren(position)
   if drag:
@@ -121,6 +122,6 @@ while weitermachen:
       beste_bewertung, bester_zug = zuggen.minimax(0, -999999, 999999, weiss, position, rochaderecht)
       zuggen.zug_ausführen(bester_zug, position, königspos)
     else:
-      zugwechsel = False        
-  
+      zugwechsel = False
+
 pg.quit()
