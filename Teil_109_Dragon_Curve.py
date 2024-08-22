@@ -1,7 +1,7 @@
 import pygame as pg, copy
 
 
-def rotiere_kurve(kurve, grad):
+def rotiere_kurve(grad):
   rotiert = copy.deepcopy(kurve)
   drehpunkt = kurve[-1]
 
@@ -42,7 +42,7 @@ while True:
 
         case 1:
           for grad in range(0, 91, 3):
-            rotiert = rotiere_kurve(kurve, grad)
+            rotiert = rotiere_kurve(grad)
             zeichne_kurven()
           kurve.extend(rotiert[-2::-1])
           rotiert = []
