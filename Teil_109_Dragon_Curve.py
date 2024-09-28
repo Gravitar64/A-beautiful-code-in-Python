@@ -41,7 +41,7 @@ while True:
       for grad in range(0, 91, 3):
         rotiert = rotiere_kurve(kurve, grad)
         zeichne_kurven()
-      kurve.extend(rotiert[-2::-1])
+      kurve.extend(rotiert[::-1])
       rotiert = []
 
   zeichne_kurven()
