@@ -1,6 +1,5 @@
 import pygame as pg
 
-
 def zeige_brett():
   fenster.fill('gray75')
   fenster.blit(img_grid, (0, 0))
