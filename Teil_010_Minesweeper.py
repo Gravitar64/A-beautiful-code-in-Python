@@ -39,7 +39,7 @@ class Cell():
   mine: bool = False
   aufgedeckt: bool = False
   markiert: bool = False
-  anzMinenDrumrum = int = 0
+  anzMinenDrumrum: int = 0
 
   def show(self):
     pos = (self.spalte*abstand, self.zeile*abstand)
