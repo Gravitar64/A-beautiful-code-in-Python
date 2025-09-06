@@ -1,0 +1,33 @@
+TITLE: Timeline 1
+FCM: NON-DROP FRAME
+
+001  001      V     C        00:00:04:17 00:00:04:18 00:00:04:17 00:00:04:18  
+ |C:ResolveColorBlue |M:Einleitung |D:1
+
+002  001      V     C        00:01:16:05 00:01:16:06 00:01:16:05 00:01:16:06  
+ |C:ResolveColorBlue |M:Basisprogramm runterladen |D:1
+
+003  001      V     C        00:04:17:11 00:04:17:12 00:04:17:11 00:04:17:12  
+ |C:ResolveColorBlue |M:Erklärung zu "Bomben markieren" |D:1
+
+004  001      V     C        00:06:15:22 00:06:15:23 00:06:15:22 00:06:15:23  
+ |C:ResolveColorBlue |M:"Bomben markieren" programmieren |D:1
+
+005  001      V     C        00:23:02:16 00:23:02:17 00:23:02:16 00:23:02:17  
+ |C:ResolveColorBlue |M:Erklärung zu "Felder aufdecken" |D:1
+
+006  001      V     C        00:25:52:05 00:25:52:06 00:25:52:05 00:25:52:06  
+ |C:ResolveColorBlue |M:Programmierung "Felder aufdecken" |D:1
+
+007  001      V     C        00:30:03:22 00:30:03:23 00:30:03:22 00:30:03:23  
+ |C:ResolveColorBlue |M:Prüfungen wiederholen |D:1
+
+008  001      V     C        00:33:02:19 00:33:02:20 00:33:02:19 00:33:02:20  
+ |C:ResolveColorBlue |M:Aufdecken aller angrenzenden, leerer Felder |D:1
+
+009  001      V     C        00:38:50:11 00:38:50:12 00:38:50:11 00:38:50:12  
+ |C:ResolveColorBlue |M:Zeitmessung |D:1
+
+010  001      V     C        00:41:44:11 00:41:44:12 00:41:44:11 00:41:44:12  
+ |C:ResolveColorBlue |M:Test mit großen Feldern |D:1
+
