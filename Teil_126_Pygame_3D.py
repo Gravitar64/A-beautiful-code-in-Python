@@ -31,7 +31,8 @@ class Model:
         pg.draw.circle(fenster, 'red', screen(project(vertex)), 5)
 
     if not zeige_drahtgitter:
-      self.flächen = sorted(self.flächen, key=lambda x: -sum(self.punkte[i].z for i in x) / len(x))
+      self.flächen = sorted(self.flächen, 
+                            key=lambda x: -sum(self.punkte[i].z for i in x) / len(x))
 
     for face in self.flächen:
       polygon = [screen(project(self.punkte[i])) for i in face]
@@ -48,9 +49,7 @@ def load(file):
         punkte.append(v3(list(map(float, line.split()[1:]))))
       if line.startswith('f '):
         flächen.append([int(p.split('/')[0]) - 1 for p in line.split()[1:]])
-  print(
-    f'Import {file} erfolgreich. Vericies: {len(punkte):,} Edges: {len(flächen) * 4:,} Faces: {len(flächen):,} '
-  )
+  print(f'Import {file} erfolgreich. Punkte: {len(punkte):,} Flächen: {len(flächen):,} ')
   return punkte, flächen
 
 
@@ -74,31 +73,22 @@ model = Model(*load('Teil_126_monkey.obj'))
 
 while True:
   clock.tick(FPS)
+  pg.display.set_caption(f'Pygame 3D ({clock.get_fps():.0f}FPS)')
   fenster.fill('black')
 
   for ereignis in pg.event.get():
-    if ereignis.type == pg.QUIT:
-      quit()
+    if ereignis.type == pg.QUIT: quit()
     if ereignis.type == pg.KEYDOWN:
       match ereignis.key:
-        case pg.K_KP4:
-          model.rot_winkel[1] += WINKEL_DELTA
-        case pg.K_KP6:
-          model.rot_winkel[1] -= WINKEL_DELTA
-        case pg.K_KP8:
-          model.rot_winkel[0] += WINKEL_DELTA
-        case pg.K_KP2:
-          model.rot_winkel[0] -= WINKEL_DELTA
-        case pg.K_KP9:
-          model.rot_winkel[2] -= WINKEL_DELTA
-        case pg.K_KP1:
-          model.rot_winkel[2] += WINKEL_DELTA
-        case pg.K_p:
-          zeige_punkte = not zeige_punkte
-        case pg.K_d:
-          zeige_drahtgitter = not zeige_drahtgitter
-        case pg.K_ESCAPE:
-          quit()
+        case pg.K_KP4: model.rot_winkel[1] += WINKEL_DELTA
+        case pg.K_KP6: model.rot_winkel[1] -= WINKEL_DELTA
+        case pg.K_KP8: model.rot_winkel[0] += WINKEL_DELTA
+        case pg.K_KP2: model.rot_winkel[0] -= WINKEL_DELTA
+        case pg.K_KP9: model.rot_winkel[2] -= WINKEL_DELTA
+        case pg.K_KP1: model.rot_winkel[2] += WINKEL_DELTA
+        case pg.K_p: zeige_punkte = not zeige_punkte
+        case pg.K_d: zeige_drahtgitter = not zeige_drahtgitter
+        case pg.K_ESCAPE: quit()
     if ereignis.type == pg.MOUSEWHEEL:
       model.zoom(-ZOOM_DELTA) if ereignis.y > 0 else model.zoom(ZOOM_DELTA)
 
