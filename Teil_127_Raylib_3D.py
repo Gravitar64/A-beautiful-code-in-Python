@@ -4,7 +4,7 @@ pr.init_window(1000,1000,'RayLib für Python')
 pr.set_target_fps(60)
 pr.
 
-model = pr.load_model('Teil_126_voyager.obj')
+model = pr.load_model('Teil_126_monkey.obj')
 SCALE = 3
 pos = pr.Vector3(0,0,0)
 
