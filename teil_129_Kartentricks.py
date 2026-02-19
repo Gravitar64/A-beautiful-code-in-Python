@@ -1,3 +1,6 @@
+#Quelle: MagicExplained, The Prediction That NEVER Fails (Self-Working Trick)
+#https://www.youtube.com/watch?v=00U_IOkbdg0
+
 import random as rnd
 
 
@@ -72,7 +75,3 @@ for _ in range(100_000):
   assert(len(verdeckte) == 25)
   assert(len(schwarze) == 10)
   assert(len(auswahl_karten(schwarze,['A♠'])) == 1)
-
-
-
-
