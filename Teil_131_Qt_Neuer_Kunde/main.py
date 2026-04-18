@@ -29,7 +29,7 @@ class Frm_main(QtWidgets.QMainWindow, Ui_MainWindow):
     self.tbv_kunden.selectionModel().selectionChanged.connect(self.selection_kunde_changed)
     self.bt_neuer_kunde.clicked.connect(self.neuer_kunde)
     self.bt_kunde_aendern.clicked.connect(self.kunde_ändern)
-
+        
   def suche(self, text):
     self.mod_kunden.setFilter(f'vorname || " " || nachname like "%{text}%"') 
 
@@ -43,17 +43,18 @@ class Frm_main(QtWidgets.QMainWindow, Ui_MainWindow):
       self.tbv_buchungen.resizeColumnsToContents()
 
   def neuer_kunde(self):
-    row = self.mod_kunden.rowCount()
-    self.mod_kunden.insertRow(row)
-    dialog = Dlg_kunde(self, self.mod_kunden, row)
+    zeile = self.mod_kunden.rowCount()
+    self.mod_kunden.insertRow(zeile)
+    Dlg_kunde(self,self.mod_kunden,zeile)
+
 
   def kunde_ändern(self):
     index = self.tbv_kunden.currentIndex()
-    if index.isValid():
-      dialog = Dlg_kunde(self, self.mod_kunden, index.row())
+    if not index.isValid(): return
+    Dlg_kunde(self,self.mod_kunden,index.row())
 
 
-
+    
 app = QtWidgets.QApplication()
 db = QtSql.QSqlDatabase.addDatabase('QSQLITE')
 db.setDatabaseName('db.sqlite')
