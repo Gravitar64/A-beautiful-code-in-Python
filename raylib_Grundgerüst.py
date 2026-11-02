@@ -20,7 +20,7 @@ class Sprite:
 
 pr.init_window(1000, 1000, 'RayLib für Python')
 pr.set_target_fps(60)
-player = Sprite('RayLib_scarfy.png', (20, 100), 6, 0.15)
+player = Sprite('raylib_scarfy.png', (20, 100), 6, 0.15)
 
 while not pr.window_should_close():
   pr.begin_drawing()
