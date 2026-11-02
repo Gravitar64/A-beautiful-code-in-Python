@@ -3,3 +3,7 @@
 Teil_xx*.*
 test*.*
 ranking.log
+*.lock
+*.toml
+.python-version
+src/*.*
