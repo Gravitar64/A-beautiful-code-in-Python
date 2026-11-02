@@ -43,7 +43,7 @@ def abfrage_kurse(datum):
 
 symbole = 'Tl0.DE AMD.DE 0P00000P06.F 0P00000EHB.F BTC-EUR DOGE-EUR'.split()
 
-conn = db_connect('Teil_130_depot.db')
+conn = db_connect('Teil_134_depot.db')
 aktuelle_kurse_einlesen()
 abfrage_kurse('2026-11-02')
 conn.close()
