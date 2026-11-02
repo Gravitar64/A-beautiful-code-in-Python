@@ -32,19 +32,17 @@ def aktuelle_kurse_einlesen():
 
 def abfrage_kurse(datum):
   cursor = db.cursor()
-  datum += ' 23:59:59'
   cursor.execute(f'select name, kurs, max(datum) from kurse \
                    where datum <= "{datum}" \
                    group by name \
                    order by name')
   for name, kurs, datum in cursor.fetchall():
-    print(f'{name:<15} {kurs:>10,.2f}€   {datum}')                 
-
-
+    print(f'{name:<15} {kurs:>10,.2f}€   {datum}')
 
 
 symbole = 'Tl0.DE AMD.DE 0P00000P06.F 0P00000EHB.F BTC-EUR DOGE-EUR'.split()
 db = db_verbinden('Teil_134_depot.db')
 aktuelle_kurse_einlesen()
-abfrage_kurse('2026-11-02')
+jetzt = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+abfrage_kurse(jetzt)
 db.close()
