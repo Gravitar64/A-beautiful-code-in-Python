@@ -3,9 +3,9 @@ import sqlite3
 from datetime import datetime
 
 
-def db_connect(db):
-  conn = sqlite3.connect(db)
-  cursor = conn.cursor()
+def db_verbinden(datei):
+  db = sqlite3.connect(datei)
+  cursor = db.cursor()
   sql = """create table if not exists kurse 
            (id integer primary key autoincrement,
            name text not null,
@@ -14,12 +14,12 @@ def db_connect(db):
            unique (name,datum))
         """
   cursor.execute(sql)
-  conn.commit()
-  return conn
+  db.commit()
+  return db
 
 
 def aktuelle_kurse_einlesen():
-  cursor = conn.cursor()
+  cursor = db.cursor()
   for symbol in symbole:
     info = yf.Ticker(symbol).info
     name = info.get('name')
@@ -27,11 +27,11 @@ def aktuelle_kurse_einlesen():
     kurs = info.get('regularMarketPrice') or info.get('currentPrice')
     cursor.execute('insert or ignore into kurse (name, kurs, datum) \
                     values (?, ?, ?)', (name, kurs, stand))
-  conn.commit()
+  db.commit()
 
 
 def abfrage_kurse(datum):
-  cursor = conn.cursor()
+  cursor = db.cursor()
   datum += ' 23:59:59'
   cursor.execute(f'select name, kurs, max(datum) from kurse \
                    where datum <= "{datum}" \
@@ -41,9 +41,10 @@ def abfrage_kurse(datum):
     print(f'{name:<15} {kurs:>10,.2f}€   {datum}')                 
 
 
-symbole = 'Tl0.DE AMD.DE 0P00000P06.F 0P00000EHB.F BTC-EUR DOGE-EUR'.split()
 
-conn = db_connect('Teil_134_depot.db')
+
+symbole = 'Tl0.DE AMD.DE 0P00000P06.F 0P00000EHB.F BTC-EUR DOGE-EUR'.split()
+db = db_verbinden('Teil_134_depot.db')
 aktuelle_kurse_einlesen()
 abfrage_kurse('2026-11-02')
-conn.close()
+db.close()

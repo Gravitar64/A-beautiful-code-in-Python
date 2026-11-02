@@ -1,9 +1,10 @@
+*.toml
+uv.lock
 *credentials*.py
 *.pyc
 Teil_xx*.*
 test*.*
 ranking.log
 *.lock
-*.toml
 .python-version
-src/*.*
+src/.
