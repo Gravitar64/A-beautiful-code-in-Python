@@ -22,8 +22,8 @@ def aktuelle_kurse_einlesen():
   cursor = db.cursor()
   for symbol in symbole:
     info = yf.Ticker(symbol).info
-    name = info.get('name')
-    stand = datetime.fromtimestamp(info.get('regularMarketTime'))
+    name = info.get('longName')
+    stand = datetime.fromtimestamp(info.get('regularMarketTime')).isoformat()
     kurs = info.get('regularMarketPrice') or info.get('currentPrice')
     cursor.execute('insert or ignore into kurse (name, kurs, datum) \
                     values (?, ?, ?)', (name, kurs, stand))
@@ -37,12 +37,11 @@ def abfrage_kurse(datum):
                    group by name \
                    order by name')
   for name, kurs, datum in cursor.fetchall():
-    print(f'{name:<15} {kurs:>10,.2f}€   {datum}')
+    print(f'{name:<30} {kurs:>10,.2f}€   {datum}')
 
 
 symbole = 'Tl0.DE AMD.DE 0P00000P06.F 0P00000EHB.F BTC-EUR DOGE-EUR'.split()
 db = db_verbinden('Teil_134_depot.db')
 aktuelle_kurse_einlesen()
-jetzt = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-abfrage_kurse(jetzt)
+abfrage_kurse(datetime.now().isoformat())
 db.close()
