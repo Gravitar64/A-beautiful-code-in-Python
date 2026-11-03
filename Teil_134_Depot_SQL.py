@@ -14,7 +14,7 @@ def db_verbinden(datei):
             unique(name,datum))"""
   cursor.execute(sql)
   db.commit()
-  return db          
+  return db
 
 
 def aktuelle_kurse_einlesen():
@@ -25,8 +25,8 @@ def aktuelle_kurse_einlesen():
     name = daten['longName']
     kurs = daten['regularMarketPrice']
     datum = dt.datetime.fromtimestamp(daten['regularMarketTime']).isoformat()
-    cursor.execute(sql,(name, kurs, datum))
-  db.commit()  
+    cursor.execute(sql, (name, kurs, datum))
+  db.commit()
 
 
 symbole = 'TL0.DE AMD.DE BTC-EUR DOGE-EUR'.split()
