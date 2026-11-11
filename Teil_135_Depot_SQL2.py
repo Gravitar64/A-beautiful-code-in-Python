@@ -6,26 +6,13 @@ import sqlite3
 def db_verbinden(datei):
   db = sqlite3.connect(datei)
   cursor = db.cursor()
-  sqls = ["""create table if not exists kurse
-             (id integer primary key autoincrement,
-             name text not null,
-             datum text not null,
-             kurs float not null,
-             unique(name,datum))""",
-          """create table if not exists transaktionen
-             (id integer primary key autoincrement,
-             name text not null,
-             datum text not null,
-             anteile float not null,
-             invest float not null,
-             unique(name,datum))"""]
-  for sql in sqls:
-    cursor.execute(sql)
-
-  for transaktion in transaktionen:
-    cursor.execute(
-        'insert or ignore into transaktionen (name, datum, anteile, invest) values (?, ?, ?, ?)', transaktion)
-
+  sql = """create table if not exists kurse
+           (id integer primary key autoincrement,
+            name text not null,
+            datum text not null,
+            kurs float not null,
+            unique(name,datum))"""
+  cursor.execute(sql)
   db.commit()
   return db
 
@@ -44,30 +31,38 @@ def aktuelle_kurse_einlesen():
 
 def portfolio_bewerten():
   cursor = db.cursor()
+  sql = 'select name, max(datum), kurs from kurse group by name'
   sum_invest = sum_wert = sum_gv = 0
-  print(f"{'Name':<30} Ant {'Kurs':>10} {'Wert':>10} {'Invest':>10} {'G/V':>10} {'in %':>10}")
-  print('-'*90)
-  for name, datum, kurs in cursor.execute('select name, max(datum), kurs from kurse group by name').fetchall():
-    name2, anteile, invest = cursor.execute(
-        f'select name, sum(anteile), sum(invest) from transaktionen where name = "{name}" group by name')\
-        .fetchone()
-    gesamtwert = kurs * anteile
-    gv = gesamtwert - invest
-    sum_invest += invest
-    sum_wert += gesamtwert
+  print(f"{'Name':<30} {'Invest':>10} {'Ant':>8} {'Kurs':>10} {'Wert':>10} {'G/V':>10} {'in %':>11}")
+  print('-'*95)
+  
+  for name, datum, kurs in cursor.execute(sql).fetchall():
+    anteile, invest = werte[name]
+    akt_wert = kurs * anteile
+    gv = akt_wert - invest
+    sum_wert += akt_wert
     sum_gv += gv
-    print(f'{name:<30} {anteile:>3} {kurs:>10,.2f} {gesamtwert:>10,.2f} {invest:>10,.2f} {gv:>10,.2f} {gv/invest*100:>10,.2f}%')
-  print('-'*90)
-  print(f'{'Summen':>45} {sum_wert:>10,.2f} {sum_invest:>10,.2f} {sum_gv:>10,.2f} {sum_gv/sum_invest*100:>10,.2f}%')
+    sum_invest += invest
+    print(f'{name:<30} {invest:>10,.2f} {anteile:>8.2f} {kurs:>10,.2f} {akt_wert:>10,.2f} {gv:>10,.2f} {gv/invest*100:>10,.2f}%')
+
+  print('-'*95)
+  print(f'{'Summen':>30} {sum_invest:>10,.2f} {sum_wert:>30,.2f} {sum_gv:>10,.2f} {sum_gv/sum_invest*100:>10,.2f}%')
 
 
 symbole = 'TL0.DE AMD.DE BTC-EUR DOGE-EUR'.split()
-transaktionen = [('Tesla, Inc.', '2016-01-15', 1, 12.53),
-                 ('Advanced Micro Devices, Inc.', '2006-02-15', 1, 33.60),
-                 ('Bitcoin EUR', '2016-05-15', 1, 404.66),
-                 ('Dogecoin EUR', '2016-05-15', 1, 0.000204),
-                 ('Dogecoin EUR', '2023-08-16', 1, 0.0616),
-                 ]
+transaktionen = [('Tesla, Inc.', '2020-09-14', 10, 1080.40),
+                 ('Advanced Micro Devices, Inc.', '2007-08-06', 100, 1036.95),
+                 ('Bitcoin EUR', '2023-08-21', 0.045297, 1086.07801554),
+                 ('Dogecoin EUR', '2021-05-10', 18011.52738, 1094.70),
+                 ('Bitcoin EUR', '2026-01-06', 0.01245928, 1000)]
+
+werte = dict()
+for name, datum, anteile, invest in transaktionen:
+  if name not in werte:
+    werte[name] = [anteile, invest]
+  else:
+    werte[name][0] += anteile  
+    werte[name][1] += invest  
 
 db = db_verbinden('Teil_134_depot.db')
 aktuelle_kurse_einlesen()
