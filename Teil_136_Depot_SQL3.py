@@ -1,6 +1,7 @@
 import yfinance as yf
 import datetime as dt
 import sqlite3
+import itertools as itt 
 
 
 def db_verbinden(datei):
@@ -50,59 +51,62 @@ def portfolio_bewerten():
   return sum_wert
 
 
-def rendite_ermitteln(wert):
+def rendite_berechnen(wert, transaktionen):
+  konto = [(t[1], t[3]) for t in transaktionen]
+  konto.append((dt.datetime.now().date().isoformat(),0))
+  konto.sort()
+
   rendite, schritt, zu_hoch, saldo = 0, 10, False, 0
-  while abs(saldo - wert) > 0.01:
-    saldo = saldo_ermitteln(rendite)
+  while abs(saldo-wert) > 0.01:
+    saldo = saldo_ermitteln(rendite, konto)
     diff = saldo - wert
-    if diff > 0 and not zu_hoch or diff < 0 and zu_hoch:
+    if diff < 0 and zu_hoch or diff > 0 and not zu_hoch:
       schritt *= -0.5
       zu_hoch = not zu_hoch
     rendite += schritt
-  return rendite
+  return rendite  
 
 
-def saldo_ermitteln(rendite):
+def saldo_ermitteln(rendite, konto):
   saldo = zinsen = 0
-  konto = [(t[1], t[3]) for t in transaktionen]
-  konto.append((dt.datetime.now().date().isoformat(),0))
-  for (vom,i1),(bis,i2) in zip(konto, konto[1:]):
-    saldo += i1
+  for (vom,invest), (bis,_) in itt.pairwise(konto):
+    saldo += invest
     if vom[:4] == bis[:4]:
       tage = tage360(vom,bis)
-      zinsen += zins(saldo, rendite, tage)
+      zinsen += zinsen_berechnen(saldo, rendite, tage)
     else:
-      jahresende =  vom[:4]+'-12-30'
-      tage = tage360(vom, jahresende)
-      zinsen += zins(saldo, rendite, tage)
+      jahresende = vom[:4]+'-12-30'
+      tage = tage360(vom,jahresende)
+      zinsen += zinsen_berechnen(saldo, rendite, tage)
       saldo += zinsen
-      
-      for y in range(int(vom[:4])+1,int(bis[:4])):
-        saldo +=  zins(saldo, rendite, 360)
-      
-      vorjahresende = str(y)+'-12-30'
-      tage = tage360(vorjahresende, bis)
-      zinsen = zins(saldo, rendite, tage)
+
+      for jahr in range(int(vom[:4])+1, int(bis[:4])):
+        saldo += zinsen_berechnen(saldo, rendite, 360)
+
+      vorjahresende = str(jahr)+'-12-30'
+      tage = tage360(vorjahresende,bis)
+      zinsen = zinsen_berechnen(saldo, rendite, tage)
   return saldo + zinsen    
 
 
 def tage360(vom,bis):
-  vj,vm,vt = map(int,vom.split('-'))
-  bj,bm,bt = map(int,bis.split('-'))
-  return (bj - vj) * 360 + (bm - vm) * 30 + min(bt,30) - min(vt,30)
+  vj, vm, vt = map(int,vom.split('-'))
+  bj, bm, bt = map(int,vom.split('-'))
+  return (bj-vj)*360 +(bm-vm)*30 + min(bt,30)-min(vt,30)
 
-def zins(k,p,t):
-  return k * p * t / 100 / 360  
+
+def zinsen_berechnen(k,p,t):
+  return k * p * t / 360 /100
+
+
 
 
 symbole = 'TL0.DE AMD.DE BTC-EUR DOGE-EUR'.split()
-transaktionen = sorted(
-                 [('Tesla, Inc.', '2020-09-14', 10, 1080.40),
+transaktionen = [('Tesla, Inc.', '2020-09-14', 10, 1080.40),
                  ('Advanced Micro Devices, Inc.', '2007-08-06', 100, 1036.95),
                  ('Bitcoin EUR', '2023-08-21', 0.045297, 1086.07801554),
                  ('Dogecoin EUR', '2021-05-10', 18011.52738, 1094.70),
-                 ('Bitcoin EUR', '2026-01-06', 0.01245928, 1000)], key = lambda x: x[1]
-                 )
+                 ('Bitcoin EUR', '2026-01-06', 0.01245928, 1000)]
 
 werte = dict()
 for name, datum, anteile, invest in transaktionen:
@@ -113,7 +117,7 @@ for name, datum, anteile, invest in transaktionen:
     werte[name][1] += invest  
 
 db = db_verbinden('Teil_134_depot.db')
-#aktuelle_kurse_einlesen()
+aktuelle_kurse_einlesen()
 wert = portfolio_bewerten()
-rendite = rendite_ermitteln(wert)
-print(f'Aktuelle Rendite = {rendite:,.2f}%')
+rendite = rendite_berechnen(wert, transaktionen)
+print(f'Die jährliche Mindest-Rendite müsste auf einem Geldanlagekonto {rendite:,.2f}% betragen.')
